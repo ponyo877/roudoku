@@ -31,8 +31,8 @@ class ReadingStatsCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                color.withOpacity(0.1),
-                color.withOpacity(0.05),
+                color.withValues(alpha: 0.1),
+                color.withValues(alpha: 0.05),
               ],
             ),
           ),
@@ -298,8 +298,8 @@ class StreakCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.orange.withOpacity(0.1),
-                Colors.red.withOpacity(0.1),
+                Colors.orange.withValues(alpha: 0.1),
+                Colors.red.withValues(alpha: 0.1),
               ],
             ),
           ),

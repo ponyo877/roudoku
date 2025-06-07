@@ -88,7 +88,7 @@ class WeeklyReadingChart extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withOpacity(0.6),
+                Theme.of(context).primaryColor.withValues(0.6),
               ],
             ),
             barWidth: 3,
@@ -110,8 +110,8 @@ class WeeklyReadingChart extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Theme.of(context).primaryColor.withOpacity(0.3),
-                  Theme.of(context).primaryColor.withOpacity(0.1),
+                  Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                  Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 ],
               ),
             ),
@@ -119,7 +119,7 @@ class WeeklyReadingChart extends StatelessWidget {
         ],
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
-            tooltipBgColor: Colors.blueAccent,
+            getTooltipColor: (touchedSpot) => Colors.blueAccent,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((LineBarSpot touchedSpot) {
                 final index = touchedSpot.x.toInt();
@@ -331,7 +331,7 @@ class ReadingSpeedChart extends StatelessWidget {
         maxY: _getMaxY(),
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
-            tooltipBgColor: Colors.blueAccent,
+            getTooltipColor: (group) => Colors.blueAccent,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 '${labels[group.x]}:\n${rod.toY.toInt()}語/分',
@@ -421,7 +421,7 @@ class ReadingSpeedChart extends StatelessWidget {
               end: Alignment.topCenter,
               colors: [
                 Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withOpacity(0.7),
+                Theme.of(context).primaryColor.withValues(0.7),
               ],
             ),
           ),
@@ -588,7 +588,7 @@ class MonthlyTrendChart extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withOpacity(0.6),
+                Theme.of(context).primaryColor.withValues(0.6),
               ],
             ),
             barWidth: 3,
@@ -600,8 +600,8 @@ class MonthlyTrendChart extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Theme.of(context).primaryColor.withOpacity(0.3),
-                  Theme.of(context).primaryColor.withOpacity(0.1),
+                  Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                  Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 ],
               ),
             ),

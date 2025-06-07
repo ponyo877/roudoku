@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../models/book.dart';
+import '../models/session_models.dart';
 import '../services/audio_service.dart';
 import '../services/session_service.dart';
 

@@ -78,10 +78,7 @@ class RoudokuApp extends StatelessWidget {
       dio: dio,
       baseUrl: baseUrl,
     );
-    final swipeService = SwipeService(
-      dio: dio,
-      baseUrl: baseUrl,
-    );
+    final swipeService = SwipeService(dio, prefs);
     final apiService = HttpApiService(
       dio: dio,
       baseUrl: baseUrl,
@@ -140,7 +137,7 @@ class RoudokuApp extends StatelessWidget {
               ),
             ),
           ),
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),

@@ -319,13 +319,13 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
   Color _getOverlayColor(SwipeDirection? direction) {
     switch (direction) {
       case SwipeDirection.left:
-        return Colors.red.withOpacity(0.7);
+        return Colors.red.withValues(alpha: 0.7);
       case SwipeDirection.right:
-        return Colors.green.withOpacity(0.7);
+        return Colors.green.withValues(alpha: 0.7);
       case SwipeDirection.up:
-        return Colors.purple.withOpacity(0.7);
+        return Colors.purple.withValues(alpha: 0.7);
       case SwipeDirection.down:
-        return Colors.orange.withOpacity(0.7);
+        return Colors.orange.withValues(alpha: 0.7);
       default:
         return Colors.transparent;
     }
@@ -405,7 +405,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 10,
                         offset: Offset(0, widget.stackIndex * 2),
                       ),
@@ -475,7 +475,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(

@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.6 <4.0.0'
+  sdk: '>=3.8.1 <4.0.0'
+  flutter: '>=3.32.2'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -36,35 +37,35 @@ dependencies:
   cupertino_icons: ^1.0.2
   
   # State management
-  provider: ^6.0.5
+  provider: ^6.1.2
   
   # HTTP requests
-  dio: ^5.3.2
+  dio: ^5.7.0
   
   # Local storage
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.3.2
   
   # Firebase
-  firebase_core: ^2.15.1
-  firebase_auth: ^4.7.2
-  cloud_firestore: ^4.9.1
-  google_sign_in: ^6.1.4
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.3
+  google_sign_in: ^6.2.1
   
   # AdMob
-  google_mobile_ads: ^3.0.0
+  google_mobile_ads: ^5.2.0
   
   # Audio playback
-  just_audio: ^0.9.34
-  just_audio_background: ^0.0.1-beta.8
+  just_audio: ^0.9.40
+  just_audio_background: ^0.0.1-beta.13
   
   # Image caching
-  cached_network_image: ^3.2.3
+  cached_network_image: ^3.4.1
   
   # Swipe animations and gestures
   flutter_card_swiper: ^7.0.1
   
   # Location services
-  geolocator: ^10.1.0
+  geolocator: ^13.0.1
   geocoding: ^3.0.0
   
   # Weather API
@@ -74,42 +75,42 @@ dependencies:
   vibration: ^2.0.0
   
   # Battery and connectivity status
-  battery_plus: ^5.0.2
-  connectivity_plus: ^5.0.2
+  battery_plus: ^6.0.2
+  connectivity_plus: ^6.1.0
   
   # Sensors for device context
-  sensors_plus: ^4.0.2
+  sensors_plus: ^6.0.1
   
   # Animation utilities
   flutter_staggered_animations: ^1.1.1
   
   # JSON serialization
-  json_annotation: ^4.8.1
-  uuid: ^4.2.1
+  json_annotation: ^4.9.0
+  uuid: ^4.5.1
   
   # Charts and data visualization
-  fl_chart: ^0.65.0
+  fl_chart: ^0.69.0
   
   # Text-to-Speech
-  flutter_tts: ^4.0.2
+  flutter_tts: ^4.1.0
   
   # HTTP
-  http: ^1.1.0
+  http: ^1.2.2
   
   # Path utilities
-  path_provider: ^2.1.1
+  path_provider: ^2.1.4
   
   # Permission handling
-  permission_handler: ^11.0.1
+  permission_handler: ^11.3.1
   
   # URL launcher
-  url_launcher: ^6.1.12
+  url_launcher: ^6.3.1
   
   # Package info
-  package_info_plus: ^4.2.0
+  package_info_plus: ^8.0.2
   
   # Device info
-  device_info_plus: ^9.1.0
+  device_info_plus: ^11.0.0
 
 dev_dependencies:
   flutter_test:
@@ -120,11 +121,11 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  flutter_lints: ^5.0.0
   
   # JSON code generation
-  json_serializable: ^6.7.1
-  build_runner: ^2.4.7
+  json_serializable: ^6.8.0
+  build_runner: ^2.4.13
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

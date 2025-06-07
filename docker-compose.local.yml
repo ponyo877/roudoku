@@ -23,43 +23,43 @@ services:
       retries: 5
       start_period: 30s
 
-  # Optional: Redis for caching (commented out for now)
-  # redis:
-  #   image: redis:7-alpine
-  #   container_name: roudoku-redis
-  #   ports:
-  #     - "6379:6379"
-  #   networks:
-  #     - roudoku-network
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     interval: 10s
-  #     timeout: 3s
-  #     retries: 3
+# Optional: Redis for caching (commented out for now)
+# redis:
+#   image: redis:7-alpine
+#   container_name: roudoku-redis
+#   ports:
+#     - "6379:6379"
+#   networks:
+#     - roudoku-network
+#   healthcheck:
+#     test: ["CMD", "redis-cli", "ping"]
+#     interval: 10s
+#     timeout: 3s
+#     retries: 3
 
-  # Development server (optional - can be run separately)
-  # server:
-  #   build:
-  #     context: ./server
-  #     dockerfile: Dockerfile.dev
-  #   container_name: roudoku-server
-  #   ports:
-  #     - "8080:8080"
-  #   environment:
-  #     - DB_HOST=postgres
-  #     - DB_PORT=5432
-  #     - DB_NAME=roudoku
-  #     - DB_USER=roudoku
-  #     - DB_PASSWORD=roudoku_local_password
-  #     - GIN_MODE=debug
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   networks:
-  #     - roudoku-network
-  #   volumes:
-  #     - ./server:/app
-  #   command: ["go", "run", "cmd/server/main.go"]
+# Development server (optional - can be run separately)
+# server:
+#   build:
+#     context: ./server
+#     dockerfile: Dockerfile.dev
+#   container_name: roudoku-server
+#   ports:
+#     - "8080:8080"
+#   environment:
+#     - DB_HOST=postgres
+#     - DB_PORT=5432
+#     - DB_NAME=roudoku
+#     - DB_USER=roudoku
+#     - DB_PASSWORD=roudoku_local_password
+#     - GIN_MODE=debug
+#   depends_on:
+#     postgres:
+#       condition: service_healthy
+#   networks:
+#     - roudoku-network
+#   volumes:
+#     - ./server:/app
+#   command: ["go", "run", "cmd/server/main.go"]
 
 volumes:
   roudoku_postgres_data:
