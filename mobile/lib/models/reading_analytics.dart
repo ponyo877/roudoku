@@ -395,3 +395,74 @@ class ReadingInsight {
     );
   }
 }
+
+class ReadingSession {
+  final String id;
+  final String userId;
+  final String bookId;
+  final DateTime startTime;
+  final DateTime? endTime;
+  final int durationMinutes;
+  final int startPosition;
+  final int endPosition;
+  final String? mood;
+  final String? weather;
+  final String? location;
+
+  ReadingSession({
+    required this.id,
+    required this.userId,
+    required this.bookId,
+    required this.startTime,
+    this.endTime,
+    required this.durationMinutes,
+    required this.startPosition,
+    required this.endPosition,
+    this.mood,
+    this.weather,
+    this.location,
+  });
+
+  factory ReadingSession.fromJson(Map<String, dynamic> json) {
+    return ReadingSession(
+      id: json['id'] ?? '',
+      userId: json['user_id'] ?? '',
+      bookId: json['book_id'] ?? '',
+      startTime: DateTime.parse(json['start_time']),
+      endTime: json['end_time'] != null ? DateTime.parse(json['end_time']) : null,
+      durationMinutes: json['duration_minutes'] ?? 0,
+      startPosition: json['start_position'] ?? 0,
+      endPosition: json['end_position'] ?? 0,
+      mood: json['mood'],
+      weather: json['weather'],
+      location: json['location'],
+    );
+  }
+
+  factory ReadingSession.fromMap(Map<String, dynamic> map) => ReadingSession.fromJson(map);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'book_id': bookId,
+      'start_time': startTime.toIso8601String(),
+      if (endTime != null) 'end_time': endTime!.toIso8601String(),
+      'duration_minutes': durationMinutes,
+      'start_position': startPosition,
+      'end_position': endPosition,
+      if (mood != null) 'mood': mood,
+      if (weather != null) 'weather': weather,
+      if (location != null) 'location': location,
+    };
+  }
+
+  Map<String, dynamic> toMap() => toJson();
+
+  bool get isActive => endTime == null;
+
+  double get progressPercentage {
+    if (endPosition <= startPosition) return 0.0;
+    return ((endPosition - startPosition) / endPosition * 100).clamp(0.0, 100.0);
+  }
+}

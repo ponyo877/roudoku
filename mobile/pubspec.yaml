@@ -47,6 +47,7 @@ dependencies:
   # Firebase
   firebase_core: ^2.15.1
   firebase_auth: ^4.7.2
+  cloud_firestore: ^4.9.1
   google_sign_in: ^6.1.4
   
   # AdMob
@@ -88,6 +89,27 @@ dependencies:
   
   # Charts and data visualization
   fl_chart: ^0.65.0
+  
+  # Text-to-Speech
+  flutter_tts: ^4.0.2
+  
+  # HTTP
+  http: ^1.1.0
+  
+  # Path utilities
+  path_provider: ^2.1.1
+  
+  # Permission handling
+  permission_handler: ^11.0.1
+  
+  # URL launcher
+  url_launcher: ^6.1.12
+  
+  # Package info
+  package_info_plus: ^4.2.0
+  
+  # Device info
+  device_info_plus: ^9.1.0
 
 dev_dependencies:
   flutter_test:

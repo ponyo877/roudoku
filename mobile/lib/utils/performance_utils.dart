@@ -204,7 +204,7 @@ class PerformanceUtils {
     Duration? cacheExpiry,
   }) async {
     // Check cache first
-    if _lazyCache.containsKey(key) {
+    if (_lazyCache.containsKey(key)) {
       final cached = _lazyCache[key];
       if (cached['expiry'] == null || DateTime.now().isBefore(cached['expiry'])) {
         return cached['data'] as T;

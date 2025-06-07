@@ -12,6 +12,14 @@ enum SwipeMode {
   facemash,
 }
 
+/// Swipe direction for UI interactions
+enum SwipeDirection {
+  left,
+  right,
+  up,
+  down,
+}
+
 /// Swipe choice options
 enum SwipeChoice {
   @JsonValue(-1)
@@ -125,7 +133,11 @@ class ContextData {
   factory ContextData.fromJson(Map<String, dynamic> json) =>
       _$ContextDataFromJson(json);
 
+  factory ContextData.fromMap(Map<String, dynamic> map) => ContextData.fromJson(map);
+
   Map<String, dynamic> toJson() => _$ContextDataToJson(this);
+
+  Map<String, dynamic> toMap() => toJson();
 
   ContextData copyWith({
     double? latitude,
@@ -497,7 +509,11 @@ class SwipeLog {
   factory SwipeLog.fromJson(Map<String, dynamic> json) =>
       _$SwipeLogFromJson(json);
 
+  factory SwipeLog.fromMap(Map<String, dynamic> map) => SwipeLog.fromJson(map);
+
   Map<String, dynamic> toJson() => _$SwipeLogToJson(this);
+
+  Map<String, dynamic> toMap() => toJson();
 }
 
 /// Batch swipe request

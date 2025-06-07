@@ -29,22 +29,26 @@ class Book {
 
   factory Book.fromJson(Map<String, dynamic> json) {
     return Book(
-      id: json['id'],
-      title: json['title'],
-      author: json['author'],
-      description: json['description'],
-      coverUrl: json['coverUrl'],
-      audioUrl: json['audioUrl'],
-      duration: json['duration'],
-      category: json['category'],
-      chapters: (json['chapters'] as List)
-          .map((chapter) => Chapter.fromJson(chapter))
-          .toList(),
-      rating: json['rating']?.toDouble() ?? 0.0,
-      reviewCount: json['reviewCount'] ?? 0,
-      isPremium: json['isPremium'] ?? false,
+      id: json['id'].toString(),
+      title: json['title'] ?? '',
+      author: json['author'] ?? '',
+      description: json['summary'] ?? json['description'] ?? '',
+      coverUrl: json['cover_url'] ?? json['coverUrl'] ?? '',
+      audioUrl: json['audio_url'] ?? json['audioUrl'] ?? '',
+      duration: json['estimated_reading_minutes'] ?? json['duration'] ?? 0,
+      category: json['genre'] ?? json['category'] ?? '',
+      chapters: json['chapters'] != null 
+          ? (json['chapters'] as List)
+              .map((chapter) => Chapter.fromJson(chapter))
+              .toList()
+          : [],
+      rating: (json['rating_average'] ?? json['rating'] ?? 0).toDouble(),
+      reviewCount: json['rating_count'] ?? json['reviewCount'] ?? 0,
+      isPremium: json['is_premium'] ?? json['isPremium'] ?? false,
     );
   }
+
+  factory Book.fromMap(Map<String, dynamic> map) => Book.fromJson(map);
 
   Map<String, dynamic> toJson() {
     return {
@@ -120,13 +124,15 @@ class Quote {
   factory Quote.fromJson(Map<String, dynamic> json) {
     return Quote(
       id: json['id'],
-      bookId: json['book_id'],
+      bookId: json['book_id'].toString(),
       text: json['text'],
       position: json['position'],
       chapterTitle: json['chapter_title'],
       createdAt: DateTime.parse(json['created_at']),
     );
   }
+
+  factory Quote.fromMap(Map<String, dynamic> map) => Quote.fromJson(map);
 
   Map<String, dynamic> toJson() {
     return {
@@ -138,4 +144,6 @@ class Quote {
       'created_at': createdAt.toIso8601String(),
     };
   }
+
+  Map<String, dynamic> toMap() => toJson();
 }

@@ -42,6 +42,8 @@ class User {
     );
   }
 
+  factory User.fromMap(Map<String, dynamic> map) => User.fromJson(map);
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -56,6 +58,8 @@ class User {
       'bookProgress': bookProgress,
     };
   }
+
+  Map<String, dynamic> toMap() => toJson();
 
   User copyWith({
     String? id,
