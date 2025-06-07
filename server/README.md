@@ -5,7 +5,7 @@ This is the refactored Go backend for the Roudoku application, following Clean A
 ## Directory Structure
 
 ```
-backend2/
+server/
 ├── cmd/server/           # Application entry points
 ├── models/               # Domain models and business entities
 ├── repository/           # Data access layer interfaces

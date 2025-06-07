@@ -8,6 +8,7 @@
 * **最適な声色・速度** で TTS 朗読し、散歩・通勤・就寝前などシーンに合わせた音声体験を提供
 * **フロント**: Flutter（iOS / Android 両対応）
 * **バックエンド**: Go（REST + gRPC）＋ PostgreSQL
+* **インフラ**: Terraform
 
 ---
 

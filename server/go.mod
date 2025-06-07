@@ -1,4 +1,4 @@
-module github.com/ponyo877/roudoku/backend2
+module github.com/ponyo877/roudoku/server
 
 go 1.21
 

@@ -4,7 +4,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/ponyo877/roudoku/backend2/internal/database"
+	"github.com/ponyo877/roudoku/server/internal/database"
 )
 
 // Config represents application configuration

@@ -62,6 +62,78 @@ type Quote struct {
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 }
 
+// SwipeMode represents the type of swipe interaction
+type SwipeMode string
+
+const (
+	SwipeModeTinder   SwipeMode = "tinder"
+	SwipeModeFacemash SwipeMode = "facemash"
+)
+
+// SwipeLog represents a user's swipe interaction with quotes
+type SwipeLog struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	UserID    uuid.UUID `json:"user_id" db:"user_id"`
+	QuoteID   uuid.UUID `json:"quote_id" db:"quote_id"`
+	Mode      SwipeMode `json:"mode" db:"mode"`
+	Choice    int       `json:"choice" db:"choice"` // 1=like, 0=dislike, -1=left
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+}
+
+// ReadingSession represents a user's reading session
+type ReadingSession struct {
+	ID           uuid.UUID `json:"id" db:"id"`
+	UserID       uuid.UUID `json:"user_id" db:"user_id"`
+	BookID       int64     `json:"book_id" db:"book_id"`
+	StartPos     int       `json:"start_pos" db:"start_pos"`
+	CurrentPos   int       `json:"current_pos" db:"current_pos"`
+	DurationSec  int       `json:"duration_sec" db:"duration_sec"`
+	Mood         *string   `json:"mood" db:"mood"`
+	Weather      *string   `json:"weather" db:"weather"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// Rating represents a user's rating for a book
+type Rating struct {
+	UserID    uuid.UUID `json:"user_id" db:"user_id"`
+	BookID    int64     `json:"book_id" db:"book_id"`
+	Rating    int       `json:"rating" db:"rating"` // 1-5 scale
+	Comment   *string   `json:"comment" db:"comment"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// CreateSwipeLogRequest represents the request body for creating a swipe log
+type CreateSwipeLogRequest struct {
+	QuoteID uuid.UUID `json:"quote_id" validate:"required"`
+	Mode    SwipeMode `json:"mode" validate:"required,oneof=tinder facemash"`
+	Choice  int       `json:"choice" validate:"required,oneof=-1 0 1"`
+}
+
+// CreateReadingSessionRequest represents the request body for creating a reading session
+type CreateReadingSessionRequest struct {
+	BookID   int64   `json:"book_id" validate:"required"`
+	StartPos int     `json:"start_pos" validate:"min=0"`
+	Mood     *string `json:"mood" validate:"omitempty,max=100"`
+	Weather  *string `json:"weather" validate:"omitempty,max=100"`
+}
+
+// UpdateReadingSessionRequest represents the request body for updating a reading session
+type UpdateReadingSessionRequest struct {
+	CurrentPos  *int    `json:"current_pos" validate:"omitempty,min=0"`
+	DurationSec *int    `json:"duration_sec" validate:"omitempty,min=0"`
+	Mood        *string `json:"mood" validate:"omitempty,max=100"`
+	Weather     *string `json:"weather" validate:"omitempty,max=100"`
+}
+
+// CreateRatingRequest represents the request body for creating/updating a rating
+type CreateRatingRequest struct {
+	BookID  int64   `json:"book_id" validate:"required"`
+	Rating  int     `json:"rating" validate:"required,min=1,max=5"`
+	Comment *string `json:"comment" validate:"omitempty,max=1000"`
+}
+
 // BookFilter represents filtering options for book queries
 type BookFilter struct {
 	Authors         []string `json:"authors,omitempty"`

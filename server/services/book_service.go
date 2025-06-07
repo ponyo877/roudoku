@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
-	"github.com/ponyo877/roudoku/backend2/models"
-	"github.com/ponyo877/roudoku/backend2/repository"
+	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/repository"
 )
 
 // BookService defines the interface for book business logic

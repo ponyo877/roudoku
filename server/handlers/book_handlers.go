@@ -7,8 +7,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/ponyo877/roudoku/backend2/models"
-	"github.com/ponyo877/roudoku/backend2/services"
+	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/services"
 )
 
 // BookHandler handles book-related HTTP requests
@@ -69,22 +69,22 @@ func (h *BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
 // SearchBooks handles GET /books
 func (h *BookHandler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 	req := &models.BookSearchRequest{}
-	
+
 	// Parse query parameters
 	if query := r.URL.Query().Get("query"); query != "" {
 		req.Query = query
 	}
-	
+
 	if sortBy := r.URL.Query().Get("sort_by"); sortBy != "" {
 		req.SortBy = models.SortBy(sortBy)
 	}
-	
+
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		if limit, err := strconv.Atoi(limitStr); err == nil {
 			req.Limit = limit
 		}
 	}
-	
+
 	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
 		if offset, err := strconv.Atoi(offsetStr); err == nil {
 			req.Offset = offset

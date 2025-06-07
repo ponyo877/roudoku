@@ -9,7 +9,7 @@ Refactor your scattered Go backend into **one cohesive folder** that follows a C
 ## 📁 Target Directory Structure
 
 ```text
-myapp/backend2/                ← new root (pick a name)
+myapp/server/                ← new root (pick a name)
 │
 ├── cmd/              ← entry points (CLI, server, tasks)
 │   └── server/
