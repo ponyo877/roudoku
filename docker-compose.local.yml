@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: roudoku-postgres
+    environment:
+      POSTGRES_DB: roudoku
+      POSTGRES_USER: roudoku
+      POSTGRES_PASSWORD: roudoku_local_password
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --lc-collate=C --lc-ctype=C'
+    ports:
+      - "5432:5432"
+    volumes:
+      - roudoku_postgres_data:/var/lib/postgresql/data
+      - ./server/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - roudoku-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U roudoku -d roudoku"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Optional: Redis for caching (commented out for now)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: roudoku-redis
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - roudoku-network
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 3
+
+  # Development server (optional - can be run separately)
+  # server:
+  #   build:
+  #     context: ./server
+  #     dockerfile: Dockerfile.dev
+  #   container_name: roudoku-server
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - DB_HOST=postgres
+  #     - DB_PORT=5432
+  #     - DB_NAME=roudoku
+  #     - DB_USER=roudoku
+  #     - DB_PASSWORD=roudoku_local_password
+  #     - GIN_MODE=debug
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - roudoku-network
+  #   volumes:
+  #     - ./server:/app
+  #   command: ["go", "run", "cmd/server/main.go"]
+
+volumes:
+  roudoku_postgres_data:
+    driver: local
+
+networks:
+  roudoku-network:
+    driver: bridge
