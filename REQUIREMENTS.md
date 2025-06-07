@@ -18,9 +18,9 @@
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Mobile アプリ** | Flutter 3.32.0 / Dart                                                                                                                                                                                 |
 | **バックエンド API** | Go 1.24.4, net/http, gRPC — デプロイ先：Cloud Run                                                                                                                                                   |
-| **AI 推薦エンジン**  | Go + Python microservices (Cloud Run)<br> - Embedding: Vertex AI Text Embedding API<br> - Vector Search: Vertex AI Vector Search<br> - Collaborative Filtering: BigQuery ML (Matrix Factorization) |
+| **AI 推薦エンジン**  | Go + Python microservices (Cloud Run)<br> - Embedding: Vertex AI Text Embedding API<br> - Vector Search: Vertex AI Vector Search<br> - Collaborative Filtering |
 | **TTS**        | Google Cloud Text-to-Speech (WaveNet) + on-device fallback                                                                                                                                         |
-| **DB**         | Cloud SQL (PostgreSQL) + BigQuery (分析) + Cloud Firestore (リアルタイム)                                                                                                                                  |
+| **DB**         | Cloud SQL (PostgreSQL) + Cloud Firestore (リアルタイム)                                                                                                                                  |
 | **メッセージング**    | Cloud Pub/Sub (リアルタイムストリーム) + Cloud Tasks (非同期ジョブ)                                                                                                                                                 |
 | **インフラ**       | Cloud Run, Cloud Storage, Vertex AI, Cloud Scheduler + Cloud Functions (ETL)                                                                                      |
 | **認証**         | Firebase Auth（匿名→メール/Google/Twitter 連携）                                                                                                                                                            |
