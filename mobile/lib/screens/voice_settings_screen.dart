@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import '../providers/audio_player_provider.dart';
+import '../models/session_models.dart' as session_models;
 import '../services/audio_service.dart';
 
 class VoiceSettingsScreen extends StatefulWidget {
@@ -12,7 +13,7 @@ class VoiceSettingsScreen extends StatefulWidget {
 }
 
 class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
-  late VoiceSettings _currentSettings;
+  late session_models.VoiceSettings _currentSettings;
   List<AvailableVoice> _availableVoices = [];
   bool _isLoadingVoices = false;
   bool _isPlayingPreview = false;

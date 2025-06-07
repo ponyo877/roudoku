@@ -18,19 +18,19 @@ SERVER_URL="http://localhost:8080"
 
 # Function to print colored output
 print_status() {
-    echo -e "${BLUE}[TEST]${NC} $1"
+    printf "${BLUE}[TEST]${NC} %s\n" "$1"
 }
 
 print_success() {
-    echo -e "${GREEN}[✓]${NC} $1"
+    printf "${GREEN}[✓]${NC} %s\n" "$1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[⚠]${NC} $1"
+    printf "${YELLOW}[⚠]${NC} %s\n" "$1"
 }
 
 print_error() {
-    echo -e "${RED}[✗]${NC} $1"
+    printf "${RED}[✗]${NC} %s\n" "$1"
 }
 
 # Function to test API endpoint
@@ -230,7 +230,7 @@ main() {
     # Summary
     echo "=============================================="
     if [ $test_status -eq 0 ]; then
-        echo -e "${GREEN}🎉 All critical tests passed!${NC}"
+        printf "${GREEN}🎉 All critical tests passed!${NC}\n"
         echo ""
         echo "Your mobile app is ready for development and testing."
         echo ""
@@ -239,7 +239,7 @@ main() {
         echo "  2. Launch an emulator or connect a device"
         echo "  3. Run: cd mobile && flutter run"
     else
-        echo -e "${RED}❌ Some tests failed!${NC}"
+        printf "${RED}❌ Some tests failed!${NC}\n"
         echo ""
         echo "Please fix the critical issues before running the app."
     fi

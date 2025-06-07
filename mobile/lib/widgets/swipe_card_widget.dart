@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:vibration/vibration.dart';
 import '../models/swipe.dart';
 
 enum SwipeDirection { left, right, up, down }
@@ -176,7 +175,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
 
     _isDragging = false;
     final direction = _getSwipeDirection(_dragOffset);
-    final velocity = details.velocity.pixelsPerSecond;
+    final velocity = details.velocity;
     
     // Calculate swipe duration
     final swipeDuration = _swipeStartTime != null

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -26,27 +27,27 @@ import 'screens/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   await Firebase.initializeApp();
-  
+
   // Initialize Mobile Ads
   MobileAds.instance.initialize();
-  
+
   // Initialize audio service for background playback
   await JustAudioBackground.init(
     androidNotificationChannelId: 'com.roudoku.app.channel.audio',
     androidNotificationChannelName: 'Audio playback',
     androidNotificationOngoing: true,
   );
-  
+
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
-  
+
   // Initialize TTS Service
   final ttsService = TtsService();
   await ttsService.initialize();
-  
+
   runApp(RoudokuApp(prefs: prefs, ttsService: ttsService));
 }
 
@@ -54,11 +55,7 @@ class RoudokuApp extends StatelessWidget {
   final SharedPreferences prefs;
   final TtsService ttsService;
 
-  const RoudokuApp({
-    Key? key,
-    required this.prefs,
-    required this.ttsService,
-  }) : super(key: key);
+  const RoudokuApp({super.key, required this.prefs, required this.ttsService});
 
   @override
   Widget build(BuildContext context) {
@@ -74,15 +71,9 @@ class RoudokuApp extends StatelessWidget {
       baseUrl: baseUrl,
       contextService: contextService,
     );
-    final notificationService = NotificationService(
-      dio: dio,
-      baseUrl: baseUrl,
-    );
+    final notificationService = NotificationService(dio: dio, baseUrl: baseUrl);
     final swipeService = SwipeService(dio, prefs);
-    final apiService = HttpApiService(
-      dio: dio,
-      baseUrl: baseUrl,
-    );
+    final apiService = HttpApiService(dio: dio, baseUrl: baseUrl);
 
     return MultiProvider(
       providers: [
@@ -120,14 +111,9 @@ class RoudokuApp extends StatelessWidget {
           primaryColor: const Color(0xFF2196F3),
           colorScheme: ColorScheme.fromSwatch(
             primarySwatch: Colors.blue,
-          ).copyWith(
-            secondary: const Color(0xFF03DAC6),
-          ),
+          ).copyWith(secondary: const Color(0xFF03DAC6)),
           fontFamily: 'NotoSansJP',
-          appBarTheme: const AppBarTheme(
-            elevation: 0,
-            centerTitle: true,
-          ),
+          appBarTheme: const AppBarTheme(elevation: 0, centerTitle: true),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,

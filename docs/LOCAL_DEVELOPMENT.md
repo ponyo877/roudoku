@@ -46,7 +46,7 @@ Doctor summary (to see all details, run flutter doctor -v):
 
 ```bash
 # Docker Compose で PostgreSQL + Redis を起動
-cat > docker-compose.dev.yml << 'EOF'
+cat > docker compose.dev.yml << 'EOF'
 version: '3.8'
 services:
   postgres:
@@ -74,10 +74,10 @@ volumes:
 EOF
 
 # サービス起動
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker compose.dev.yml up -d
 
 # 動作確認
-docker-compose -f docker-compose.dev.yml ps
+docker compose -f docker compose.dev.yml ps
 ```
 
 ### Option B: ローカルインストール
@@ -376,7 +376,7 @@ class Constants {
 
 ```bash
 # ターミナル1: データベース起動（Dockerの場合）
-docker-compose -f docker-compose.dev.yml up
+docker compose -f docker compose.dev.yml up
 
 # ターミナル2: APIサーバー起動
 export $(cat .env.local | xargs)

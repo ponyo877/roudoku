@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:uuid/uuid.dart';
 import 'book.dart';
 
 part 'swipe.g.dart';

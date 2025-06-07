@@ -91,3 +91,42 @@ Map<String, dynamic> _$VoiceSettingsToJson(VoiceSettings instance) =>
       'voiceId': instance.voiceId,
       'language': instance.language,
     };
+
+SessionStats _$SessionStatsFromJson(Map<String, dynamic> json) => SessionStats(
+      totalSessions: (json['totalSessions'] as num).toInt(),
+      totalDuration:
+          Duration(microseconds: (json['totalDuration'] as num).toInt()),
+      booksStarted: (json['booksStarted'] as num).toInt(),
+      booksCompleted: (json['booksCompleted'] as num).toInt(),
+      averageSession:
+          Duration(microseconds: (json['averageSession'] as num).toInt()),
+      mostReadBook: json['mostReadBook'] == null
+          ? null
+          : BookStat.fromJson(json['mostReadBook'] as Map<String, dynamic>),
+      favoriteMood: json['favoriteMood'] as String?,
+    );
+
+Map<String, dynamic> _$SessionStatsToJson(SessionStats instance) =>
+    <String, dynamic>{
+      'totalSessions': instance.totalSessions,
+      'totalDuration': instance.totalDuration.inMicroseconds,
+      'booksStarted': instance.booksStarted,
+      'booksCompleted': instance.booksCompleted,
+      'averageSession': instance.averageSession.inMicroseconds,
+      'mostReadBook': instance.mostReadBook,
+      'favoriteMood': instance.favoriteMood,
+    };
+
+BookStat _$BookStatFromJson(Map<String, dynamic> json) => BookStat(
+      bookId: (json['bookId'] as num).toInt(),
+      title: json['title'] as String,
+      totalTime: Duration(microseconds: (json['totalTime'] as num).toInt()),
+      sessionCount: (json['sessionCount'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$BookStatToJson(BookStat instance) => <String, dynamic>{
+      'bookId': instance.bookId,
+      'title': instance.title,
+      'totalTime': instance.totalTime.inMicroseconds,
+      'sessionCount': instance.sessionCount,
+    };

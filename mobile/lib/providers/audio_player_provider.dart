@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../models/book.dart';
-import '../models/session_models.dart';
+import '../models/session_models.dart' as session_models;
 import '../services/audio_service.dart';
 import '../services/session_service.dart';
 
@@ -14,8 +14,8 @@ class AudioPlayerProvider extends ChangeNotifier {
   Book? _currentBook;
   int _currentChapterIndex = 0;
   Timer? _sleepTimer;
-  ReadingSession? _currentSession;
-  VoiceSettings _voiceSettings = VoiceSettings.defaultSettings;
+  session_models.ReadingSession? _currentSession;
+  session_models.VoiceSettings _voiceSettings = session_models.VoiceSettings.defaultSettings;
   Timer? _progressUpdateTimer;
   
   // Loading states
@@ -28,8 +28,8 @@ class AudioPlayerProvider extends ChangeNotifier {
       _currentBook != null && _currentChapterIndex < _currentBook!.chapters.length 
           ? _currentBook!.chapters[_currentChapterIndex] 
           : null;
-  ReadingSession? get currentSession => _currentSession;
-  VoiceSettings get voiceSettings => _voiceSettings;
+  session_models.ReadingSession? get currentSession => _currentSession;
+  session_models.VoiceSettings get voiceSettings => _voiceSettings;
   bool get isLoadingAudio => _isLoadingAudio;
   String? get loadingError => _loadingError;
   

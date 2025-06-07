@@ -56,7 +56,7 @@ class ReadingStatistics {
   String get formattedReadingTime {
     final hours = totalReadingTimeMinutes ~/ 60;
     final minutes = totalReadingTimeMinutes % 60;
-    return '${hours}時間${minutes}分';
+    return '$hours時間$minutes分';
   }
 
   double get averageSessionLength {

@@ -98,3 +98,49 @@ class VoiceSettings {
 
   Map<String, dynamic> toJson() => _$VoiceSettingsToJson(this);
 }
+
+@JsonSerializable()
+class SessionStats {
+  final int totalSessions;
+  final Duration totalDuration;
+  final int booksStarted;
+  final int booksCompleted;
+  final Duration averageSession;
+  final BookStat? mostReadBook;
+  final String? favoriteMood;
+
+  SessionStats({
+    required this.totalSessions,
+    required this.totalDuration,
+    required this.booksStarted,
+    required this.booksCompleted,
+    required this.averageSession,
+    this.mostReadBook,
+    this.favoriteMood,
+  });
+
+  factory SessionStats.fromJson(Map<String, dynamic> json) =>
+      _$SessionStatsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SessionStatsToJson(this);
+}
+
+@JsonSerializable()
+class BookStat {
+  final int bookId;
+  final String title;
+  final Duration totalTime;
+  final int sessionCount;
+
+  BookStat({
+    required this.bookId,
+    required this.title,
+    required this.totalTime,
+    required this.sessionCount,
+  });
+
+  factory BookStat.fromJson(Map<String, dynamic> json) =>
+      _$BookStatFromJson(json);
+
+  Map<String, dynamic> toJson() => _$BookStatToJson(this);
+}

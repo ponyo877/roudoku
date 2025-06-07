@@ -8,7 +8,7 @@ import '../services/context_service.dart';
 import '../providers/auth_provider.dart';
 
 class PairComparisonScreen extends StatefulWidget {
-  const PairComparisonScreen({Key? key}) : super(key: key);
+  const PairComparisonScreen({super.key});
 
   @override
   State<PairComparisonScreen> createState() => _PairComparisonScreenState();
@@ -26,17 +26,17 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
   String? _errorMessage;
   String? _sessionId;
   int _currentIndex = 0;
-  
+
   // Context and stats
   ContextData? _currentContext;
   int _comparisonCount = 0;
-  Map<String, int> _authorWins = {};
-  
+  final Map<String, int> _authorWins = {};
+
   // Animation controllers
   late AnimationController _loadingController;
   late AnimationController _choiceController;
   late AnimationController _transitionController;
-  
+
   late Animation<double> _loadingAnimation;
   late Animation<double> _choiceScaleAnimation;
   late Animation<Offset> _transitionAnimation;
@@ -80,29 +80,21 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
       vsync: this,
     );
 
-    _loadingAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _loadingController,
-      curve: Curves.easeInOut,
-    ));
+    _loadingAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _loadingController, curve: Curves.easeInOut),
+    );
 
-    _choiceScaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _choiceController,
-      curve: Curves.easeOut,
-    ));
+    _choiceScaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _choiceController, curve: Curves.easeOut),
+    );
 
-    _transitionAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(0.0, -1.0),
-    ).animate(CurvedAnimation(
-      parent: _transitionController,
-      curve: Curves.easeInCubic,
-    ));
+    _transitionAnimation =
+        Tween<Offset>(begin: Offset.zero, end: const Offset(0.0, -1.0)).animate(
+          CurvedAnimation(
+            parent: _transitionController,
+            curve: Curves.easeInCubic,
+          ),
+        );
 
     _loadingController.repeat(reverse: true);
   }
@@ -126,13 +118,11 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
 
     try {
       // Get current context
-      if (_contextService != null) {
-        _currentContext = await _contextService.getCurrentContext();
-      }
+      _currentContext = await _contextService.getCurrentContext();
 
       // Load pairs
       final response = await _swipeService.getSwipePairs(
-        userId: _authProvider.user!.id,
+        userId: _authProvider.currentUser!.id,
         count: _initialLoadCount,
         context: _currentContext,
       );
@@ -146,14 +136,13 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
 
       // Cache pairs for offline use
       await _swipeService.cachePairs(response);
-
     } catch (e) {
       setState(() {
         _hasError = true;
         _errorMessage = e.toString();
         _isLoading = false;
       });
-      
+
       _showErrorSnackBar('Failed to load quote pairs: $e');
     }
   }
@@ -166,13 +155,17 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
     try {
       // Get IDs of quotes already shown
       final excludeIds = <String>[];
-      for (int i = 0; i < _currentIndex + _preloadThreshold && i < _pairs.length; i++) {
+      for (
+        int i = 0;
+        i < _currentIndex + _preloadThreshold && i < _pairs.length;
+        i++
+      ) {
         excludeIds.add(_pairs[i].quoteA.quote.id);
         excludeIds.add(_pairs[i].quoteB.quote.id);
       }
 
       final response = await _swipeService.getSwipePairs(
-        userId: _authProvider.user!.id,
+        userId: _authProvider.currentUser!.id,
         count: _subsequentLoadCount,
         context: _currentContext,
         excludeIds: excludeIds,
@@ -191,7 +184,6 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
           sessionId: response.sessionId,
         ),
       );
-
     } catch (e) {
       print('Error loading more pairs: $e');
     }
@@ -212,7 +204,7 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
 
     // Animate choice
     await _choiceController.forward();
-    
+
     // Provide haptic feedback
     HapticFeedback.mediumImpact();
 
@@ -225,7 +217,8 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
     // Update stats
     setState(() {
       _comparisonCount++;
-      _authorWins[chosen.book.author] = (_authorWins[chosen.book.author] ?? 0) + 1;
+      _authorWins[chosen.book.author] =
+          (_authorWins[chosen.book.author] ?? 0) + 1;
       _currentIndex++;
     });
 
@@ -235,7 +228,7 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
     // Reset for next comparison
     _choiceController.reset();
     _transitionController.reset();
-    
+
     setState(() {
       _isChoosing = false;
       _chosenQuoteId = null;
@@ -253,10 +246,14 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
     }
   }
 
-  Future<void> _logComparison(QuoteWithBook chosen, QuoteWithBook other, int? duration) async {
+  Future<void> _logComparison(
+    QuoteWithBook chosen,
+    QuoteWithBook other,
+    int? duration,
+  ) async {
     try {
       await _swipeService.logComparison(
-        userId: _authProvider.user!.id,
+        userId: _authProvider.currentUser!.id,
         chosenQuoteId: chosen.quote.id,
         otherQuoteId: other.quote.id,
         contextData: _currentContext,
@@ -298,11 +295,14 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
             Text('You\'ve compared $_comparisonCount quote pairs!'),
             const SizedBox(height: 16),
             if (sortedAuthors.isNotEmpty) ...[
-              const Text('Your favorite authors:', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              ...sortedAuthors.take(3).map((entry) => 
-                Text('${entry.key}: ${entry.value} wins')
+              const Text(
+                'Your favorite authors:',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 8),
+              ...sortedAuthors
+                  .take(3)
+                  .map((entry) => Text('${entry.key}: ${entry.value} wins')),
             ],
           ],
         ),
@@ -386,16 +386,16 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
           const SizedBox(height: 24),
           Text(
             'Loading quote pairs...',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.grey.shade600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
           ),
           const SizedBox(height: 8),
           Text(
             'Choose your preferred quote between two options',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.grey.shade500,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade500),
             textAlign: TextAlign.center,
           ),
         ],
@@ -410,25 +410,21 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.shade300,
-            ),
+            Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
             const SizedBox(height: 24),
             Text(
               'Oops! Something went wrong',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               _errorMessage ?? 'Unable to load quote pairs',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -449,24 +445,20 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.compare_arrows,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
+            Icon(Icons.compare_arrows, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 24),
             Text(
               'No quote pairs available',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Check back later for new content',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -494,16 +486,16 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
             const SizedBox(height: 24),
             Text(
               'Great job!',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'You\'ve compared $_comparisonCount quote pairs',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -518,12 +510,13 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
 
   Widget _buildComparisonView() {
     final pair = _pairs[_currentIndex];
-    
+
     return AnimatedBuilder(
       animation: _transitionController,
       builder: (context, child) {
         return Transform.translate(
-          offset: _transitionAnimation.value * MediaQuery.of(context).size.height,
+          offset:
+              _transitionAnimation.value * MediaQuery.of(context).size.height,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -537,7 +530,7 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Instruction
                 Text(
                   'Which quote do you prefer?',
@@ -550,12 +543,12 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
                 const SizedBox(height: 8),
                 Text(
                   'Tap the quote you like better',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Quote comparison cards
                 Expanded(
                   child: AnimationConfiguration.staggeredList(
@@ -571,24 +564,28 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // VS divider
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade300,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             'VS',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade600,
-                              letterSpacing: 2,
-                            ),
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade600,
+                                  letterSpacing: 2,
+                                ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 16),
                         Expanded(
                           child: _buildQuoteCard(
@@ -609,12 +606,16 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
     );
   }
 
-  Widget _buildQuoteCard(QuoteWithBook quoteWithBook, VoidCallback onTap, {bool isChosen = false}) {
+  Widget _buildQuoteCard(
+    QuoteWithBook quoteWithBook,
+    VoidCallback onTap, {
+    bool isChosen = false,
+  }) {
     return AnimatedBuilder(
       animation: _choiceController,
       builder: (context, child) {
         final scale = isChosen ? _choiceScaleAnimation.value : 1.0;
-        
+
         return Transform.scale(
           scale: scale,
           child: GestureDetector(
@@ -622,12 +623,14 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: isChosen ? Theme.of(context).primaryColor.withOpacity(0.1) : Colors.white,
+                color: isChosen
+                    ? Theme.of(context).primaryColor.withOpacity(0.1)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isChosen 
-                    ? Theme.of(context).primaryColor 
-                    : Colors.grey.shade300,
+                  color: isChosen
+                      ? Theme.of(context).primaryColor
+                      : Colors.grey.shade300,
                   width: isChosen ? 2 : 1,
                 ),
                 boxShadow: [
@@ -647,17 +650,23 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor.withOpacity(0.1),
+                            color: Theme.of(
+                              context,
+                            ).primaryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             quoteWithBook.book.author,
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(context).primaryColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ),
                         if (isChosen) ...[
@@ -671,7 +680,7 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
                       ],
                     ),
                     const SizedBox(height: 8),
-                    
+
                     Text(
                       quoteWithBook.book.title,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -682,23 +691,24 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Quote text
                     Expanded(
                       child: Center(
                         child: SingleChildScrollView(
                           child: Text(
                             quoteWithBook.quote.text,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              height: 1.5,
-                              color: Colors.grey.shade800,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  height: 1.5,
+                                  color: Colors.grey.shade800,
+                                ),
                             textAlign: TextAlign.center,
                           ),
                         ),
                       ),
                     ),
-                    
+
                     // Chapter info
                     if (quoteWithBook.quote.chapterTitle != null) ...[
                       const SizedBox(height: 8),
@@ -752,13 +762,13 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
               ),
               Text(
                 'Comparisons',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
               ),
             ],
           ),
-          
+
           // Current position
           Column(
             mainAxisSize: MainAxisSize.min,
@@ -772,16 +782,18 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
               ),
               Text(
                 'Progress',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
               ),
             ],
           ),
-          
+
           // Skip button
           ElevatedButton.icon(
-            onPressed: _isChoosing || _currentIndex >= _pairs.length ? null : _skipComparison,
+            onPressed: _isChoosing || _currentIndex >= _pairs.length
+                ? null
+                : _skipComparison,
             icon: const Icon(Icons.skip_next, size: 18),
             label: const Text('Skip'),
             style: ElevatedButton.styleFrom(
@@ -797,7 +809,7 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
 
   void _skipComparison() {
     if (_isChoosing || _currentIndex >= _pairs.length) return;
-    
+
     setState(() {
       _currentIndex++;
     });
@@ -831,21 +843,28 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
             Text('Total comparisons: $_comparisonCount'),
             const SizedBox(height: 16),
             if (sortedAuthors.isNotEmpty) ...[
-              const Text('Favorite authors:', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              ...sortedAuthors.take(5).map((entry) => 
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    children: [
-                      Expanded(child: Text(entry.key)),
-                      Text('${entry.value} wins'),
-                    ],
-                  ),
-                )
+              const Text(
+                'Favorite authors:',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 8),
+              ...sortedAuthors
+                  .take(5)
+                  .map(
+                    (entry) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        children: [
+                          Expanded(child: Text(entry.key)),
+                          Text('${entry.value} wins'),
+                        ],
+                      ),
+                    ),
+                  ),
             ] else ...[
-              const Text('No comparisons yet. Start comparing quotes to see your preferences!'),
+              const Text(
+                'No comparisons yet. Start comparing quotes to see your preferences!',
+              ),
             ],
           ],
         ),

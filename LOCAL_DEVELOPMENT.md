@@ -128,7 +128,7 @@ cd server && go run cmd/server/main.go
 ```bash
 # Edit: server/migrations/001_initial_schema.sql
 # Restart database container:
-docker-compose -f docker-compose.local.yml restart postgres
+docker compose -f docker-compose.local.yml restart postgres
 ```
 
 ### Code Generation
@@ -143,16 +143,16 @@ dart run build_runner build --delete-conflicting-outputs
 ### Database Management
 ```bash
 # Access database shell
-docker-compose -f docker-compose.local.yml exec postgres psql -U roudoku -d roudoku
+docker compose -f docker-compose.local.yml exec postgres psql -U roudoku -d roudoku
 
 # View database logs
-docker-compose -f docker-compose.local.yml logs postgres
+docker compose -f docker-compose.local.yml logs postgres
 
 # Restart database
-docker-compose -f docker-compose.local.yml restart postgres
+docker compose -f docker-compose.local.yml restart postgres
 
 # Stop all services
-docker-compose -f docker-compose.local.yml down
+docker compose -f docker-compose.local.yml down
 ```
 
 ### Flutter Development
@@ -216,10 +216,10 @@ flutter emulators --launch <emulator_name>
 docker ps | grep postgres
 
 # Restart database
-docker-compose -f docker-compose.local.yml restart postgres
+docker compose -f docker-compose.local.yml restart postgres
 
 # Check logs
-docker-compose -f docker-compose.local.yml logs postgres
+docker compose -f docker-compose.local.yml logs postgres
 ```
 
 #### "Go dependencies issues"
@@ -265,7 +265,7 @@ dart run build_runner build --delete-conflicting-outputs
 # Check terminal where you ran the server
 
 # Database logs
-docker-compose -f docker-compose.local.yml logs postgres
+docker compose -f docker-compose.local.yml logs postgres
 ```
 
 ### Health Monitoring
@@ -308,8 +308,8 @@ After running `./scripts/start-simple.sh`, you should see:
 
 🛠 Commands:
   Check health:   ./scripts/health-check.sh
-  View DB logs:   docker-compose -f docker-compose.local.yml logs postgres
-  DB shell:       docker-compose -f docker-compose.local.yml exec postgres psql -U roudoku -d roudoku
+  View DB logs:   docker compose -f docker-compose.local.yml logs postgres
+  DB shell:       docker compose -f docker-compose.local.yml exec postgres psql -U roudoku -d roudoku
   Flutter hot:    Press 'r' in Flutter console for hot reload
 
 ⏹ To stop: Press Ctrl+C

@@ -144,16 +144,16 @@ GIN_MODE=debug
 ### Using Docker Compose
 ```bash
 # Start database only
-docker-compose -f docker-compose.local.yml up -d postgres
+docker compose -f docker compose.local.yml up -d postgres
 
 # View database logs
-docker-compose -f docker-compose.local.yml logs postgres
+docker compose -f docker compose.local.yml logs postgres
 
 # Access database shell
-docker-compose -f docker-compose.local.yml exec postgres psql -U roudoku -d roudoku
+docker compose -f docker compose.local.yml exec postgres psql -U roudoku -d roudoku
 
 # Stop database
-docker-compose -f docker-compose.local.yml down
+docker compose -f docker compose.local.yml down
 ```
 
 ### Manual Database Commands
@@ -221,10 +221,10 @@ kill -9 $(lsof -ti :8080)
 docker ps | grep postgres
 
 # Restart database
-docker-compose -f docker-compose.local.yml restart postgres
+docker compose -f docker compose.local.yml restart postgres
 
 # Check database logs
-docker-compose -f docker-compose.local.yml logs postgres
+docker compose -f docker compose.local.yml logs postgres
 ```
 
 **3. Flutter device issues**

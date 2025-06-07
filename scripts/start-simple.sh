@@ -55,7 +55,7 @@ cleanup() {
     # Stop Docker Compose services
     print_status "Stopping Docker services..."
     cd "$PROJECT_ROOT"
-    docker-compose -f docker-compose.local.yml stop 2>/dev/null || true
+    docker compose -f docker-compose.local.yml stop 2>/dev/null || true
     
     print_status "Cleanup complete"
 }
@@ -75,19 +75,19 @@ main() {
     # Step 1: Start Database with Docker Compose
     print_status "Step 1: Starting database with Docker Compose..."
     
-    if ! command -v docker-compose >/dev/null 2>&1; then
-        print_error "docker-compose is not installed"
+    if ! command -v docker compose >/dev/null 2>&1; then
+        print_error "docker compose is not installed"
         exit 1
     fi
     
     # Start database
-    docker-compose -f docker-compose.local.yml up -d postgres
+    docker compose -f docker-compose.local.yml up -d postgres
     
     # Wait for database to be healthy
     print_status "Waiting for database to be ready..."
     timeout=60
     while [ $timeout -gt 0 ]; do
-        if docker-compose -f docker-compose.local.yml exec -T postgres pg_isready -U roudoku -d roudoku >/dev/null 2>&1; then
+        if docker compose -f docker-compose.local.yml exec -T postgres pg_isready -U roudoku -d roudoku >/dev/null 2>&1; then
             print_success "Database is ready!"
             break
         fi
@@ -203,8 +203,8 @@ main() {
     echo ""
     echo "🛠 Commands:"
     echo "  Check health:   ./scripts/health-check.sh"
-    echo "  View DB logs:   docker-compose -f docker-compose.local.yml logs postgres"
-    echo "  DB shell:       docker-compose -f docker-compose.local.yml exec postgres psql -U roudoku -d roudoku"
+    echo "  View DB logs:   docker compose -f docker-compose.local.yml logs postgres"
+    echo "  DB shell:       docker compose -f docker-compose.local.yml exec postgres psql -U roudoku -d roudoku"
     if [ ! -z "$FLUTTER_PID" ]; then
         echo "  Flutter hot:    Press 'r' in Flutter console for hot reload"
     else
