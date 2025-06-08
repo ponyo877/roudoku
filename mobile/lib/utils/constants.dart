@@ -35,3 +35,11 @@ class Constants {
   static const int maxCachedBooks = 10;
   static const int cacheExpirationDays = 7;
 }
+
+// Alias for backward compatibility
+class ApiConstants {
+  static String get baseUrl => Constants.baseUrl;
+  static String get baseUrlAndroid => Constants.baseUrlAndroid;
+  static String get apiVersion => Constants.apiVersion;
+  static String get apiBaseUrl => Constants.apiBaseUrl;
+}

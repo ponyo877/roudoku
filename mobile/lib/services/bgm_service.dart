@@ -32,14 +32,35 @@ class BGMService {
   /// Get all available BGM tracks
   Future<List<BGMTrack>> getTracks() async {
     await _ensureInitialized();
-    // Placeholder implementation - would need to work with BGMTrack from audio_models.dart
-    return [];
+    final tracksData = _prefs!.getStringList(_tracksKey) ?? [];
+    final tracks = <BGMTrack>[];
+    
+    for (final trackData in tracksData) {
+      try {
+        final trackJson = jsonDecode(trackData);
+        tracks.add(BGMTrack.fromJson(trackJson));
+      } catch (e) {
+        print('Error parsing track data: $e');
+      }
+    }
+    
+    return tracks;
   }
 
   /// Add a new BGM track
   Future<void> addTrack(BGMTrack track) async {
     await _ensureInitialized();
-    // Placeholder implementation
+    final tracks = await getTracks();
+    
+    // Remove existing track with same ID if it exists
+    tracks.removeWhere((t) => t.id == track.id);
+    
+    // Add the new track
+    tracks.add(track);
+    
+    // Save to preferences
+    final tracksData = tracks.map((t) => jsonEncode(t.toJson())).toList();
+    await _prefs!.setStringList(_tracksKey, tracksData);
   }
 
   /// Remove a BGM track
@@ -62,13 +83,13 @@ class BGMService {
       await _bgmPlayer!.stop();
       
       // Use local path if available, otherwise use URL
-      final audioSource = track.localPath != null
-          ? AudioSource.file(track.localPath!)
-          : AudioSource.uri(Uri.parse(track.url));
+      final audioSource = track.filePath.isNotEmpty
+          ? AudioSource.file(track.filePath)
+          : AudioSource.uri(Uri.parse(track.fileUrl));
       
       await _bgmPlayer!.setAudioSource(audioSource);
-      await _bgmPlayer!.setVolume(track.volume);
-      await _bgmPlayer!.setLoopMode(track.isLoop ? LoopMode.one : LoopMode.off);
+      await _bgmPlayer!.setVolume(track.volumeLevel);
+      await _bgmPlayer!.setLoopMode(LoopMode.off); // BGM tracks don't have loop property
       await _bgmPlayer!.play();
       
       _currentTrack = track;
@@ -104,11 +125,26 @@ class BGMService {
     if (_currentTrack != null) {
       final updatedTrack = BGMTrack(
         id: _currentTrack!.id,
-        name: _currentTrack!.name,
-        url: _currentTrack!.url,
-        localPath: _currentTrack!.localPath,
-        volume: volume,
-        isLoop: _currentTrack!.isLoop,
+        title: _currentTrack!.title,
+        artist: _currentTrack!.artist,
+        album: _currentTrack!.album,
+        filePath: _currentTrack!.filePath,
+        fileUrl: _currentTrack!.fileUrl,
+        duration: _currentTrack!.duration,
+        genre: _currentTrack!.genre,
+        mood: _currentTrack!.mood,
+        atmosphere: _currentTrack!.atmosphere,
+        instrument: _currentTrack!.instrument,
+        tempo: _currentTrack!.tempo,
+        licenseType: _currentTrack!.licenseType,
+        licenseInfo: _currentTrack!.licenseInfo,
+        volumeLevel: volume,
+        fadeInDuration: _currentTrack!.fadeInDuration,
+        fadeOutDuration: _currentTrack!.fadeOutDuration,
+        isActive: _currentTrack!.isActive,
+        downloadCount: _currentTrack!.downloadCount,
+        rating: _currentTrack!.rating,
+        tags: _currentTrack!.tags,
       );
       _currentTrack = updatedTrack;
       await _prefs!.setString(_currentTrackKey, jsonEncode(updatedTrack.toJson()));
@@ -145,21 +181,72 @@ class BGMService {
       final defaultTracks = [
         BGMTrack(
           id: 'rain',
-          name: 'Rain Sounds',
-          url: 'https://example.com/rain.mp3', // Replace with actual URL
-          volume: 0.3,
+          title: 'Rain Sounds',
+          artist: 'Nature Sounds',
+          album: 'Ambient Collection',
+          filePath: '', // Empty for remote files
+          fileUrl: 'https://example.com/rain.mp3', // Replace with actual URL
+          duration: 300, // 5 minutes in seconds
+          genre: 'Ambient',
+          mood: ['relaxing', 'peaceful'],
+          atmosphere: ['nature', 'rain'],
+          instrument: ['environmental'],
+          tempo: 'slow',
+          licenseType: 'royalty_free',
+          licenseInfo: 'Free for personal use',
+          volumeLevel: 0.3,
+          fadeInDuration: 2000, // 2 seconds
+          fadeOutDuration: 2000, // 2 seconds
+          isActive: true,
+          downloadCount: 0,
+          rating: 4.5,
+          tags: ['rain', 'nature', 'ambient', 'sleep'],
         ),
         BGMTrack(
           id: 'forest',
-          name: 'Forest Ambiance',
-          url: 'https://example.com/forest.mp3', // Replace with actual URL
-          volume: 0.3,
+          title: 'Forest Ambiance',
+          artist: 'Nature Sounds',
+          album: 'Ambient Collection',
+          filePath: '', // Empty for remote files
+          fileUrl: 'https://example.com/forest.mp3', // Replace with actual URL
+          duration: 480, // 8 minutes in seconds
+          genre: 'Ambient',
+          mood: ['calming', 'natural'],
+          atmosphere: ['forest', 'birds'],
+          instrument: ['environmental'],
+          tempo: 'slow',
+          licenseType: 'royalty_free',
+          licenseInfo: 'Free for personal use',
+          volumeLevel: 0.3,
+          fadeInDuration: 3000, // 3 seconds
+          fadeOutDuration: 3000, // 3 seconds
+          isActive: true,
+          downloadCount: 0,
+          rating: 4.7,
+          tags: ['forest', 'birds', 'nature', 'meditation'],
         ),
         BGMTrack(
           id: 'piano',
-          name: 'Soft Piano',
-          url: 'https://example.com/piano.mp3', // Replace with actual URL
-          volume: 0.2,
+          title: 'Soft Piano',
+          artist: 'Classical Ensemble',
+          album: 'Reading Companion',
+          filePath: '', // Empty for remote files
+          fileUrl: 'https://example.com/piano.mp3', // Replace with actual URL
+          duration: 420, // 7 minutes in seconds
+          genre: 'Classical',
+          mood: ['peaceful', 'contemplative'],
+          atmosphere: ['elegant', 'soft'],
+          instrument: ['piano'],
+          tempo: 'moderate',
+          licenseType: 'royalty_free',
+          licenseInfo: 'Free for personal use',
+          volumeLevel: 0.2,
+          fadeInDuration: 1500, // 1.5 seconds
+          fadeOutDuration: 1500, // 1.5 seconds
+          isActive: true,
+          downloadCount: 0,
+          rating: 4.8,
+          tags: ['piano', 'classical', 'soft', 'reading'],
         ),
       ];
       

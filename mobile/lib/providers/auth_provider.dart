@@ -14,6 +14,7 @@ class AuthProvider extends ChangeNotifier {
 
   firebase_auth.User? get firebaseUser => _firebaseUser;
   User? get currentUser => _currentUser;
+  User? get user => _currentUser; // Alias for backward compatibility
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _firebaseUser != null;
 
@@ -65,9 +66,15 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
       
-      await _authService.signInAnonymously();
+      print('AuthProvider: Starting anonymous sign in...');
+      final result = await _authService.signInAnonymously();
+      print('AuthProvider: Anonymous sign in completed for user: ${result.user?.uid}');
     } catch (e) {
-      print('Error signing in anonymously: $e');
+      print('AuthProvider: Error signing in anonymously: $e');
+      if (e is firebase_auth.FirebaseAuthException) {
+        print('AuthProvider: Firebase Error Code: ${e.code}');
+        print('AuthProvider: Firebase Error Message: ${e.message}');
+      }
       rethrow;
     } finally {
       _isLoading = false;

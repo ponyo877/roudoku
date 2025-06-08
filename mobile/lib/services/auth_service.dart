@@ -42,9 +42,17 @@ class AuthService {
   // Sign in anonymously
   Future<UserCredential> signInAnonymously() async {
     try {
-      return await _auth.signInAnonymously();
+      print('Attempting anonymous sign in...');
+      final result = await _auth.signInAnonymously();
+      print('Anonymous sign in successful: ${result.user?.uid}');
+      return result;
     } catch (e) {
       print('Error signing in anonymously: $e');
+      if (e is FirebaseAuthException) {
+        print('Firebase Auth Error Code: ${e.code}');
+        print('Firebase Auth Error Message: ${e.message}');
+        print('Firebase Auth Error Details: ${e.toString()}');
+      }
       rethrow;
     }
   }

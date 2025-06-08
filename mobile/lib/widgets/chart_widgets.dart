@@ -88,7 +88,7 @@ class WeeklyReadingChart extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withValues(0.6),
+                Theme.of(context).primaryColor.withOpacity(0.6),
               ],
             ),
             barWidth: 3,
@@ -110,8 +110,8 @@ class WeeklyReadingChart extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                  Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  Theme.of(context).primaryColor.withOpacity(0.3),
+                  Theme.of(context).primaryColor.withOpacity(0.1),
                 ],
               ),
             ),
@@ -421,7 +421,7 @@ class ReadingSpeedChart extends StatelessWidget {
               end: Alignment.topCenter,
               colors: [
                 Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withValues(0.7),
+                Theme.of(context).primaryColor.withOpacity(0.7),
               ],
             ),
           ),
@@ -588,7 +588,7 @@ class MonthlyTrendChart extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withValues(0.6),
+                Theme.of(context).primaryColor.withOpacity(0.6),
               ],
             ),
             barWidth: 3,
@@ -600,8 +600,8 @@ class MonthlyTrendChart extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                  Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  Theme.of(context).primaryColor.withOpacity(0.3),
+                  Theme.of(context).primaryColor.withOpacity(0.1),
                 ],
               ),
             ),

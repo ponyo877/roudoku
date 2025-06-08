@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import '../providers/audio_player_provider.dart';
 import '../models/session_models.dart' as session_models;
-import '../services/audio_service.dart';
+import '../services/audio_service.dart' as audio_service;
 
 class VoiceSettingsScreen extends StatefulWidget {
   const VoiceSettingsScreen({Key? key}) : super(key: key);
@@ -13,12 +13,34 @@ class VoiceSettingsScreen extends StatefulWidget {
 }
 
 class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
-  late session_models.VoiceSettings _currentSettings;
-  List<AvailableVoice> _availableVoices = [];
+  late audio_service.VoiceSettings _currentSettings;
+  List<audio_service.AvailableVoice> _availableVoices = [];
   bool _isLoadingVoices = false;
   bool _isPlayingPreview = false;
   AudioPlayer? _previewPlayer;
   String? _loadingError;
+
+  // Conversion methods between VoiceSettings types
+  static audio_service.VoiceSettings sessionToAudioSettings(session_models.VoiceSettings sessionSettings) {
+    return audio_service.VoiceSettings(
+      voice: sessionSettings.voiceId ?? 'ja-JP-Wavenet-A',
+      gender: 'FEMALE', // Default, will be overridden by voice selection
+      language: sessionSettings.language ?? 'ja-JP',
+      speed: sessionSettings.rate,
+      pitch: (sessionSettings.pitch - 1.0) * 20.0, // Convert from 0-2 range (center 1.0) to -20 to +20
+      volumeGain: (sessionSettings.volume - 1.0) * 10.0, // Convert from 0-2 range (center 1.0) to -10 to +10
+    );
+  }
+
+  static session_models.VoiceSettings audioToSessionSettings(audio_service.VoiceSettings audioSettings) {
+    return session_models.VoiceSettings(
+      pitch: (audioSettings.pitch / 20.0) + 1.0, // Convert from -20 to +20 range to 0-2 (center 1.0)
+      rate: audioSettings.speed,
+      volume: (audioSettings.volumeGain / 10.0) + 1.0, // Convert from -10 to +10 range to 0-2 (center 1.0)
+      voiceId: audioSettings.voice,
+      language: audioSettings.language,
+    );
+  }
 
   // Predefined Japanese voices with user-friendly names
   final List<VoiceOption> _voiceOptions = [
@@ -53,7 +75,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
     super.initState();
     _previewPlayer = AudioPlayer();
     final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
-    _currentSettings = audioProvider.voiceSettings;
+    _currentSettings = sessionToAudioSettings(audioProvider.voiceSettings);
     _loadAvailableVoices();
   }
 
@@ -70,7 +92,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
     });
 
     try {
-      final audioService = Provider.of<AudioService>(context, listen: false);
+      final audioService = Provider.of<audio_service.AudioService>(context, listen: false);
       _availableVoices = await audioService.getAvailableVoices();
     } catch (e) {
       setState(() {
@@ -83,7 +105,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
     }
   }
 
-  Future<void> _playVoicePreview(VoiceSettings settings) async {
+  Future<void> _playVoicePreview(audio_service.VoiceSettings settings) async {
     if (_isPlayingPreview) {
       await _previewPlayer?.stop();
       setState(() {
@@ -97,8 +119,8 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
     });
 
     try {
-      final audioService = Provider.of<AudioService>(context, listen: false);
-      final previewRequest = AudioPreviewRequest(
+      final audioService = Provider.of<audio_service.AudioService>(context, listen: false);
+      final previewRequest = audio_service.AudioPreviewRequest(
         voiceSettings: settings,
         sampleText: 'こんにちは。これは音声のプレビューです。この声と速度はいかがでしょうか。',
       );
@@ -129,7 +151,8 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
 
   void _applySettings() {
     final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
-    audioProvider.setVoiceSettings(_currentSettings);
+    final sessionSettings = audioToSessionSettings(_currentSettings);
+    audioProvider.setVoiceSettings(sessionSettings);
     Navigator.of(context).pop();
   }
 
@@ -221,7 +244,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                                   _isPlayingPreview ? Icons.stop : Icons.play_arrow,
                                 ),
                                 onPressed: () => _playVoicePreview(
-                                  VoiceSettings(
+                                  audio_service.VoiceSettings(
                                     voice: voiceOption.name,
                                     gender: voiceOption.gender,
                                     language: 'ja-JP',
@@ -233,7 +256,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                               ),
                               onTap: () {
                                 setState(() {
-                                  _currentSettings = VoiceSettings(
+                                  _currentSettings = audio_service.VoiceSettings(
                                     voice: voiceOption.name,
                                     gender: voiceOption.gender,
                                     language: 'ja-JP',
@@ -284,7 +307,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                             label: '${_currentSettings.speed.toStringAsFixed(1)}x',
                             onChanged: (value) {
                               setState(() {
-                                _currentSettings = VoiceSettings(
+                                _currentSettings = audio_service.VoiceSettings(
                                   voice: _currentSettings.voice,
                                   gender: _currentSettings.gender,
                                   language: _currentSettings.language,
@@ -339,10 +362,10 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                       min: -20.0,
                       max: 20.0,
                       divisions: 40,
-                      label: '${_currentSettings.pitch.toStringAsFixed(1)}',
+                      label: _currentSettings.pitch.toStringAsFixed(1),
                       onChanged: (value) {
                         setState(() {
-                          _currentSettings = VoiceSettings(
+                          _currentSettings = audio_service.VoiceSettings(
                             voice: _currentSettings.voice,
                             gender: _currentSettings.gender,
                             language: _currentSettings.language,
@@ -366,7 +389,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                       label: '${_currentSettings.volumeGain.toStringAsFixed(1)} dB',
                       onChanged: (value) {
                         setState(() {
-                          _currentSettings = VoiceSettings(
+                          _currentSettings = audio_service.VoiceSettings(
                             voice: _currentSettings.voice,
                             gender: _currentSettings.gender,
                             language: _currentSettings.language,
@@ -389,7 +412,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
               child: OutlinedButton(
                 onPressed: () {
                   setState(() {
-                    _currentSettings = VoiceSettings.defaultSettings;
+                    _currentSettings = audio_service.VoiceSettings.defaultSettings;
                   });
                 },
                 child: const Text('デフォルトに戻す'),

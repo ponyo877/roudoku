@@ -357,6 +357,64 @@ class NotificationSummary {
   }
 }
 
+class InAppNotificationSettings {
+  final bool enabled;
+  final bool soundEnabled;
+  final bool vibrationEnabled;
+  final String? soundFile;
+  final int displayDuration;
+  final String position;
+
+  InAppNotificationSettings({
+    required this.enabled,
+    required this.soundEnabled,
+    required this.vibrationEnabled,
+    this.soundFile,
+    required this.displayDuration,
+    required this.position,
+  });
+
+  factory InAppNotificationSettings.fromJson(Map<String, dynamic> json) {
+    return InAppNotificationSettings(
+      enabled: json['enabled'] ?? true,
+      soundEnabled: json['sound_enabled'] ?? true,
+      vibrationEnabled: json['vibration_enabled'] ?? true,
+      soundFile: json['sound_file'],
+      displayDuration: json['display_duration'] ?? 5000,
+      position: json['position'] ?? 'top',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'enabled': enabled,
+      'sound_enabled': soundEnabled,
+      'vibration_enabled': vibrationEnabled,
+      if (soundFile != null) 'sound_file': soundFile,
+      'display_duration': displayDuration,
+      'position': position,
+    };
+  }
+
+  InAppNotificationSettings copyWith({
+    bool? enabled,
+    bool? soundEnabled,
+    bool? vibrationEnabled,
+    String? soundFile,
+    int? displayDuration,
+    String? position,
+  }) {
+    return InAppNotificationSettings(
+      enabled: enabled ?? this.enabled,
+      soundEnabled: soundEnabled ?? this.soundEnabled,
+      vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
+      soundFile: soundFile ?? this.soundFile,
+      displayDuration: displayDuration ?? this.displayDuration,
+      position: position ?? this.position,
+    );
+  }
+}
+
 class PushNotificationPayload {
   final String title;
   final String body;

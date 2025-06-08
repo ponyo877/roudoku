@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../providers/auth_provider.dart' as auth;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -162,7 +163,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
-      await context.read<AuthProvider>().signInWithGoogle();
+      await context.read<auth.AuthProvider>().signInWithGoogle();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -181,13 +182,30 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _signInAnonymously() async {
     setState(() => _isLoading = true);
     try {
-      await context.read<AuthProvider>().signInAnonymously();
+      print('AuthScreen: Starting anonymous sign in...');
+      await context.read<auth.AuthProvider>().signInAnonymously();
+      print('AuthScreen: Anonymous sign in completed successfully');
     } catch (e) {
+      print('AuthScreen: Anonymous sign in failed: $e');
       if (mounted) {
+        String errorMessage = 'ゲストログインに失敗しました';
+        if (e is FirebaseAuthException) {
+          switch (e.code) {
+            case 'operation-not-allowed':
+              errorMessage = 'ゲスト認証が無効になっています。管理者に連絡してください。';
+              break;
+            case 'network-request-failed':
+              errorMessage = 'ネットワークエラーが発生しました。接続を確認してください。';
+              break;
+            default:
+              errorMessage = 'ゲストログインに失敗しました: ${e.message}';
+          }
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('ゲストログインに失敗しました: $e'),
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }

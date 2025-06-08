@@ -23,6 +23,9 @@ class TtsService {
   Function? onPlayingChanged;
   Function? onError;
   Function? onComplete;
+  
+  // Track last spoken text for resume functionality
+  String? _lastSpokenText;
 
   TtsState get ttsState => _ttsState;
   String get language => _language;
@@ -136,6 +139,7 @@ class TtsService {
     await _flutterTts.setLanguage(_language);
 
     if (text.isNotEmpty) {
+      _lastSpokenText = text;
       await _flutterTts.speak(text);
     }
   }
@@ -157,10 +161,9 @@ class TtsService {
   }
 
   Future<void> resume() async {
-    var result = await _flutterTts.resume();
-    if (result == 1) {
-      _ttsState = TtsState.continued;
-      onPlayingChanged?.call();
+    // FlutterTts doesn't have a resume method, use speak to continue
+    if (_lastSpokenText != null) {
+      await speak(_lastSpokenText!);
     }
   }
 

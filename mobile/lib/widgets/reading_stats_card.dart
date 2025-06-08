@@ -396,9 +396,11 @@ class ReadingInsightCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.left(
-              width: 4,
-              color: color,
+            border: Border(
+              left: BorderSide(
+                width: 4,
+                color: color,
+              ),
             ),
           ),
           child: Row(

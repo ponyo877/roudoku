@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/notification_models.dart';
 import '../providers/notification_provider.dart';
+import '../providers/auth_provider.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({Key? key}) : super(key: key);
@@ -21,8 +22,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   Future<void> _loadData() async {
     try {
-      await Provider.of<NotificationProvider>(context, listen: false)
-          .loadNotificationPreferences();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = authProvider.user?.id;
+      
+      if (userId != null) {
+        await Provider.of<NotificationProvider>(context, listen: false)
+            .loadNotificationPreferences(userId);
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -419,8 +425,29 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
 
     try {
-      await Provider.of<NotificationProvider>(context, listen: false)
-          .updateNotificationPreferences(request);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = authProvider.user?.id;
+      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+      
+      if (userId != null && notificationProvider.preferences != null) {
+        // Create updated preferences based on current preferences and the request
+        final updatedPreferences = notificationProvider.preferences!.copyWith(
+          dailyRemindersEnabled: dailyRemindersEnabled ?? notificationProvider.preferences!.dailyRemindersEnabled,
+          dailyReminderTime: dailyReminderTime ?? notificationProvider.preferences!.dailyReminderTime,
+          weeklyReportsEnabled: weeklyReportsEnabled ?? notificationProvider.preferences!.weeklyReportsEnabled,
+          weeklyReportDay: weeklyReportDay ?? notificationProvider.preferences!.weeklyReportDay,
+          achievementNotificationsEnabled: achievementNotificationsEnabled ?? notificationProvider.preferences!.achievementNotificationsEnabled,
+          goalMilestoneNotificationsEnabled: goalMilestoneNotificationsEnabled ?? notificationProvider.preferences!.goalMilestoneNotificationsEnabled,
+          recommendationNotificationsEnabled: recommendationNotificationsEnabled ?? notificationProvider.preferences!.recommendationNotificationsEnabled,
+          subscriptionNotificationsEnabled: subscriptionNotificationsEnabled ?? notificationProvider.preferences!.subscriptionNotificationsEnabled,
+          pushNotificationsEnabled: pushNotificationsEnabled ?? notificationProvider.preferences!.pushNotificationsEnabled,
+          emailNotificationsEnabled: emailNotificationsEnabled ?? notificationProvider.preferences!.emailNotificationsEnabled,
+          quietHoursStart: quietHoursStart ?? notificationProvider.preferences!.quietHoursStart,
+          quietHoursEnd: quietHoursEnd ?? notificationProvider.preferences!.quietHoursEnd,
+        );
+        
+        await notificationProvider.updateNotificationPreferences(userId, updatedPreferences);
+      }
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -508,8 +535,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   Future<void> _sendTestNotification() async {
     try {
-      await Provider.of<NotificationProvider>(context, listen: false)
-          .sendTestNotification();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = authProvider.user?.id;
+      
+      if (userId != null) {
+        await Provider.of<NotificationProvider>(context, listen: false)
+            .sendTestNotification(userId);
+      }
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -577,8 +609,13 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
 
   Future<void> _loadData() async {
     try {
-      await Provider.of<NotificationProvider>(context, listen: false)
-          .loadInAppNotifications();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = authProvider.user?.id;
+      
+      if (userId != null) {
+        await Provider.of<NotificationProvider>(context, listen: false)
+            .loadInAppNotifications(userId);
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -780,8 +817,13 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     // Mark as read if not already read
     if (!notification.isRead) {
       try {
-        await Provider.of<NotificationProvider>(context, listen: false)
-            .markNotificationAsRead(notification.id);
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final userId = authProvider.user?.id;
+        
+        if (userId != null) {
+          await Provider.of<NotificationProvider>(context, listen: false)
+              .markNotificationAsRead(userId, notification.id);
+        }
       } catch (e) {
         // Handle error silently
       }

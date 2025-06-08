@@ -41,7 +41,7 @@ class ReadingAnalyticsProvider with ChangeNotifier {
   // Create a new reading goal
   Future<ReadingGoal> createReadingGoal(CreateReadingGoalRequest request) async {
     try {
-      final response = await _apiService.post('/reading-logs/goals', request.toJson());
+      final response = await _apiService.post('/reading-logs/goals', data: request.toJson());
       final goal = ReadingGoal.fromJson(response);
       
       // Update local state
@@ -60,7 +60,7 @@ class ReadingAnalyticsProvider with ChangeNotifier {
   // Update an existing reading goal
   Future<ReadingGoal> updateReadingGoal(String goalId, UpdateReadingGoalRequest request) async {
     try {
-      final response = await _apiService.put('/reading-logs/goals/$goalId', request.toJson());
+      final response = await _apiService.put('/reading-logs/goals/$goalId', data: request.toJson());
       final updatedGoal = ReadingGoal.fromJson(response);
       
       // Update local state
@@ -184,7 +184,7 @@ class ReadingAnalyticsProvider with ChangeNotifier {
         'completed_at': DateTime.now().toIso8601String(),
       };
 
-      await _apiService.post('/reading-logs/sessions', sessionData);
+      await _apiService.post('/reading-logs/sessions', data: sessionData);
       
       // Refresh statistics after recording session
       await loadReadingStatistics();

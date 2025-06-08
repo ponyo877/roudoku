@@ -14,6 +14,7 @@ import 'providers/user_provider.dart';
 import 'providers/context_provider.dart';
 import 'providers/swipe_provider.dart';
 import 'providers/reading_analytics_provider.dart';
+import 'providers/notification_provider.dart';
 import 'services/audio_service.dart';
 import 'services/session_service.dart';
 import 'services/tts_service.dart';
@@ -29,7 +30,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Test Firebase setup in debug mode
+  // Uncomment the line below to test Firebase configuration
+  // await FirebaseTest.testFirebaseInitialization();
 
   // Initialize Mobile Ads
   MobileAds.instance.initialize();
@@ -92,6 +99,9 @@ class RoudokuApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ReadingAnalyticsProvider(apiService: apiService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider(notificationService),
         ),
         // Provide services for other screens
         Provider<AudioService>.value(value: audioService),

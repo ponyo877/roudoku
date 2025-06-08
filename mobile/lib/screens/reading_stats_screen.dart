@@ -548,7 +548,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
                   '最長記録',
                   '${stats.longestStreak?.streakDays ?? 0}日',
                   Icons.emoji_events,
-                  Colors.gold,
+                  Colors.amber,
                 ),
               ],
             ),

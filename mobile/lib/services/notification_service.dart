@@ -245,6 +245,72 @@ class NotificationService {
     }
   }
 
+  // Get in-app notification settings
+  Future<InAppNotificationSettings> getInAppNotificationSettings(String userId) async {
+    try {
+      final response = await _dio.get('$_baseUrl/api/v1/users/$userId/notifications/in-app-settings');
+      
+      if (response.statusCode == 200) {
+        return InAppNotificationSettings.fromJson(response.data);
+      } else {
+        // Return default settings if not found
+        return InAppNotificationSettings(
+          enabled: true,
+          soundEnabled: true,
+          vibrationEnabled: true,
+          displayDuration: 5000,
+          position: 'top',
+        );
+      }
+    } catch (e) {
+      // Return default settings on error
+      return InAppNotificationSettings(
+        enabled: true,
+        soundEnabled: true,
+        vibrationEnabled: true,
+        displayDuration: 5000,
+        position: 'top',
+      );
+    }
+  }
+
+  // Update in-app notification settings
+  Future<InAppNotificationSettings> updateInAppNotificationSettings(
+    String userId, 
+    InAppNotificationSettings settings,
+  ) async {
+    try {
+      final response = await _dio.put(
+        '$_baseUrl/api/v1/users/$userId/notifications/in-app-settings',
+        data: settings.toJson(),
+      );
+      
+      if (response.statusCode == 200) {
+        return InAppNotificationSettings.fromJson(response.data);
+      } else {
+        throw Exception('Failed to update in-app notification settings: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to update in-app notification settings: $e');
+    }
+  }
+
+  // Schedule reading reminder
+  Future<void> scheduleReadingReminder(String userId, DateTime time) async {
+    final reminderPayload = PushNotificationPayload(
+      title: '読書の時間です',
+      body: '今日の読書を始めませんか？',
+      type: 'reading_reminder',
+      data: {'reminder_time': time.toIso8601String()},
+    );
+
+    await scheduleNotification(
+      userId: userId,
+      payload: reminderPayload,
+      scheduledTime: time,
+    );
+  }
+
   // Test notification functionality
   Future<void> sendTestNotification(String userId) async {
     final testPayload = PushNotificationPayload(

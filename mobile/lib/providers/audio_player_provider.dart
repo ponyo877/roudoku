@@ -65,7 +65,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     
     // Check for active session
     try {
-      _currentSession = await _sessionService.getActiveSession(book.id);
+      _currentSession = await _sessionService.getActiveSession(int.parse(book.id));
       if (_currentSession != null) {
         _currentChapterIndex = _currentSession!.currentPos;
       }
@@ -77,7 +77,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     if (_currentSession == null) {
       try {
         _currentSession = await _sessionService.createSession(
-          CreateSessionRequest(
+          session_models.CreateSessionRequest(
             bookId: book.id,
             startPos: _currentChapterIndex,
           ),
@@ -102,7 +102,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     try {
       // Generate TTS audio for current chapter
       final ttsResponse = await _audioService.getChapterAudio(
-        _currentBook!.id,
+        int.parse(_currentBook!.id),
         _currentChapterIndex,
       );
       
@@ -198,7 +198,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setVoiceSettings(VoiceSettings settings) {
+  void setVoiceSettings(session_models.VoiceSettings settings) {
     _voiceSettings = settings;
     // Reload audio with new voice settings
     if (_currentBook != null) {
@@ -221,9 +221,9 @@ class AudioPlayerProvider extends ChangeNotifier {
       final position = _audioPlayer.position;
       final duration = _audioPlayer.duration ?? Duration.zero;
       
-      final update = SessionProgressUpdate(
+      final update = session_models.SessionProgressUpdate(
         currentPos: _currentChapterIndex,
-        durationSec: position.inSeconds,
+        currentTime: position,
       );
       
       await _sessionService.updateProgress(_currentSession!.id, update);

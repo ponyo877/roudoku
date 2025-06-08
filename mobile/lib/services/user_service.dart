@@ -4,7 +4,7 @@ import '../utils/constants.dart';
 
 class UserService {
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: ApiConstants.baseUrl,
+    baseUrl: Constants.baseUrl,
     connectTimeout: const Duration(seconds: 5),
     receiveTimeout: const Duration(seconds: 3),
   ));
