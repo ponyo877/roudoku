@@ -95,6 +95,15 @@ func (m *UserMapper) EntityToDomain(entity *entities.UserEntity) *domain.User {
 	}
 }
 
+// EntityToDomainSlice converts slice of database entities to domain users
+func (m *UserMapper) EntityToDomainSlice(entities []*entities.UserEntity) []*domain.User {
+	result := make([]*domain.User, len(entities))
+	for i, entity := range entities {
+		result[i] = m.EntityToDomain(entity)
+	}
+	return result
+}
+
 // UpdateRequestApplyToDomain applies update request to domain user
 func (m *UserMapper) UpdateRequestApplyToDomain(user *domain.User, req *dto.UpdateUserRequest) {
 	if req.DisplayName != nil {

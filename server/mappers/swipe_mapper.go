@@ -1,6 +1,10 @@
 package mappers
 
 import (
+	"time"
+
+	"github.com/google/uuid"
+
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/entities"
@@ -78,4 +82,16 @@ func (m *SwipeMapper) EntityToDomainSlice(entities []*entities.SwipeLogEntity) [
 		result[i] = m.EntityToDomain(entity)
 	}
 	return result
+}
+
+// CreateRequestToDomain converts create request to domain swipe log
+func (m *SwipeMapper) CreateRequestToDomain(userID uuid.UUID, req *dto.CreateSwipeLogRequest) *domain.SwipeLog {
+	return &domain.SwipeLog{
+		ID:        uuid.New(),
+		UserID:    userID,
+		QuoteID:   req.QuoteID,
+		Mode:      domain.SwipeMode(req.Mode),
+		Choice:    domain.SwipeChoice(req.Choice),
+		CreatedAt: time.Now(),
+	}
 }

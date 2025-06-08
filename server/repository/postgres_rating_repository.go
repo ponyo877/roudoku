@@ -7,28 +7,35 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/domain"
+	ent "github.com/ponyo877/roudoku/server/entities"
+	"github.com/ponyo877/roudoku/server/mappers"
 )
 
 // postgresRatingRepository implements RatingRepository using PostgreSQL
 type postgresRatingRepository struct {
-	db *pgxpool.Pool
+	db     *pgxpool.Pool
+	mapper *mappers.RatingMapper
 }
 
 // NewPostgresRatingRepository creates a new PostgreSQL rating repository
 func NewPostgresRatingRepository(db *pgxpool.Pool) RatingRepository {
-	return &postgresRatingRepository{db: db}
+	return &postgresRatingRepository{
+		db:     db,
+		mapper: mappers.NewRatingMapper(),
+	}
 }
 
 // Create creates a new rating
-func (r *postgresRatingRepository) Create(ctx context.Context, rating *models.Rating) error {
+func (r *postgresRatingRepository) Create(ctx context.Context, rating *domain.Rating) error {
+	entity := r.mapper.DomainToEntity(rating)
 	query := `
 		INSERT INTO ratings (user_id, book_id, rating, comment, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6)`
 
 	_, err := r.db.Exec(ctx, query,
-		rating.UserID, rating.BookID, rating.Rating, rating.Comment,
-		rating.CreatedAt, rating.UpdatedAt)
+		entity.UserID, entity.BookID, entity.Rating, entity.Comment,
+		entity.CreatedAt, entity.UpdatedAt)
 
 	if err != nil {
 		return fmt.Errorf("failed to create rating: %w", err)
@@ -38,33 +45,34 @@ func (r *postgresRatingRepository) Create(ctx context.Context, rating *models.Ra
 }
 
 // GetByUserAndBook retrieves a rating by user and book
-func (r *postgresRatingRepository) GetByUserAndBook(ctx context.Context, userID uuid.UUID, bookID int64) (*models.Rating, error) {
-	var rating models.Rating
+func (r *postgresRatingRepository) GetByUserAndBook(ctx context.Context, userID uuid.UUID, bookID int64) (*domain.Rating, error) {
+	entity := new(ent.RatingEntity)
 
 	query := `
 		SELECT user_id, book_id, rating, comment, created_at, updated_at
 		FROM ratings WHERE user_id = $1 AND book_id = $2`
 
 	err := r.db.QueryRow(ctx, query, userID, bookID).Scan(
-		&rating.UserID, &rating.BookID, &rating.Rating, &rating.Comment,
-		&rating.CreatedAt, &rating.UpdatedAt)
+		&entity.UserID, &entity.BookID, &entity.Rating, &entity.Comment,
+		&entity.CreatedAt, &entity.UpdatedAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rating: %w", err)
 	}
 
-	return &rating, nil
+	return r.mapper.EntityToDomain(entity), nil
 }
 
 // Update updates a rating
-func (r *postgresRatingRepository) Update(ctx context.Context, rating *models.Rating) error {
+func (r *postgresRatingRepository) Update(ctx context.Context, rating *domain.Rating) error {
+	entity := r.mapper.DomainToEntity(rating)
 	query := `
 		UPDATE ratings 
 		SET rating = $3, comment = $4, updated_at = $5
 		WHERE user_id = $1 AND book_id = $2`
 
 	_, err := r.db.Exec(ctx, query,
-		rating.UserID, rating.BookID, rating.Rating, rating.Comment, rating.UpdatedAt)
+		entity.UserID, entity.BookID, entity.Rating, entity.Comment, entity.UpdatedAt)
 
 	if err != nil {
 		return fmt.Errorf("failed to update rating: %w", err)
@@ -86,7 +94,7 @@ func (r *postgresRatingRepository) Delete(ctx context.Context, userID uuid.UUID,
 }
 
 // GetByUserID retrieves ratings by user ID
-func (r *postgresRatingRepository) GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]*models.Rating, error) {
+func (r *postgresRatingRepository) GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]*domain.Rating, error) {
 	query := `
 		SELECT user_id, book_id, rating, comment, created_at, updated_at
 		FROM ratings 
@@ -100,26 +108,27 @@ func (r *postgresRatingRepository) GetByUserID(ctx context.Context, userID uuid.
 	}
 	defer rows.Close()
 
-	var ratings []*models.Rating
+	var entities []*ent.RatingEntity
 	for rows.Next() {
-		var rating models.Rating
+		entity := new(ent.RatingEntity)
 
 		err := rows.Scan(
-			&rating.UserID, &rating.BookID, &rating.Rating, &rating.Comment,
-			&rating.CreatedAt, &rating.UpdatedAt)
+			&entity.UserID, &entity.BookID, &entity.Rating, &entity.Comment,
+			&entity.CreatedAt, &entity.UpdatedAt)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan rating row: %w", err)
 		}
 
-		ratings = append(ratings, &rating)
+		entities = append(entities, entity)
 	}
 
+	ratings := r.mapper.EntityToDomainSlice(entities)
 	return ratings, nil
 }
 
 // GetByBookID retrieves ratings by book ID
-func (r *postgresRatingRepository) GetByBookID(ctx context.Context, bookID int64, limit int) ([]*models.Rating, error) {
+func (r *postgresRatingRepository) GetByBookID(ctx context.Context, bookID int64, limit int) ([]*domain.Rating, error) {
 	query := `
 		SELECT user_id, book_id, rating, comment, created_at, updated_at
 		FROM ratings 
@@ -133,20 +142,21 @@ func (r *postgresRatingRepository) GetByBookID(ctx context.Context, bookID int64
 	}
 	defer rows.Close()
 
-	var ratings []*models.Rating
+	var entities []*ent.RatingEntity
 	for rows.Next() {
-		var rating models.Rating
+		entity := new(ent.RatingEntity)
 
 		err := rows.Scan(
-			&rating.UserID, &rating.BookID, &rating.Rating, &rating.Comment,
-			&rating.CreatedAt, &rating.UpdatedAt)
+			&entity.UserID, &entity.BookID, &entity.Rating, &entity.Comment,
+			&entity.CreatedAt, &entity.UpdatedAt)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan rating row: %w", err)
 		}
 
-		ratings = append(ratings, &rating)
+		entities = append(entities, entity)
 	}
 
+	ratings := r.mapper.EntityToDomainSlice(entities)
 	return ratings, nil
 }

@@ -11,20 +11,21 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 
+	"github.com/ponyo877/roudoku/server/domain"
+	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/handlers"
-	"github.com/ponyo877/roudoku/server/models"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
 // mockBookRepository implements BookRepository for testing
 type mockBookRepository struct{}
 
-func (m *mockBookRepository) Create(ctx context.Context, book *models.Book) error {
+func (m *mockBookRepository) Create(ctx context.Context, book *domain.Book) error {
 	return nil
 }
 
-func (m *mockBookRepository) GetByID(ctx context.Context, id int64) (*models.Book, error) {
-	return &models.Book{
+func (m *mockBookRepository) GetByID(ctx context.Context, id int64) (*domain.Book, error) {
+	return &domain.Book{
 		ID:        id,
 		Title:     "吾輩は猫である",
 		Author:    "夏目漱石",
@@ -34,7 +35,7 @@ func (m *mockBookRepository) GetByID(ctx context.Context, id int64) (*models.Boo
 	}, nil
 }
 
-func (m *mockBookRepository) Update(ctx context.Context, book *models.Book) error {
+func (m *mockBookRepository) Update(ctx context.Context, book *domain.Book) error {
 	return nil
 }
 
@@ -42,8 +43,8 @@ func (m *mockBookRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (m *mockBookRepository) List(ctx context.Context, req *models.BookSearchRequest) ([]*models.Book, int, error) {
-	books := []*models.Book{
+func (m *mockBookRepository) List(ctx context.Context, req *domain.BookSearchRequest) ([]*domain.Book, int, error) {
+	books := []*domain.Book{
 		{
 			ID:        1,
 			Title:     "吾輩は猫である",
@@ -64,20 +65,20 @@ func (m *mockBookRepository) List(ctx context.Context, req *models.BookSearchReq
 	return books, 2, nil
 }
 
-func (m *mockBookRepository) CreateChapter(ctx context.Context, chapter *models.Chapter) error {
+func (m *mockBookRepository) CreateChapter(ctx context.Context, chapter *domain.Chapter) error {
 	return nil
 }
 
-func (m *mockBookRepository) GetChaptersByBookID(ctx context.Context, bookID int64) ([]*models.Chapter, error) {
+func (m *mockBookRepository) GetChaptersByBookID(ctx context.Context, bookID int64) ([]*domain.Chapter, error) {
 	return nil, nil
 }
 
-func (m *mockBookRepository) CreateQuote(ctx context.Context, quote *models.Quote) error {
+func (m *mockBookRepository) CreateQuote(ctx context.Context, quote *domain.Quote) error {
 	return nil
 }
 
-func (m *mockBookRepository) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*models.Quote, error) {
-	return []*models.Quote{
+func (m *mockBookRepository) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*domain.Quote, error) {
+	return []*domain.Quote{
 		{
 			ID:        uuid.New(),
 			BookID:    bookID,
@@ -139,7 +140,7 @@ func testSearchBooksEndpoint(router *mux.Router) {
 	router.ServeHTTP(rr, req)
 
 	if rr.Code == http.StatusOK {
-		var response models.BookListResponse
+		var response dto.BookListResponse
 		json.Unmarshal(rr.Body.Bytes(), &response)
 
 		fmt.Printf("   ✅ Status: %d\n", rr.Code)
@@ -161,7 +162,7 @@ func testGetBookEndpoint(router *mux.Router) {
 	router.ServeHTTP(rr, req)
 
 	if rr.Code == http.StatusOK {
-		var book models.Book
+		var book dto.BookResponse
 		json.Unmarshal(rr.Body.Bytes(), &book)
 
 		fmt.Printf("   ✅ Status: %d\n", rr.Code)
@@ -181,7 +182,7 @@ func testGetRandomQuotesEndpoint(router *mux.Router) {
 	router.ServeHTTP(rr, req)
 
 	if rr.Code == http.StatusOK {
-		var quotes []*models.Quote
+		var quotes []*domain.Quote
 		json.Unmarshal(rr.Body.Bytes(), &quotes)
 
 		fmt.Printf("   ✅ Status: %d\n", rr.Code)

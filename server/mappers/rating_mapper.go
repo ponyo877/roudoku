@@ -1,6 +1,10 @@
 package mappers
 
 import (
+	"time"
+
+	"github.com/google/uuid"
+
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/entities"
@@ -78,4 +82,17 @@ func (m *RatingMapper) EntityToDomainSlice(entities []*entities.RatingEntity) []
 		result[i] = m.EntityToDomain(entity)
 	}
 	return result
+}
+
+// CreateRequestToDomain converts create request to domain rating
+func (m *RatingMapper) CreateRequestToDomain(userID uuid.UUID, req *dto.CreateRatingRequest) *domain.Rating {
+	now := time.Now()
+	return &domain.Rating{
+		UserID:    userID,
+		BookID:    req.BookID,
+		Rating:    req.Rating,
+		Comment:   req.Comment,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/google/uuid"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
@@ -25,7 +25,7 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 
 // CreateUser handles POST /users
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var req models.CreateUserRequest
+	var req dto.CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -81,7 +81,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.UpdateUserRequest
+	var req dto.UpdateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return

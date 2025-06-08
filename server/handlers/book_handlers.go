@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
@@ -25,7 +25,7 @@ func NewBookHandler(bookService services.BookService) *BookHandler {
 
 // CreateBook handles POST /books
 func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
-	var req models.CreateBookRequest
+	var req dto.CreateBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -68,7 +68,7 @@ func (h *BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
 
 // SearchBooks handles GET /books
 func (h *BookHandler) SearchBooks(w http.ResponseWriter, r *http.Request) {
-	req := &models.BookSearchRequest{}
+	req := &dto.BookSearchRequest{}
 
 	// Parse query parameters
 	if query := r.URL.Query().Get("query"); query != "" {
@@ -76,7 +76,7 @@ func (h *BookHandler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sortBy := r.URL.Query().Get("sort_by"); sortBy != "" {
-		req.SortBy = models.SortBy(sortBy)
+		req.SortBy = sortBy
 	}
 
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {

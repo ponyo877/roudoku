@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/google/uuid"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
@@ -39,7 +39,7 @@ func (h *RatingHandler) CreateOrUpdateRating(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var req models.CreateRatingRequest
+	var req dto.CreateRatingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return

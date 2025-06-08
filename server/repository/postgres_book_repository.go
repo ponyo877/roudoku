@@ -7,21 +7,30 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/domain"
+	ent "github.com/ponyo877/roudoku/server/entities"
+	"github.com/ponyo877/roudoku/server/mappers"
 )
 
 // postgresBookRepository implements BookRepository for PostgreSQL
 type postgresBookRepository struct {
-	db *pgxpool.Pool
+	db          *pgxpool.Pool
+	bookMapper  *mappers.BookMapper
+	quoteMapper *mappers.QuoteMapper
 }
 
 // NewPostgresBookRepository creates a new PostgreSQL book repository
 func NewPostgresBookRepository(db *pgxpool.Pool) BookRepository {
-	return &postgresBookRepository{db: db}
+	return &postgresBookRepository{
+		db:          db,
+		bookMapper:  mappers.NewBookMapper(),
+		quoteMapper: mappers.NewQuoteMapper(),
+	}
 }
 
 // Create creates a new book
-func (r *postgresBookRepository) Create(ctx context.Context, book *models.Book) error {
+func (r *postgresBookRepository) Create(ctx context.Context, book *domain.Book) error {
+	entity := r.bookMapper.DomainToEntity(book)
 	query := `
 		INSERT INTO books (id, title, author, epoch, word_count, content_url, summary, genre, 
 			difficulty_level, estimated_reading_minutes, download_count, rating_average, rating_count,
@@ -30,10 +39,10 @@ func (r *postgresBookRepository) Create(ctx context.Context, book *models.Book) 
 	`
 
 	_, err := r.db.Exec(ctx, query,
-		book.ID, book.Title, book.Author, book.Epoch, book.WordCount, book.ContentURL,
-		book.Summary, book.Genre, book.DifficultyLevel, book.EstimatedReadingMinutes,
-		book.DownloadCount, book.RatingAverage, book.RatingCount,
-		book.IsPremium, book.IsActive, book.CreatedAt, book.UpdatedAt,
+		entity.ID, entity.Title, entity.Author, entity.Epoch, entity.WordCount, entity.ContentURL,
+		entity.Summary, entity.Genre, entity.DifficultyLevel, entity.EstimatedReadingMinutes,
+		entity.DownloadCount, entity.RatingAverage, entity.RatingCount,
+		entity.IsPremium, entity.IsActive, entity.CreatedAt, entity.UpdatedAt,
 	)
 
 	if err != nil {
@@ -44,7 +53,7 @@ func (r *postgresBookRepository) Create(ctx context.Context, book *models.Book) 
 }
 
 // GetByID retrieves a book by its ID
-func (r *postgresBookRepository) GetByID(ctx context.Context, id int64) (*models.Book, error) {
+func (r *postgresBookRepository) GetByID(ctx context.Context, id int64) (*domain.Book, error) {
 	query := `
 		SELECT id, title, author, epoch, word_count, content_url, summary, genre,
 			difficulty_level, estimated_reading_minutes, download_count, rating_average, rating_count,
@@ -53,23 +62,23 @@ func (r *postgresBookRepository) GetByID(ctx context.Context, id int64) (*models
 		WHERE id = $1 AND is_active = true
 	`
 
-	book := &models.Book{}
+	entity := &ent.BookEntity{}
 	err := r.db.QueryRow(ctx, query, id).Scan(
-		&book.ID, &book.Title, &book.Author, &book.Epoch, &book.WordCount,
-		&book.ContentURL, &book.Summary, &book.Genre, &book.DifficultyLevel,
-		&book.EstimatedReadingMinutes, &book.DownloadCount, &book.RatingAverage,
-		&book.RatingCount, &book.IsPremium, &book.IsActive, &book.CreatedAt, &book.UpdatedAt,
+		&entity.ID, &entity.Title, &entity.Author, &entity.Epoch, &entity.WordCount,
+		&entity.ContentURL, &entity.Summary, &entity.Genre, &entity.DifficultyLevel,
+		&entity.EstimatedReadingMinutes, &entity.DownloadCount, &entity.RatingAverage,
+		&entity.RatingCount, &entity.IsPremium, &entity.IsActive, &entity.CreatedAt, &entity.UpdatedAt,
 	)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get book by ID: %w", err)
 	}
 
-	return book, nil
+	return r.bookMapper.EntityToDomain(entity), nil
 }
 
 // List retrieves books based on search criteria
-func (r *postgresBookRepository) List(ctx context.Context, req *models.BookSearchRequest) ([]*models.Book, int, error) {
+func (r *postgresBookRepository) List(ctx context.Context, req *domain.BookSearchRequest) ([]*domain.Book, int, error) {
 	var conditions []string
 	var args []interface{}
 	argIndex := 1
@@ -176,30 +185,32 @@ func (r *postgresBookRepository) List(ctx context.Context, req *models.BookSearc
 	}
 	defer rows.Close()
 
-	var books []*models.Book
+	var entities []*ent.BookEntity
 	for rows.Next() {
-		book := &models.Book{}
+		entity := &ent.BookEntity{}
 		err := rows.Scan(
-			&book.ID, &book.Title, &book.Author, &book.Epoch, &book.WordCount,
-			&book.ContentURL, &book.Summary, &book.Genre, &book.DifficultyLevel,
-			&book.EstimatedReadingMinutes, &book.DownloadCount, &book.RatingAverage,
-			&book.RatingCount, &book.IsPremium, &book.IsActive, &book.CreatedAt, &book.UpdatedAt,
+			&entity.ID, &entity.Title, &entity.Author, &entity.Epoch, &entity.WordCount,
+			&entity.ContentURL, &entity.Summary, &entity.Genre, &entity.DifficultyLevel,
+			&entity.EstimatedReadingMinutes, &entity.DownloadCount, &entity.RatingAverage,
+			&entity.RatingCount, &entity.IsPremium, &entity.IsActive, &entity.CreatedAt, &entity.UpdatedAt,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan book: %w", err)
 		}
-		books = append(books, book)
+		entities = append(entities, entity)
 	}
 
 	if err = rows.Err(); err != nil {
 		return nil, 0, fmt.Errorf("rows iteration error: %w", err)
 	}
 
+	books := r.bookMapper.EntityToDomainSlice(entities)
 	return books, total, nil
 }
 
 // Update updates an existing book
-func (r *postgresBookRepository) Update(ctx context.Context, book *models.Book) error {
+func (r *postgresBookRepository) Update(ctx context.Context, book *domain.Book) error {
+	entity := r.bookMapper.DomainToEntity(book)
 	query := `
 		UPDATE books SET 
 			title = $2, author = $3, epoch = $4, content_url = $5, summary = $6, 
@@ -209,9 +220,9 @@ func (r *postgresBookRepository) Update(ctx context.Context, book *models.Book) 
 	`
 
 	_, err := r.db.Exec(ctx, query,
-		book.ID, book.Title, book.Author, book.Epoch, book.ContentURL,
-		book.Summary, book.Genre, book.DifficultyLevel, book.EstimatedReadingMinutes,
-		book.IsPremium, book.UpdatedAt,
+		entity.ID, entity.Title, entity.Author, entity.Epoch, entity.ContentURL,
+		entity.Summary, entity.Genre, entity.DifficultyLevel, entity.EstimatedReadingMinutes,
+		entity.IsPremium, entity.UpdatedAt,
 	)
 
 	if err != nil {
@@ -234,15 +245,16 @@ func (r *postgresBookRepository) Delete(ctx context.Context, id int64) error {
 }
 
 // CreateChapter creates a new chapter
-func (r *postgresBookRepository) CreateChapter(ctx context.Context, chapter *models.Chapter) error {
+func (r *postgresBookRepository) CreateChapter(ctx context.Context, chapter *domain.Chapter) error {
+	entity := r.bookMapper.ChapterDomainToEntity(chapter)
 	query := `
 		INSERT INTO chapters (id, book_id, title, content, position, word_count, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
 
 	_, err := r.db.Exec(ctx, query,
-		chapter.ID, chapter.BookID, chapter.Title, chapter.Content,
-		chapter.Position, chapter.WordCount, chapter.CreatedAt,
+		entity.ID, entity.BookID, entity.Title, entity.Content,
+		entity.Position, entity.WordCount, entity.CreatedAt,
 	)
 
 	if err != nil {
@@ -253,7 +265,7 @@ func (r *postgresBookRepository) CreateChapter(ctx context.Context, chapter *mod
 }
 
 // GetChaptersByBookID retrieves all chapters for a book
-func (r *postgresBookRepository) GetChaptersByBookID(ctx context.Context, bookID int64) ([]*models.Chapter, error) {
+func (r *postgresBookRepository) GetChaptersByBookID(ctx context.Context, bookID int64) ([]*domain.Chapter, error) {
 	query := `
 		SELECT id, book_id, title, content, position, word_count, created_at
 		FROM chapters 
@@ -267,28 +279,29 @@ func (r *postgresBookRepository) GetChaptersByBookID(ctx context.Context, bookID
 	}
 	defer rows.Close()
 
-	var chapters []*models.Chapter
+	var entities []*ent.ChapterEntity
 	for rows.Next() {
-		chapter := &models.Chapter{}
+		entity := new(ent.ChapterEntity)
 		err := rows.Scan(
-			&chapter.ID, &chapter.BookID, &chapter.Title, &chapter.Content,
-			&chapter.Position, &chapter.WordCount, &chapter.CreatedAt,
+			&entity.ID, &entity.BookID, &entity.Title, &entity.Content,
+			&entity.Position, &entity.WordCount, &entity.CreatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan chapter: %w", err)
 		}
-		chapters = append(chapters, chapter)
+		entities = append(entities, entity)
 	}
 
 	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("chapters rows iteration error: %w", err)
 	}
 
+	chapters := r.bookMapper.ChapterEntityToDomainSlice(entities)
 	return chapters, nil
 }
 
 // CreateQuote creates a new quote
-func (r *postgresBookRepository) CreateQuote(ctx context.Context, quote *models.Quote) error {
+func (r *postgresBookRepository) CreateQuote(ctx context.Context, quote *domain.Quote) error {
 	query := `
 		INSERT INTO quotes (id, book_id, text, position, chapter_title, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -307,7 +320,7 @@ func (r *postgresBookRepository) CreateQuote(ctx context.Context, quote *models.
 }
 
 // GetRandomQuotes retrieves random quotes for a book
-func (r *postgresBookRepository) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*models.Quote, error) {
+func (r *postgresBookRepository) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*domain.Quote, error) {
 	query := `
 		SELECT id, book_id, text, position, chapter_title, created_at
 		FROM quotes 
@@ -322,22 +335,23 @@ func (r *postgresBookRepository) GetRandomQuotes(ctx context.Context, bookID int
 	}
 	defer rows.Close()
 
-	var quotes []*models.Quote
+	var entities []*ent.QuoteEntity
 	for rows.Next() {
-		quote := &models.Quote{}
+		entity := new(ent.QuoteEntity)
 		err := rows.Scan(
-			&quote.ID, &quote.BookID, &quote.Text, &quote.Position,
-			&quote.ChapterTitle, &quote.CreatedAt,
+			&entity.ID, &entity.BookID, &entity.Text, &entity.Position,
+			&entity.ChapterTitle, &entity.CreatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan quote: %w", err)
 		}
-		quotes = append(quotes, quote)
+		entities = append(entities, entity)
 	}
 
 	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("quotes rows iteration error: %w", err)
 	}
 
+	quotes := r.quoteMapper.EntityToDomainSlice(entities)
 	return quotes, nil
 }

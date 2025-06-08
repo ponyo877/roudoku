@@ -3,20 +3,21 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/dto"
+	"github.com/ponyo877/roudoku/server/domain"
+	"github.com/ponyo877/roudoku/server/mappers"
 	"github.com/ponyo877/roudoku/server/repository"
 )
 
 // RatingService defines the interface for rating business logic
 type RatingService interface {
-	CreateOrUpdateRating(ctx context.Context, userID uuid.UUID, req *models.CreateRatingRequest) (*models.Rating, error)
-	GetRating(ctx context.Context, userID uuid.UUID, bookID int64) (*models.Rating, error)
-	GetUserRatings(ctx context.Context, userID uuid.UUID, limit int) ([]*models.Rating, error)
+	CreateOrUpdateRating(ctx context.Context, userID uuid.UUID, req *dto.CreateRatingRequest) (*domain.Rating, error)
+	GetRating(ctx context.Context, userID uuid.UUID, bookID int64) (*domain.Rating, error)
+	GetUserRatings(ctx context.Context, userID uuid.UUID, limit int) ([]*domain.Rating, error)
 	DeleteRating(ctx context.Context, userID uuid.UUID, bookID int64) error
 }
 
@@ -35,20 +36,13 @@ func NewRatingService(ratingRepo repository.RatingRepository) RatingService {
 }
 
 // CreateOrUpdateRating creates or updates a rating
-func (s *ratingService) CreateOrUpdateRating(ctx context.Context, userID uuid.UUID, req *models.CreateRatingRequest) (*models.Rating, error) {
+func (s *ratingService) CreateOrUpdateRating(ctx context.Context, userID uuid.UUID, req *dto.CreateRatingRequest) (*domain.Rating, error) {
 	if err := s.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	now := time.Now()
-	rating := &models.Rating{
-		UserID:    userID,
-		BookID:    req.BookID,
-		Rating:    req.Rating,
-		Comment:   req.Comment,
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
+	mapper := mappers.NewRatingMapper()
+	rating := mapper.CreateRequestToDomain(userID, req)
 
 	// Check if rating already exists
 	existingRating, err := s.ratingRepo.GetByUserAndBook(ctx, userID, req.BookID)
@@ -69,7 +63,7 @@ func (s *ratingService) CreateOrUpdateRating(ctx context.Context, userID uuid.UU
 }
 
 // GetRating retrieves a rating by user and book
-func (s *ratingService) GetRating(ctx context.Context, userID uuid.UUID, bookID int64) (*models.Rating, error) {
+func (s *ratingService) GetRating(ctx context.Context, userID uuid.UUID, bookID int64) (*domain.Rating, error) {
 	rating, err := s.ratingRepo.GetByUserAndBook(ctx, userID, bookID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rating: %w", err)
@@ -78,7 +72,7 @@ func (s *ratingService) GetRating(ctx context.Context, userID uuid.UUID, bookID 
 }
 
 // GetUserRatings retrieves ratings for a user
-func (s *ratingService) GetUserRatings(ctx context.Context, userID uuid.UUID, limit int) ([]*models.Rating, error) {
+func (s *ratingService) GetUserRatings(ctx context.Context, userID uuid.UUID, limit int) ([]*domain.Rating, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 50
 	}

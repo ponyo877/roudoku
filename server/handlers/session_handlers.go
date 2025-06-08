@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/google/uuid"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
@@ -39,7 +39,7 @@ func (h *SessionHandler) CreateReadingSession(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var req models.CreateReadingSessionRequest
+	var req dto.CreateReadingSessionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -95,7 +95,7 @@ func (h *SessionHandler) UpdateReadingSession(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var req models.UpdateReadingSessionRequest
+	var req dto.UpdateReadingSessionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return

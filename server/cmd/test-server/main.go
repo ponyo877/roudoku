@@ -7,35 +7,35 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/handlers"
-	"github.com/ponyo877/roudoku/server/models"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
 // mockBookRepository implements BookRepository for testing without database
 type mockBookRepository struct{}
 
-func (m *mockBookRepository) Create(ctx context.Context, book *models.Book) error { return nil }
-func (m *mockBookRepository) GetByID(ctx context.Context, id int64) (*models.Book, error) {
-	return &models.Book{ID: id, Title: "Test Book", Author: "Test Author"}, nil
+func (m *mockBookRepository) Create(ctx context.Context, book *domain.Book) error { return nil }
+func (m *mockBookRepository) GetByID(ctx context.Context, id int64) (*domain.Book, error) {
+	return &domain.Book{ID: id, Title: "Test Book", Author: "Test Author"}, nil
 }
-func (m *mockBookRepository) Update(ctx context.Context, book *models.Book) error { return nil }
+func (m *mockBookRepository) Update(ctx context.Context, book *domain.Book) error { return nil }
 func (m *mockBookRepository) Delete(ctx context.Context, id int64) error          { return nil }
-func (m *mockBookRepository) List(ctx context.Context, req *models.BookSearchRequest) ([]*models.Book, int, error) {
-	books := []*models.Book{
+func (m *mockBookRepository) List(ctx context.Context, req *domain.BookSearchRequest) ([]*domain.Book, int, error) {
+	books := []*domain.Book{
 		{ID: 1, Title: "テスト本1", Author: "著者1"},
 		{ID: 2, Title: "テスト本2", Author: "著者2"},
 	}
 	return books, 2, nil
 }
-func (m *mockBookRepository) CreateChapter(ctx context.Context, chapter *models.Chapter) error {
+func (m *mockBookRepository) CreateChapter(ctx context.Context, chapter *domain.Chapter) error {
 	return nil
 }
-func (m *mockBookRepository) GetChaptersByBookID(ctx context.Context, bookID int64) ([]*models.Chapter, error) {
+func (m *mockBookRepository) GetChaptersByBookID(ctx context.Context, bookID int64) ([]*domain.Chapter, error) {
 	return nil, nil
 }
-func (m *mockBookRepository) CreateQuote(ctx context.Context, quote *models.Quote) error { return nil }
-func (m *mockBookRepository) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*models.Quote, error) {
+func (m *mockBookRepository) CreateQuote(ctx context.Context, quote *domain.Quote) error { return nil }
+func (m *mockBookRepository) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*domain.Quote, error) {
 	return nil, nil
 }
 

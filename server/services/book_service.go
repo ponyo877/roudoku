@@ -3,20 +3,21 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/domain"
+	"github.com/ponyo877/roudoku/server/dto"
+	"github.com/ponyo877/roudoku/server/mappers"
 	"github.com/ponyo877/roudoku/server/repository"
 )
 
 // BookService defines the interface for book business logic
 type BookService interface {
-	CreateBook(ctx context.Context, req *models.CreateBookRequest) (*models.Book, error)
-	GetBook(ctx context.Context, id int64) (*models.Book, error)
-	SearchBooks(ctx context.Context, req *models.BookSearchRequest) (*models.BookListResponse, error)
-	GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*models.Quote, error)
+	CreateBook(ctx context.Context, req *dto.CreateBookRequest) (*domain.Book, error)
+	GetBook(ctx context.Context, id int64) (*domain.Book, error)
+	SearchBooks(ctx context.Context, req *dto.BookSearchRequest) (*dto.BookListResponse, error)
+	GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*domain.Quote, error)
 }
 
 // bookService implements BookService
@@ -34,28 +35,16 @@ func NewBookService(bookRepo repository.BookRepository) BookService {
 }
 
 // CreateBook creates a new book
-func (s *bookService) CreateBook(ctx context.Context, req *models.CreateBookRequest) (*models.Book, error) {
+func (s *bookService) CreateBook(ctx context.Context, req *dto.CreateBookRequest) (*domain.Book, error) {
 	if err := s.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	now := time.Now()
-	book := &models.Book{
-		ID:                      req.ID,
-		Title:                   req.Title,
-		Author:                  req.Author,
-		Epoch:                   req.Epoch,
-		ContentURL:              req.ContentURL,
-		Summary:                 req.Summary,
-		Genre:                   req.Genre,
-		DifficultyLevel:         getIntValue(req.DifficultyLevel, 1),
-		EstimatedReadingMinutes: getIntValue(req.EstimatedReadingMinutes, 0),
-		IsPremium:               getBoolValue(req.IsPremium, false),
-		IsActive:                true,
-		CreatedAt:               now,
-		UpdatedAt:               now,
-	}
+	mapper := mappers.NewBookMapper()
+	book := mapper.CreateRequestToDomain(req)
 
+	// TODO: The repository interface needs to be updated to work with entities
+	// For now, this will need to be fixed when the repository layer is updated
 	if err := s.bookRepo.Create(ctx, book); err != nil {
 		return nil, fmt.Errorf("failed to create book: %w", err)
 	}
@@ -64,7 +53,7 @@ func (s *bookService) CreateBook(ctx context.Context, req *models.CreateBookRequ
 }
 
 // GetBook retrieves a book by ID
-func (s *bookService) GetBook(ctx context.Context, id int64) (*models.Book, error) {
+func (s *bookService) GetBook(ctx context.Context, id int64) (*domain.Book, error) {
 	book, err := s.bookRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get book: %w", err)
@@ -73,10 +62,10 @@ func (s *bookService) GetBook(ctx context.Context, id int64) (*models.Book, erro
 }
 
 // SearchBooks searches for books based on criteria
-func (s *bookService) SearchBooks(ctx context.Context, req *models.BookSearchRequest) (*models.BookListResponse, error) {
+func (s *bookService) SearchBooks(ctx context.Context, req *dto.BookSearchRequest) (*dto.BookListResponse, error) {
 	if req == nil {
-		req = &models.BookSearchRequest{
-			SortBy: models.SortByPopularity,
+		req = &dto.BookSearchRequest{
+			SortBy: string(domain.SortByPopularity),
 			Limit:  20,
 			Offset: 0,
 		}
@@ -89,13 +78,20 @@ func (s *bookService) SearchBooks(ctx context.Context, req *models.BookSearchReq
 		req.Offset = 0
 	}
 
-	books, total, err := s.bookRepo.List(ctx, req)
+	// Convert DTO search request to domain search request
+	mapper := mappers.NewBookMapper()
+	domainReq := mapper.SearchRequestToDomain(req)
+
+	books, total, err := s.bookRepo.List(ctx, domainReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search books: %w", err)
 	}
 
-	return &models.BookListResponse{
-		Books:   books,
+	// Convert domain books to DTO responses
+	bookResponses := mapper.DomainToDTOSlice(books)
+
+	return &dto.BookListResponse{
+		Books:   bookResponses,
 		Total:   total,
 		Limit:   req.Limit,
 		Offset:  req.Offset,
@@ -104,7 +100,7 @@ func (s *bookService) SearchBooks(ctx context.Context, req *models.BookSearchReq
 }
 
 // GetRandomQuotes retrieves random quotes from a book
-func (s *bookService) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*models.Quote, error) {
+func (s *bookService) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*domain.Quote, error) {
 	if limit <= 0 || limit > 50 {
 		limit = 10
 	}
@@ -115,19 +111,4 @@ func (s *bookService) GetRandomQuotes(ctx context.Context, bookID int64, limit i
 	}
 
 	return quotes, nil
-}
-
-// Helper functions
-func getIntValue(ptr *int, defaultVal int) int {
-	if ptr == nil {
-		return defaultVal
-	}
-	return *ptr
-}
-
-func getBoolValue(ptr *bool, defaultVal bool) bool {
-	if ptr == nil {
-		return defaultVal
-	}
-	return *ptr
 }

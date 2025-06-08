@@ -1,6 +1,10 @@
 package mappers
 
 import (
+	"time"
+
+	"github.com/google/uuid"
+
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/entities"
@@ -90,4 +94,21 @@ func (m *SessionMapper) EntityToDomainSlice(entities []*entities.ReadingSessionE
 		result[i] = m.EntityToDomain(entity)
 	}
 	return result
+}
+
+// CreateRequestToDomain converts create request to domain reading session
+func (m *SessionMapper) CreateRequestToDomain(userID uuid.UUID, req *dto.CreateReadingSessionRequest) *domain.ReadingSession {
+	now := time.Now()
+	return &domain.ReadingSession{
+		ID:          uuid.New(),
+		UserID:      userID,
+		BookID:      req.BookID,
+		StartPos:    req.StartPos,
+		CurrentPos:  req.StartPos,
+		DurationSec: 0,
+		Mood:        req.Mood,
+		Weather:     req.Weather,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
 }

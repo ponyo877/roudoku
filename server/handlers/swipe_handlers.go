@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/google/uuid"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
@@ -38,7 +38,7 @@ func (h *SwipeHandler) CreateSwipeLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.CreateSwipeLogRequest
+	var req dto.CreateSwipeLogRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return

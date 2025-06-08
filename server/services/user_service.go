@@ -8,15 +8,17 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/dto"
+	"github.com/ponyo877/roudoku/server/domain"
+	"github.com/ponyo877/roudoku/server/mappers"
 	"github.com/ponyo877/roudoku/server/repository"
 )
 
 // UserService defines the interface for user business logic
 type UserService interface {
-	CreateUser(ctx context.Context, req *models.CreateUserRequest) (*models.User, error)
-	GetUser(ctx context.Context, id uuid.UUID) (*models.User, error)
-	UpdateUser(ctx context.Context, id uuid.UUID, req *models.UpdateUserRequest) (*models.User, error)
+	CreateUser(ctx context.Context, req *dto.CreateUserRequest) (*domain.User, error)
+	GetUser(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	UpdateUser(ctx context.Context, id uuid.UUID, req *dto.UpdateUserRequest) (*domain.User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 }
 
@@ -35,23 +37,13 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 }
 
 // CreateUser creates a new user
-func (s *userService) CreateUser(ctx context.Context, req *models.CreateUserRequest) (*models.User, error) {
+func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest) (*domain.User, error) {
 	if err := s.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	now := time.Now()
-	user := &models.User{
-		BaseModel: models.BaseModel{
-			ID:        uuid.New(),
-			CreatedAt: now,
-			UpdatedAt: now,
-		},
-		DisplayName:        req.DisplayName,
-		Email:              req.Email,
-		VoicePreset:        getVoicePresetValue(req.VoicePreset, models.VoicePreset{Gender: "neutral", Pitch: 0.5, Speed: 1.0}),
-		SubscriptionStatus: models.SubscriptionFree,
-	}
+	mapper := mappers.NewUserMapper()
+	user := mapper.CreateRequestToDomain(req)
 
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -61,7 +53,7 @@ func (s *userService) CreateUser(ctx context.Context, req *models.CreateUserRequ
 }
 
 // GetUser retrieves a user by ID
-func (s *userService) GetUser(ctx context.Context, id uuid.UUID) (*models.User, error) {
+func (s *userService) GetUser(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)
@@ -70,7 +62,7 @@ func (s *userService) GetUser(ctx context.Context, id uuid.UUID) (*models.User, 
 }
 
 // UpdateUser updates a user
-func (s *userService) UpdateUser(ctx context.Context, id uuid.UUID, req *models.UpdateUserRequest) (*models.User, error) {
+func (s *userService) UpdateUser(ctx context.Context, id uuid.UUID, req *dto.UpdateUserRequest) (*domain.User, error) {
 	if err := s.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
@@ -80,22 +72,9 @@ func (s *userService) UpdateUser(ctx context.Context, id uuid.UUID, req *models.
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	// Update fields if provided
-	if req.DisplayName != nil {
-		user.DisplayName = *req.DisplayName
-	}
-	if req.Email != nil {
-		user.Email = req.Email
-	}
-	if req.VoicePreset != nil {
-		user.VoicePreset = *req.VoicePreset
-	}
-	if req.SubscriptionStatus != nil {
-		user.SubscriptionStatus = *req.SubscriptionStatus
-	}
-	if req.SubscriptionExpiresAt != nil {
-		user.SubscriptionExpiresAt = req.SubscriptionExpiresAt
-	}
+	// Update fields using mapper
+	mapper := mappers.NewUserMapper()
+	mapper.UpdateRequestApplyToDomain(user, req)
 
 	user.UpdatedAt = time.Now()
 
@@ -114,10 +93,3 @@ func (s *userService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-// Helper functions
-func getVoicePresetValue(ptr *models.VoicePreset, defaultVal models.VoicePreset) models.VoicePreset {
-	if ptr == nil {
-		return defaultVal
-	}
-	return *ptr
-}

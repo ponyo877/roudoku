@@ -3,19 +3,20 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/dto"
+	"github.com/ponyo877/roudoku/server/domain"
+	"github.com/ponyo877/roudoku/server/mappers"
 	"github.com/ponyo877/roudoku/server/repository"
 )
 
 // SwipeService defines the interface for swipe business logic
 type SwipeService interface {
-	CreateSwipeLog(ctx context.Context, userID uuid.UUID, req *models.CreateSwipeLogRequest) (*models.SwipeLog, error)
-	GetSwipeLogsByUser(ctx context.Context, userID uuid.UUID) ([]*models.SwipeLog, error)
+	CreateSwipeLog(ctx context.Context, userID uuid.UUID, req *dto.CreateSwipeLogRequest) (*domain.SwipeLog, error)
+	GetSwipeLogsByUser(ctx context.Context, userID uuid.UUID) ([]*domain.SwipeLog, error)
 }
 
 // swipeService implements SwipeService
@@ -33,19 +34,13 @@ func NewSwipeService(swipeRepo repository.SwipeRepository) SwipeService {
 }
 
 // CreateSwipeLog creates a new swipe log
-func (s *swipeService) CreateSwipeLog(ctx context.Context, userID uuid.UUID, req *models.CreateSwipeLogRequest) (*models.SwipeLog, error) {
+func (s *swipeService) CreateSwipeLog(ctx context.Context, userID uuid.UUID, req *dto.CreateSwipeLogRequest) (*domain.SwipeLog, error) {
 	if err := s.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	swipeLog := &models.SwipeLog{
-		ID:        uuid.New(),
-		UserID:    userID,
-		QuoteID:   req.QuoteID,
-		Mode:      req.Mode,
-		Choice:    req.Choice,
-		CreatedAt: time.Now(),
-	}
+	mapper := mappers.NewSwipeMapper()
+	swipeLog := mapper.CreateRequestToDomain(userID, req)
 
 	if err := s.swipeRepo.Create(ctx, swipeLog); err != nil {
 		return nil, fmt.Errorf("failed to create swipe log: %w", err)
@@ -55,7 +50,7 @@ func (s *swipeService) CreateSwipeLog(ctx context.Context, userID uuid.UUID, req
 }
 
 // GetSwipeLogsByUser retrieves swipe logs for a user
-func (s *swipeService) GetSwipeLogsByUser(ctx context.Context, userID uuid.UUID) ([]*models.SwipeLog, error) {
+func (s *swipeService) GetSwipeLogsByUser(ctx context.Context, userID uuid.UUID) ([]*domain.SwipeLog, error) {
 	swipeLogs, err := s.swipeRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get swipe logs: %w", err)

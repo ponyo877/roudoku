@@ -136,3 +136,77 @@ func (m *BookMapper) EntityToDomainSlice(entities []*entities.BookEntity) []*dom
 	}
 	return result
 }
+
+// ChapterDomainToEntity converts domain chapter to database entity
+func (m *BookMapper) ChapterDomainToEntity(chapter *domain.Chapter) *entities.ChapterEntity {
+	if chapter == nil {
+		return nil
+	}
+
+	return &entities.ChapterEntity{
+		ID:        chapter.ID,
+		BookID:    chapter.BookID,
+		Title:     chapter.Title,
+		Content:   chapter.Content,
+		Position:  chapter.Position,
+		WordCount: chapter.WordCount,
+		CreatedAt: chapter.CreatedAt,
+	}
+}
+
+// ChapterEntityToDomain converts database entity to domain chapter
+func (m *BookMapper) ChapterEntityToDomain(entity *entities.ChapterEntity) *domain.Chapter {
+	if entity == nil {
+		return nil
+	}
+
+	return &domain.Chapter{
+		ID:        entity.ID,
+		BookID:    entity.BookID,
+		Title:     entity.Title,
+		Content:   entity.Content,
+		Position:  entity.Position,
+		WordCount: entity.WordCount,
+		CreatedAt: entity.CreatedAt,
+	}
+}
+
+// ChapterEntityToDomainSlice converts slice of database entities to domain chapters
+func (m *BookMapper) ChapterEntityToDomainSlice(entities []*entities.ChapterEntity) []*domain.Chapter {
+	result := make([]*domain.Chapter, len(entities))
+	for i, entity := range entities {
+		result[i] = m.ChapterEntityToDomain(entity)
+	}
+	return result
+}
+
+// SearchRequestToDomain converts DTO search request to domain search request
+func (m *BookMapper) SearchRequestToDomain(req *dto.BookSearchRequest) *domain.BookSearchRequest {
+	if req == nil {
+		return nil
+	}
+
+	domainReq := &domain.BookSearchRequest{
+		Query:  req.Query,
+		SortBy: domain.BookSortBy(req.SortBy),
+		Limit:  req.Limit,
+		Offset: req.Offset,
+	}
+
+	// Convert filter if it exists
+	if req.Filter != nil {
+		domainReq.Filter = &domain.BookFilter{
+			Authors:         req.Filter.Authors,
+			Genres:          req.Filter.Genres,
+			Epochs:          req.Filter.Epochs,
+			IsPremium:       req.Filter.IsPremium,
+			MinWordCount:    req.Filter.MinWordCount,
+			MaxWordCount:    req.Filter.MaxWordCount,
+			MinRating:       req.Filter.MinRating,
+			DifficultyLevel: req.Filter.DifficultyLevel,
+			IsActive:        req.Filter.IsActive,
+		}
+	}
+
+	return domainReq
+}

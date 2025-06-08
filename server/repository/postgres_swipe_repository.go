@@ -7,28 +7,35 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/ponyo877/roudoku/server/models"
+	"github.com/ponyo877/roudoku/server/domain"
+	ent "github.com/ponyo877/roudoku/server/entities"
+	"github.com/ponyo877/roudoku/server/mappers"
 )
 
 // postgresSwipeRepository implements SwipeRepository using PostgreSQL
 type postgresSwipeRepository struct {
-	db *pgxpool.Pool
+	db     *pgxpool.Pool
+	mapper *mappers.SwipeMapper
 }
 
 // NewPostgresSwipeRepository creates a new PostgreSQL swipe repository
 func NewPostgresSwipeRepository(db *pgxpool.Pool) SwipeRepository {
-	return &postgresSwipeRepository{db: db}
+	return &postgresSwipeRepository{
+		db:     db,
+		mapper: mappers.NewSwipeMapper(),
+	}
 }
 
 // Create creates a new swipe log
-func (r *postgresSwipeRepository) Create(ctx context.Context, swipeLog *models.SwipeLog) error {
+func (r *postgresSwipeRepository) Create(ctx context.Context, swipeLog *domain.SwipeLog) error {
+	entity := r.mapper.DomainToEntity(swipeLog)
 	query := `
 		INSERT INTO swipe_logs (id, user_id, quote_id, mode, choice, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6)`
 
 	_, err := r.db.Exec(ctx, query,
-		swipeLog.ID, swipeLog.UserID, swipeLog.QuoteID,
-		swipeLog.Mode, swipeLog.Choice, swipeLog.CreatedAt)
+		entity.ID, entity.UserID, entity.QuoteID,
+		entity.Mode, entity.Choice, entity.CreatedAt)
 
 	if err != nil {
 		return fmt.Errorf("failed to create swipe log: %w", err)
@@ -38,7 +45,7 @@ func (r *postgresSwipeRepository) Create(ctx context.Context, swipeLog *models.S
 }
 
 // GetByUserID retrieves swipe logs by user ID
-func (r *postgresSwipeRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]*models.SwipeLog, error) {
+func (r *postgresSwipeRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.SwipeLog, error) {
 	query := `
 		SELECT id, user_id, quote_id, mode, choice, created_at
 		FROM swipe_logs 
@@ -51,26 +58,27 @@ func (r *postgresSwipeRepository) GetByUserID(ctx context.Context, userID uuid.U
 	}
 	defer rows.Close()
 
-	var swipeLogs []*models.SwipeLog
+	var entities []*ent.SwipeLogEntity
 	for rows.Next() {
-		var swipeLog models.SwipeLog
+		entity := new(ent.SwipeLogEntity)
 
 		err := rows.Scan(
-			&swipeLog.ID, &swipeLog.UserID, &swipeLog.QuoteID,
-			&swipeLog.Mode, &swipeLog.Choice, &swipeLog.CreatedAt)
+			&entity.ID, &entity.UserID, &entity.QuoteID,
+			&entity.Mode, &entity.Choice, &entity.CreatedAt)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan swipe log row: %w", err)
 		}
 
-		swipeLogs = append(swipeLogs, &swipeLog)
+		entities = append(entities, entity)
 	}
 
+	swipeLogs := r.mapper.EntityToDomainSlice(entities)
 	return swipeLogs, nil
 }
 
 // GetByQuoteID retrieves swipe logs by quote ID
-func (r *postgresSwipeRepository) GetByQuoteID(ctx context.Context, quoteID uuid.UUID) ([]*models.SwipeLog, error) {
+func (r *postgresSwipeRepository) GetByQuoteID(ctx context.Context, quoteID uuid.UUID) ([]*domain.SwipeLog, error) {
 	query := `
 		SELECT id, user_id, quote_id, mode, choice, created_at
 		FROM swipe_logs 
@@ -83,20 +91,21 @@ func (r *postgresSwipeRepository) GetByQuoteID(ctx context.Context, quoteID uuid
 	}
 	defer rows.Close()
 
-	var swipeLogs []*models.SwipeLog
+	var entities []*ent.SwipeLogEntity
 	for rows.Next() {
-		var swipeLog models.SwipeLog
+		entity := new(ent.SwipeLogEntity)
 
 		err := rows.Scan(
-			&swipeLog.ID, &swipeLog.UserID, &swipeLog.QuoteID,
-			&swipeLog.Mode, &swipeLog.Choice, &swipeLog.CreatedAt)
+			&entity.ID, &entity.UserID, &entity.QuoteID,
+			&entity.Mode, &entity.Choice, &entity.CreatedAt)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan swipe log row: %w", err)
 		}
 
-		swipeLogs = append(swipeLogs, &swipeLog)
+		entities = append(entities, entity)
 	}
 
+	swipeLogs := r.mapper.EntityToDomainSlice(entities)
 	return swipeLogs, nil
 }
