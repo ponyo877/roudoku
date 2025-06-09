@@ -44,6 +44,7 @@ func main() {
 	swipeHandler := handlers.NewSwipeHandler(swipeService)
 	sessionHandler := handlers.NewSessionHandler(sessionService)
 	ratingHandler := handlers.NewRatingHandler(ratingService)
+	recommendationHandler := handlers.NewRecommendationHandler(bookService, swipeService, sessionService)
 
 	// Setup routes
 	router := mux.NewRouter()
@@ -77,10 +78,15 @@ func main() {
 	api.HandleFunc("/users/{user_id}/ratings/{book_id}", ratingHandler.GetRating).Methods("GET")
 	api.HandleFunc("/users/{user_id}/ratings/{book_id}", ratingHandler.DeleteRating).Methods("DELETE")
 
+	// Recommendation routes (integrated from recommendation service)
+	api.HandleFunc("/users/{user_id}/recommendations", recommendationHandler.GetRecommendations).Methods("GET")
+	api.HandleFunc("/users/{user_id}/recommendations/train", recommendationHandler.TrainModel).Methods("POST")
+	api.HandleFunc("/users/{user_id}/recommendations/stats", recommendationHandler.GetRecommendationStats).Methods("GET")
+
 	// Health check
 	api.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`))
+		w.Write([]byte(`{"status":"ok","services":["api","recommendations"]}`))
 	}).Methods("GET")
 
 	log.Printf("Server starting on port %s", cfg.Port)

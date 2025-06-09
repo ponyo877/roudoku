@@ -10,7 +10,10 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the application
+# Copy environment file for production
+COPY .env.production .env
+
+# Build the unified application (includes API and recommendations)
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/main.go
 
 # Final stage

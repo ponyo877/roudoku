@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS books (
     author TEXT NOT NULL,
     epoch TEXT,
     word_count INTEGER NOT NULL DEFAULT 0,
-    embedding VECTOR(768), -- For AI recommendations
+    embedding TEXT, -- For AI recommendations (vector as JSON)
     content_url TEXT,
     summary TEXT,
     genre TEXT,

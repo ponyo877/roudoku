@@ -21,9 +21,9 @@ func Load() *Config {
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnvAsInt("DB_PORT", 5432),
 			Database: getEnv("DB_NAME", "roudoku"),
-			Username: getEnv("DB_USER", "postgres"),
-			Password: getEnv("DB_PASSWORD", "password"),
-			SSLMode:  getEnv("DB_SSLMODE", "disable"),
+			Username: getEnv("DB_USER", "roudoku"),
+			Password: getEnv("DB_PASSWORD", "roudoku_local_password"),
+			// SSLMode:  getEnv("DB_SSLMODE", "require"), // Enable SSL for public IP
 		},
 	}
 }
