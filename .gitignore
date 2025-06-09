@@ -1,3 +1,69 @@
+# =============================================================================
+# COMPREHENSIVE .GITIGNORE FOR ROUDOKU PROJECT
+# =============================================================================
+
+# =============================================================================
+# SECRETS AND SENSITIVE FILES
+# =============================================================================
+
+# Environment variables
+.env
+.env.*
+*.env
+!.env.example
+
+# Google Service Configuration Files
+google-services.json
+GoogleService-Info.plist
+
+# SSL/TLS Certificates and Keys
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+*.keystore
+
+# Database credentials and connection strings
+database.url
+*.database
+
+# API Keys and Tokens
+api-keys.json
+credentials.json
+service-account*.json
+
+# =============================================================================
+# TERRAFORM
+# =============================================================================
+
+# Local .terraform directories
+**/.terraform/*
+.terraform/
+.terraform.lock.hcl
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+terraform.tfstate*
+
+# Terraform plan files
+*.tfplan
+tfplan
+
+# Crash log files
+crash.log
+crash.*.log
+
+# =============================================================================
+# GO BACKEND
+# =============================================================================
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -7,63 +73,247 @@
 
 # Test binary, built with `go test -c`
 *.test
+*.test.exe
+debug.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+vendor/
 
 # Go workspace file
 go.work
+go.work.sum
 
 # Binary
 roudoku
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Go binary outputs in cmd directories
+server/cmd/server/server
+server/cmd/test-api/test-api
+server/cmd/test-server/test-server
 
-# IDE specific files
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
+# Go module cache
+go.sum.backup
+.go-pkg-cache/
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# Go test cache
+**/.test_cache/
 
-# Logs
-*.log
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Temporary files
-tmp/
-temp/
-
-# Air (hot reload) temporary directory
-tmp/
+# Go build cache
+**/.cache/go-build/
 
 # Coverage reports
 coverage.txt
 coverage.html
 *.coverprofile
+*.cover
+cover.out
+cover.html
 
 # Profiling data
 *.prof
+*.mprof
+*.allocs
+*.heap
+
+# Benchmarking files
+*.bench
+bench.txt
+
+# Additional temporary files
+*.tmp.go
+
+# =============================================================================
+# FLUTTER/DART MOBILE APP
+# =============================================================================
 
 # Build artifacts
-dist/
-build/
+**/build/
+**/android/app/build/
+**/ios/build/
+
+# Dart tool files
+**/.dart_tool/
+**/.packages
+**/.pub-cache/
+**/.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Flutter/Dart generated files
+**/*/*.g.dart
+**/*.g.dart
+**/*/*.freezed.dart
+**/*.freezed.dart
+**/*/*.config.dart
+**/*.config.dart
+
+# =============================================================================
+# IOS SPECIFIC
+# =============================================================================
+
+# Xcode user data
+**/xcuserdata/
+**/*.xcuserstate
+**/*.xcworkspace/xcuserdata/
+
+# iOS build artifacts
+**/ios/build/
+**/ios/Pods/
+**/ios/Podfile.lock
+**/ios/Runner.xcworkspace/xcuserdata/
+**/ios/Runner.xcodeproj/xcuserdata/
+
+# macOS build artifacts
+**/macos/build/
+
+# =============================================================================
+# ANDROID SPECIFIC
+# =============================================================================
+
+# Android build artifacts
+**/android/build/
+**/android/app/build/
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+
+# Gradle
+**/.gradle/
+**/gradle-wrapper.jar
+
+# =============================================================================
+# IDE AND EDITOR FILES
+# =============================================================================
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Vim/Neovim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# OPERATING SYSTEM FILES
+# =============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# LOGS AND TEMPORARY FILES
+# =============================================================================
+
+# Log files
+*.log
+logs/
+log/
+
+# Temporary files and directories
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Node.js (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =============================================================================
+# DATABASE FILES
+# =============================================================================
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Other database files
+*.mdb
+*.accdb
+
+# =============================================================================
+# COMPRESSED FILES AND ARCHIVES
+# =============================================================================
+
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# =============================================================================
+# DEPLOYMENT AND CI/CD
+# =============================================================================
+
+# Docker
+.dockerignore
+
+# Kubernetes
+*.kubeconfig
+
+# =============================================================================
+# PROJECT SPECIFIC
+# =============================================================================
+
+# Import files (specific to this project)
+list_person_all_extended_utf8.csv
+list_person_all_extended_utf8.zip
+
+# Air (hot reload) temporary directory for Go
+tmp/
+
+# Coverage and test artifacts
+coverage/
