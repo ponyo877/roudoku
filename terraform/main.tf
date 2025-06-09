@@ -1,7 +1,7 @@
 # Enable required APIs
 resource "google_project_service" "required_apis" {
   for_each = toset([
-    "cloudrun.googleapis.com",
+    "run.googleapis.com",
     "sqladmin.googleapis.com",
     "storage.googleapis.com",
     "pubsub.googleapis.com",
@@ -15,7 +15,9 @@ resource "google_project_service" "required_apis" {
     "cloudbuild.googleapis.com",
     "secretmanager.googleapis.com",
     "vpcaccess.googleapis.com",
-    "servicenetworking.googleapis.com"
+    "servicenetworking.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "compute.googleapis.com"
   ])
 
   project                    = var.project_id
@@ -47,6 +49,7 @@ module "networking" {
   region        = var.region
   name_suffix   = local.name_suffix
   labels        = local.common_labels
+  enable_vpc    = var.enable_vpc_access
 
   depends_on = [google_project_service.required_apis]
 }
@@ -63,9 +66,12 @@ module "database" {
   vpc_network         = module.networking.vpc_network
   private_subnet      = module.networking.private_subnet
   
-  instance_tier       = var.db_instance_tier
-  disk_size           = var.db_disk_size
-  backup_enabled      = var.db_backup_enabled
+  instance_tier          = var.db_instance_tier
+  disk_size              = var.db_disk_size
+  backup_enabled         = var.db_backup_enabled
+  availability_type      = var.db_availability_type
+  disk_type              = var.db_disk_type
+  enable_private_access  = var.enable_vpc_access
 
   depends_on = [module.networking]
 }
@@ -135,3 +141,20 @@ module "monitoring" {
 
   depends_on = [module.compute, module.database]
 }
+
+# CI/CD Module
+module "cicd" {
+  source = "./modules/cicd"
+
+  project_id                  = var.project_id
+  region                      = var.region
+  environment                 = var.environment
+  github_owner                = var.github_owner
+  github_repo                 = var.github_repo
+  api_service_name           = module.compute.api_service_name
+  recommendation_service_name = module.compute.recommendation_service_name
+
+  depends_on = [google_project_service.required_apis]
+}
+
+# Note: Firestore Database is now managed in the AI module to avoid conflicts

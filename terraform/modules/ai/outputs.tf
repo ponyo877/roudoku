@@ -8,14 +8,9 @@ output "firestore_location" {
   value       = google_firestore_database.analytics.location_id
 }
 
-output "vertex_ai_endpoint" {
-  description = "Vertex AI endpoint for recommendations"
-  value       = google_vertex_ai_endpoint.recommendation_endpoint.name
-}
-
-output "vertex_ai_model" {
-  description = "Vertex AI model for recommendations"
-  value       = google_vertex_ai_model.recommendation_model.name
+output "vertex_ai_region" {
+  description = "Vertex AI region for deployments"
+  value       = var.vertex_ai_region
 }
 
 output "vertex_ai_service_account" {

@@ -46,3 +46,21 @@ variable "backup_enabled" {
   type        = bool
   default     = true
 }
+
+variable "availability_type" {
+  description = "Database availability type (ZONAL or REGIONAL)"
+  type        = string
+  default     = "REGIONAL"
+}
+
+variable "disk_type" {
+  description = "Database disk type (PD_SSD or PD_HDD)"
+  type        = string
+  default     = "PD_SSD"
+}
+
+variable "enable_private_access" {
+  description = "Enable private network access"
+  type        = bool
+  default     = true
+}

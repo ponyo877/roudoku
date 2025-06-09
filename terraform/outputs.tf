@@ -72,9 +72,9 @@ output "firestore_location" {
 }
 
 # Vertex AI Outputs
-output "vertex_ai_endpoint" {
-  description = "Vertex AI endpoint for embeddings"
-  value       = module.ai.vertex_ai_endpoint
+output "vertex_ai_region" {
+  description = "Vertex AI region for deployments"
+  value       = module.ai.vertex_ai_region
 }
 
 # Monitoring Outputs

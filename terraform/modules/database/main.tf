@@ -16,26 +16,29 @@ resource "google_sql_database_instance" "postgres" {
   settings {
     tier = var.instance_tier
     
-    disk_type       = "PD_SSD"
+    disk_type       = var.disk_type
     disk_size       = var.disk_size
-    disk_autoresize = true
+    disk_autoresize = false
     
-    availability_type = "REGIONAL"
+    availability_type = var.availability_type
     
     backup_configuration {
       enabled                        = var.backup_enabled
       start_time                    = "02:00"
-      point_in_time_recovery_enabled = true
+      point_in_time_recovery_enabled = false
       backup_retention_settings {
-        retained_backups = 7
+        retained_backups = 3
       }
-      transaction_log_retention_days = 7
+      transaction_log_retention_days = 3
     }
 
     ip_configuration {
-      ipv4_enabled                                  = false
-      private_network                               = var.vpc_network.id
-      enable_private_path_for_google_cloud_services = true
+      ipv4_enabled    = true
+      private_network = var.enable_private_access ? var.vpc_network.id : null
+      authorized_networks {
+        name  = "all"
+        value = "0.0.0.0/0"  # Will restrict this later
+      }
     }
 
     database_flags {
@@ -46,18 +49,6 @@ resource "google_sql_database_instance" "postgres" {
     database_flags {
       name  = "log_min_duration_statement"
       value = "1000"
-    }
-
-    database_flags {
-      name  = "shared_preload_libraries"
-      value = "pg_stat_statements"
-    }
-
-    insights_config {
-      query_insights_enabled  = true
-      query_string_length     = 1024
-      record_application_tags = true
-      record_client_address   = true
     }
 
     maintenance_window {

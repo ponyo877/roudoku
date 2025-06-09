@@ -49,7 +49,7 @@ resource "google_project_iam_member" "cloud_run_cloud_tasks_enqueuer" {
   member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
 }
 
-# API Cloud Run Service
+# Unified API Cloud Run Service (includes recommendations)
 resource "google_cloud_run_v2_service" "api" {
   name     = "${var.project_id}-api-${var.name_suffix}"
   location = var.region
@@ -63,9 +63,13 @@ resource "google_cloud_run_v2_service" "api" {
       max_instance_count = var.max_instances
     }
 
-    vpc_access {
-      connector = var.vpc_connector.id
-      egress    = "PRIVATE_RANGES_ONLY"
+    # Conditional VPC access - only if VPC connector exists
+    dynamic "vpc_access" {
+      for_each = var.vpc_connector != null ? [1] : []
+      content {
+        connector = var.vpc_connector.id
+        egress    = "PRIVATE_RANGES_ONLY"
+      }
     }
 
     containers {
@@ -137,93 +141,8 @@ resource "google_cloud_run_v2_service" "api" {
   labels = var.labels
 }
 
-# Recommendation Engine Cloud Run Service
-resource "google_cloud_run_v2_service" "recommendation" {
-  name     = "${var.project_id}-recommendation-${var.name_suffix}"
-  location = var.region
-  project  = var.project_id
-
-  template {
-    service_account = google_service_account.cloud_run_sa.email
-
-    scaling {
-      min_instance_count = 1
-      max_instance_count = 5
-    }
-
-    vpc_access {
-      connector = var.vpc_connector.id
-      egress    = "PRIVATE_RANGES_ONLY"
-    }
-
-    containers {
-      image = "gcr.io/cloudrun/hello" # Placeholder image
-
-      resources {
-        limits = {
-          cpu    = "2"
-          memory = "2Gi"
-        }
-        cpu_idle = false # Keep CPU active for ML workloads
-      }
-
-      ports {
-        container_port = 8080
-      }
-
-      env {
-        name  = "DATABASE_CONNECTION"
-        value = var.database_connection
-      }
-
-      env {
-        name  = "ENVIRONMENT"
-        value = "production"
-      }
-
-      env {
-        name  = "PROJECT_ID"
-        value = var.project_id
-      }
-
-      env {
-        name  = "REGION"
-        value = var.region
-      }
-
-      startup_probe {
-        http_get {
-          path = "/health"
-          port = 8080
-        }
-        initial_delay_seconds = 60
-        timeout_seconds       = 10
-        period_seconds        = 15
-        failure_threshold     = 5
-      }
-
-      liveness_probe {
-        http_get {
-          path = "/health"
-          port = 8080
-        }
-        initial_delay_seconds = 120
-        timeout_seconds       = 10
-        period_seconds        = 60
-        failure_threshold     = 3
-      }
-    }
-
-    labels = var.labels
-  }
-
-  traffic {
-    percent = 100
-    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
-  }
-
-  labels = var.labels
-}
+# Note: Recommendation service is now integrated into the unified API service above
+# This eliminates the need for a separate Cloud Run instance, saving costs
 
 # ETL Cloud Run Job for data processing
 resource "google_cloud_run_v2_job" "etl" {
@@ -232,17 +151,20 @@ resource "google_cloud_run_v2_job" "etl" {
   project  = var.project_id
 
   template {
+    task_count  = 1
+    parallelism = 1
+    
     template {
       service_account = google_service_account.cloud_run_sa.email
+      timeout = "3600s" # 1 hour
 
-      task_count  = 1
-      parallelism = 1
-
-      task_timeout = "3600s" # 1 hour
-
-      vpc_access {
-        connector = var.vpc_connector.id
-        egress    = "PRIVATE_RANGES_ONLY"
+      # Conditional VPC access - only if VPC connector exists
+      dynamic "vpc_access" {
+        for_each = var.vpc_connector != null ? [1] : []
+        content {
+          connector = var.vpc_connector.id
+          egress    = "PRIVATE_RANGES_ONLY"
+        }
       }
 
       containers {
@@ -287,11 +209,4 @@ resource "google_cloud_run_service_iam_member" "api_public" {
   member   = "allUsers"
 }
 
-# IAM Policy for internal access to recommendation service
-resource "google_cloud_run_service_iam_member" "recommendation_internal" {
-  location = google_cloud_run_v2_service.recommendation.location
-  project  = google_cloud_run_v2_service.recommendation.project
-  service  = google_cloud_run_v2_service.recommendation.name
-  role     = "roles/run.invoker"
-  member   = "serviceAccount:${google_service_account.cloud_run_sa.email}"
-}
+# Note: No separate recommendation service IAM needed since it's integrated into the API service

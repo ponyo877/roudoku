@@ -54,6 +54,24 @@ variable "db_backup_enabled" {
   default     = true
 }
 
+variable "db_availability_type" {
+  description = "Database availability type (ZONAL or REGIONAL)"
+  type        = string
+  default     = "REGIONAL"
+}
+
+variable "db_disk_type" {
+  description = "Database disk type (PD_SSD or PD_HDD)"
+  type        = string
+  default     = "PD_SSD"
+}
+
+variable "enable_vpc_access" {
+  description = "Enable VPC access for Cloud Run"
+  type        = bool
+  default     = true
+}
+
 # Cloud Run Configuration
 variable "cloud_run_min_instances" {
   description = "Minimum number of Cloud Run instances"
@@ -108,4 +126,17 @@ variable "labels" {
     application = "roudoku"
     managed-by  = "terraform"
   }
+}
+
+# CI/CD Configuration
+variable "github_owner" {
+  description = "GitHub repository owner"
+  type        = string
+  default     = ""
+}
+
+variable "github_repo" {
+  description = "GitHub repository name"
+  type        = string
+  default     = "roudoku"
 }

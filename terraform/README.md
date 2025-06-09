@@ -74,8 +74,8 @@ terraform init
 
 For development:
 ```bash
-terraform plan -var-file="environments/dev/terraform.tfvars"
-terraform apply -var-file="environments/dev/terraform.tfvars"
+terraform plan -var-file="environments/main/terraform.tfvars"
+terraform apply -var-file="environments/main/terraform.tfvars"
 ```
 
 For production:
@@ -90,7 +90,7 @@ terraform apply -var-file="environments/prod/terraform.tfvars"
 
 Copy and modify the appropriate `.tfvars` file:
 
-- `environments/dev/terraform.tfvars` - Development environment
+- `environments/main/terraform.tfvars` - Development environment
 - `environments/prod/terraform.tfvars` - Production environment
 
 Key variables to update:
@@ -167,7 +167,7 @@ terraform show
 terraform import google_project.main YOUR_PROJECT_ID
 
 # Destroy infrastructure (BE CAREFUL!)
-terraform destroy -var-file="environments/dev/terraform.tfvars"
+terraform destroy -var-file="environments/main/terraform.tfvars"
 ```
 
 ## Support

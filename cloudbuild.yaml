@@ -1,0 +1,83 @@
+# Cloud Build configuration for Aozora StoryWalk
+
+substitutions:
+  _REGION: asia-northeast1
+  _SERVICE_NAME: roudoku-api
+  _RECOMMENDATION_SERVICE: roudoku-recommendation
+
+steps:
+  # Build API Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-api'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/roudoku-docker/api:${COMMIT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/roudoku-docker/api:latest'
+      - '-f'
+      - 'server/Dockerfile'
+      - 'server/'
+
+  # Push API image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-api'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/roudoku-docker/api'
+    waitFor: ['build-api']
+
+  # Run database migrations
+  - name: 'migrate/migrate'
+    id: 'run-migrations'
+    args:
+      - '-path=/workspace/server/migrations'
+      - '-database=postgres://${_DB_USER}:${_DB_PASS}@${_DB_HOST}:5432/${_DB_NAME}?sslmode=require'
+      - 'up'
+    secretEnv: ['_DB_USER', '_DB_PASS', '_DB_HOST', '_DB_NAME']
+    waitFor: ['push-api']
+
+  # Deploy API to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-api'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/roudoku-docker/api:${COMMIT_SHA}'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=PROJECT_ID=${PROJECT_ID}'
+      - '--set-secrets=DB_USER=roudoku-db-user:latest,DB_PASS=roudoku-db-pass:latest'
+      - '--set-cloudsql-instances=${PROJECT_ID}:${_REGION}:roudoku-db'
+      - '--max-instances=10'
+      - '--min-instances=1'
+      - '--cpu=1'
+      - '--memory=512Mi'
+    waitFor: ['run-migrations']
+
+  # Run tests
+  - name: 'golang:1.21'
+    id: 'test'
+    dir: 'server'
+    args: ['go', 'test', './...', '-v']
+    waitFor: ['-']  # Run in parallel with build
+
+availableSecrets:
+  secretManager:
+    - versionName: 'projects/${PROJECT_ID}/secrets/roudoku-db-user/versions/latest'
+      env: '_DB_USER'
+    - versionName: 'projects/${PROJECT_ID}/secrets/roudoku-db-pass/versions/latest'
+      env: '_DB_PASS'
+    - versionName: 'projects/${PROJECT_ID}/secrets/roudoku-db-host/versions/latest'
+      env: '_DB_HOST'
+    - versionName: 'projects/${PROJECT_ID}/secrets/roudoku-db-name/versions/latest'
+      env: '_DB_NAME'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+timeout: '1200s'

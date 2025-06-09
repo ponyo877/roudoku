@@ -222,7 +222,7 @@ resource "google_pubsub_subscription" "ml_training_subscription" {
 
   retry_policy {
     minimum_backoff = "30s"
-    maximum_backoff = "1800s"
+    maximum_backoff = "600s"
   }
 
   labels = var.labels

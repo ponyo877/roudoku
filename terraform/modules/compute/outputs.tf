@@ -9,13 +9,13 @@ output "api_service_name" {
 }
 
 output "recommendation_service_url" {
-  description = "URL of the recommendation Cloud Run service"
-  value       = google_cloud_run_v2_service.recommendation.uri
+  description = "URL of the recommendation endpoints (now integrated in API service)"
+  value       = "${google_cloud_run_v2_service.api.uri}/api/v1/users/{user_id}/recommendations"
 }
 
 output "recommendation_service_name" {
-  description = "Name of the recommendation Cloud Run service"
-  value       = google_cloud_run_v2_service.recommendation.name
+  description = "Name of the service containing recommendation endpoints"
+  value       = google_cloud_run_v2_service.api.name
 }
 
 output "etl_job_name" {

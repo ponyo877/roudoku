@@ -1,7 +1,7 @@
 # Cloud Firestore Database
 resource "google_firestore_database" "analytics" {
   project                     = var.project_id
-  name                       = "(default)"
+  name                       = "analytics"
   location_id                = var.region
   type                       = "FIRESTORE_NATIVE"
   concurrency_mode           = "OPTIMISTIC"
@@ -27,22 +27,14 @@ resource "google_project_service" "firestore" {
   disable_on_destroy        = false
 }
 
-# Vertex AI Model Registry
-resource "google_vertex_ai_model" "recommendation_model" {
-  project      = var.project_id
-  region       = var.vertex_ai_region
-  display_name = "roudoku-recommendation-model-${var.name_suffix}"
+# Note: Vertex AI models and endpoints are typically deployed via the API
+# or gcloud commands after training. We'll prepare the infrastructure here.
 
-  labels = var.labels
-}
-
-# Vertex AI Endpoint
-resource "google_vertex_ai_endpoint" "recommendation_endpoint" {
-  project      = var.project_id
-  region       = var.vertex_ai_region
-  display_name = "roudoku-recommendation-endpoint-${var.name_suffix}"
-
-  labels = var.labels
+# Service account for AI workloads
+resource "google_project_iam_member" "vertex_ai_custom_code" {
+  project = var.project_id
+  role    = "roles/aiplatform.customCodeServiceAgent"
+  member  = "serviceAccount:${google_service_account.vertex_ai_sa.email}"
 }
 
 # Service Account for Vertex AI

@@ -3,13 +3,8 @@
 
 terraform {
   backend "gcs" {
-    # bucket = "your-terraform-state-bucket"
-    # prefix = "terraform/state"
-    
-    # Uncomment and configure for each environment:
-    # bucket = "roudoku-terraform-state-dev"    # for dev
-    # bucket = "roudoku-terraform-state-prod"   # for prod
-    # prefix = "terraform/state"
+    bucket = "gke-test-287910-terraform-state"
+    prefix = "terraform/state/main"
   }
 }
 

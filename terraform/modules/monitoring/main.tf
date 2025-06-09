@@ -22,9 +22,9 @@ resource "google_monitoring_alert_policy" "api_service_down" {
     display_name = "Cloud Run service is down"
 
     condition_threshold {
-      filter          = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\""
+      filter          = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\" AND metric.type=\"run.googleapis.com/request_count\""
       duration        = "300s"
-      comparison      = "COMPARISON_LESS_THAN"
+      comparison      = "COMPARISON_LT"
       threshold_value = 1
 
       aggregations {
@@ -34,12 +34,7 @@ resource "google_monitoring_alert_policy" "api_service_down" {
     }
   }
 
-  dynamic "notification_channels" {
-    for_each = google_monitoring_notification_channel.email
-    content {
-      channel = notification_channels.value.name
-    }
-  }
+  notification_channels = [for channel in google_monitoring_notification_channel.email : channel.id]
 
   alert_strategy {
     auto_close = "604800s" # 7 days
@@ -58,9 +53,9 @@ resource "google_monitoring_alert_policy" "high_error_rate" {
     display_name = "Error rate is high"
 
     condition_threshold {
-      filter          = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\""
+      filter          = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\" AND metric.type=\"run.googleapis.com/request_count\" AND metric.labels.response_code_class=\"5xx\""
       duration        = "300s"
-      comparison      = "COMPARISON_GREATER_THAN"
+      comparison      = "COMPARISON_GT"
       threshold_value = 0.05 # 5% error rate
 
       aggregations {
@@ -72,12 +67,7 @@ resource "google_monitoring_alert_policy" "high_error_rate" {
     }
   }
 
-  dynamic "notification_channels" {
-    for_each = google_monitoring_notification_channel.email
-    content {
-      channel = notification_channels.value.name
-    }
-  }
+  notification_channels = [for channel in google_monitoring_notification_channel.email : channel.id]
 
   alert_strategy {
     auto_close = "604800s" # 7 days
@@ -96,24 +86,19 @@ resource "google_monitoring_alert_policy" "database_connection" {
     display_name = "Database connection failures"
 
     condition_threshold {
-      filter          = "resource.type=\"cloudsql_database\" AND resource.labels.database_id=\"${var.database_instance_name}\""
+      filter          = "resource.type=\"cloudsql_database\" AND resource.labels.database_id=\"${var.project_id}:${var.database_instance_name}\" AND metric.type=\"cloudsql.googleapis.com/database/postgresql/num_backends\""
       duration        = "300s"
-      comparison      = "COMPARISON_GREATER_THAN"
+      comparison      = "COMPARISON_GT"
       threshold_value = 10
 
       aggregations {
         alignment_period   = "60s"
-        per_series_aligner = "ALIGN_RATE"
+        per_series_aligner = "ALIGN_MAX"
       }
     }
   }
 
-  dynamic "notification_channels" {
-    for_each = google_monitoring_notification_channel.email
-    content {
-      channel = notification_channels.value.name
-    }
-  }
+  notification_channels = [for channel in google_monitoring_notification_channel.email : channel.id]
 
   alert_strategy {
     auto_close = "604800s" # 7 days
@@ -132,24 +117,19 @@ resource "google_monitoring_alert_policy" "high_memory_usage" {
     display_name = "Memory usage is high"
 
     condition_threshold {
-      filter          = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\""
+      filter          = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\" AND metric.type=\"run.googleapis.com/container/memory/utilizations\""
       duration        = "600s"
-      comparison      = "COMPARISON_GREATER_THAN"
+      comparison      = "COMPARISON_GT"
       threshold_value = 0.8 # 80% memory usage
 
       aggregations {
         alignment_period   = "60s"
-        per_series_aligner = "ALIGN_MEAN"
+        per_series_aligner = "ALIGN_PERCENTILE_95"
       }
     }
   }
 
-  dynamic "notification_channels" {
-    for_each = google_monitoring_notification_channel.email
-    content {
-      channel = notification_channels.value.name
-    }
-  }
+  notification_channels = [for channel in google_monitoring_notification_channel.email : channel.id]
 
   alert_strategy {
     auto_close = "604800s" # 7 days
@@ -163,6 +143,7 @@ resource "google_monitoring_dashboard" "main" {
   dashboard_json = jsonencode({
     displayName = "Roudoku Application Dashboard - ${var.name_suffix}"
     mosaicLayout = {
+      columns = 12
       tiles = [
         {
           width  = 6
@@ -173,7 +154,7 @@ resource "google_monitoring_dashboard" "main" {
               dataSets = [{
                 timeSeriesQuery = {
                   timeSeriesFilter = {
-                    filter = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\""
+                    filter = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\" AND metric.type=\"run.googleapis.com/request_count\""
                     aggregation = {
                       alignmentPeriod    = "60s"
                       perSeriesAligner   = "ALIGN_RATE"
@@ -202,7 +183,7 @@ resource "google_monitoring_dashboard" "main" {
               dataSets = [{
                 timeSeriesQuery = {
                   timeSeriesFilter = {
-                    filter = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\" AND metric.labels.response_code_class=\"5xx\""
+                    filter = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\" AND metric.type=\"run.googleapis.com/request_count\" AND metric.labels.response_code_class=\"5xx\""
                     aggregation = {
                       alignmentPeriod    = "60s"
                       perSeriesAligner   = "ALIGN_RATE"
@@ -230,7 +211,7 @@ resource "google_monitoring_dashboard" "main" {
               dataSets = [{
                 timeSeriesQuery = {
                   timeSeriesFilter = {
-                    filter = "resource.type=\"cloudsql_database\" AND resource.labels.database_id=\"${var.database_instance_name}\""
+                    filter = "resource.type=\"cloudsql_database\" AND resource.labels.database_id=\"${var.project_id}:${var.database_instance_name}\" AND metric.type=\"cloudsql.googleapis.com/database/postgresql/num_backends\""
                     aggregation = {
                       alignmentPeriod    = "60s"
                       perSeriesAligner   = "ALIGN_MEAN"
@@ -259,10 +240,10 @@ resource "google_monitoring_dashboard" "main" {
               dataSets = [{
                 timeSeriesQuery = {
                   timeSeriesFilter = {
-                    filter = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\""
+                    filter = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.api_service_name}\" AND metric.type=\"run.googleapis.com/container/memory/utilizations\""
                     aggregation = {
                       alignmentPeriod    = "60s"
-                      perSeriesAligner   = "ALIGN_MEAN"
+                      perSeriesAligner   = "ALIGN_INTERPOLATE"
                       crossSeriesReducer = "REDUCE_MEAN"
                     }
                   }
@@ -287,7 +268,7 @@ resource "google_monitoring_dashboard" "main" {
               dataSets = [{
                 timeSeriesQuery = {
                   timeSeriesFilter = {
-                    filter = "resource.type=\"datastore_database\""
+                    filter = "resource.type=\"firestore_instance\" AND metric.type=\"firestore.googleapis.com/document/read_count\""
                     aggregation = {
                       alignmentPeriod    = "60s"
                       perSeriesAligner   = "ALIGN_RATE"
@@ -322,9 +303,9 @@ resource "google_monitoring_alert_policy" "firestore_high_operations" {
     display_name = "Firestore operation rate is high"
 
     condition_threshold {
-      filter          = "resource.type=\"datastore_database\""
+      filter          = "resource.type=\"firestore_instance\" AND metric.type=\"firestore.googleapis.com/document/read_count\""
       duration        = "300s"
-      comparison      = "COMPARISON_GREATER_THAN"
+      comparison      = "COMPARISON_GT"
       threshold_value = 1000 # operations per second
 
       aggregations {
@@ -334,12 +315,7 @@ resource "google_monitoring_alert_policy" "firestore_high_operations" {
     }
   }
 
-  dynamic "notification_channels" {
-    for_each = google_monitoring_notification_channel.email
-    content {
-      channel = notification_channels.value.name
-    }
-  }
+  notification_channels = [for channel in google_monitoring_notification_channel.email : channel.id]
 
   alert_strategy {
     auto_close = "604800s" # 7 days

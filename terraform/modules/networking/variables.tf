@@ -18,3 +18,9 @@ variable "labels" {
   type        = map(string)
   default     = {}
 }
+
+variable "enable_vpc" {
+  description = "Enable VPC creation"
+  type        = bool
+  default     = true
+}

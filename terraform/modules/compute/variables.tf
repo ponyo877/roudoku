@@ -20,8 +20,9 @@ variable "labels" {
 }
 
 variable "vpc_connector" {
-  description = "The VPC connector for Cloud Run"
+  description = "The VPC connector for Cloud Run (can be null if VPC is disabled)"
   type        = any
+  default     = null
 }
 
 variable "database_connection" {
