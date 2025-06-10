@@ -59,9 +59,8 @@ class _SwipeScreenState extends State<SwipeScreen>
 
   void _initializeServices() {
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
-    // Note: In a real app, these would be injected via DI
-    // _swipeService = Provider.of<SwipeService>(context, listen: false);
-    // _contextService = Provider.of<ContextService>(context, listen: false);
+    _swipeService = Provider.of<SwipeService>(context, listen: false);
+    _contextService = Provider.of<ContextService>(context, listen: false);
   }
 
   void _initializeAnimations() {
