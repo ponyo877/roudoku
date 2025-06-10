@@ -29,7 +29,7 @@ class RecommendationService {
       final context = await _contextService.getCurrentContext();
       
       final response = await _dio.post(
-        '$_baseUrl/api/v1/recommendations',
+        '$_baseUrl/recommendations',
         data: {
           'userId': userId,
           'limit': limit,
@@ -58,7 +58,7 @@ class RecommendationService {
       final context = await _contextService.getCurrentContext();
       
       final response = await _dio.post(
-        '$_baseUrl/api/v1/recommendations/quotes',
+        '$_baseUrl/recommendations/quotes',
         data: {
           'userId': userId,
           'limit': limit,
@@ -86,7 +86,7 @@ class RecommendationService {
   }) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl/api/v1/users/$userId/swipes',
+        '$_baseUrl/users/$userId/swipes',
         data: {
           'quoteId': quoteId,
           'mode': mode.name,
@@ -111,7 +111,7 @@ class RecommendationService {
       final context = await _contextService.getCurrentContext();
       
       final response = await _dio.post(
-        '$_baseUrl/api/v1/recommendations/pairs',
+        '$_baseUrl/recommendations/pairs',
         data: {
           'userId': userId,
           'limit': limit,
@@ -138,7 +138,7 @@ class RecommendationService {
   }) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl/api/v1/users/$userId/comparisons',
+        '$_baseUrl/users/$userId/comparisons',
         data: {
           'winnerQuoteId': winnerQuoteId,
           'loserQuoteId': loserQuoteId,
@@ -160,7 +160,7 @@ class RecommendationService {
   }) async {
     try {
       final response = await _dio.get(
-        '$_baseUrl/api/v1/recommendations/explain',
+        '$_baseUrl/recommendations/explain',
         queryParameters: {
           'userId': userId,
           'bookId': bookId,
@@ -184,7 +184,7 @@ class RecommendationService {
   }) async {
     try {
       final response = await _dio.put(
-        '$_baseUrl/api/v1/users/$userId/preferences',
+        '$_baseUrl/users/$userId/preferences',
         data: preferences,
       );
 
@@ -202,7 +202,7 @@ class RecommendationService {
   }) async {
     try {
       final response = await _dio.get(
-        '$_baseUrl/api/v1/books/trending',
+        '$_baseUrl/books/trending',
         queryParameters: {
           'limit': limit,
         },

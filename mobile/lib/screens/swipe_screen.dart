@@ -133,7 +133,14 @@ class _SwipeScreenState extends State<SwipeScreen>
         _isLoading = false;
       });
       
-      _showErrorSnackBar('Failed to load quotes: $e');
+      // Defer showing SnackBar until after the build is complete
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _showErrorSnackBar('Failed to load quotes: $e');
+          }
+        });
+      }
     }
   }
 

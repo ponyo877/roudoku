@@ -143,7 +143,14 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
         _isLoading = false;
       });
 
-      _showErrorSnackBar('Failed to load quote pairs: $e');
+      // Defer showing SnackBar until after the build is complete
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _showErrorSnackBar('Failed to load quote pairs: $e');
+          }
+        });
+      }
     }
   }
 

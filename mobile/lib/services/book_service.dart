@@ -3,11 +3,13 @@ import '../models/book.dart';
 import '../utils/constants.dart';
 
 class BookService {
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: ApiConstants.baseUrl,
-    connectTimeout: const Duration(seconds: 5),
-    receiveTimeout: const Duration(seconds: 3),
-  ));
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: ApiConstants.apiBaseUrl,
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 3),
+    ),
+  );
 
   Future<List<Book>> getRecommendations() async {
     try {
@@ -96,7 +98,7 @@ class BookService {
         title: '7つの習慣',
         author: 'スティーブン・R・コヴィー',
         description: '世界中で支持される自己啓発書の決定版。人格主義の回復を訴え、真の成功を得るための原則を説く。',
-        coverUrl: 'https://via.placeholder.com/300x400',
+        coverUrl: 'https://placehold.jp/300x400',
         audioUrl: 'https://example.com/audio1.mp3',
         duration: 180,
         category: '自己啓発',
@@ -131,7 +133,7 @@ class BookService {
         title: '人を動かす',
         author: 'デール・カーネギー',
         description: '人間関係の原則を説いた不朽の名著。相手の立場に立って考えることの重要性を説く。',
-        coverUrl: 'https://via.placeholder.com/300x400',
+        coverUrl: 'https://placehold.jp/300x400',
         audioUrl: 'https://example.com/audio2.mp3',
         duration: 150,
         category: 'ビジネス',
@@ -160,7 +162,7 @@ class BookService {
         title: '嫌われる勇気',
         author: '岸見一郎、古賀史健',
         description: 'アドラー心理学を対話形式でわかりやすく解説。自由に生きるための考え方を学ぶ。',
-        coverUrl: 'https://via.placeholder.com/300x400',
+        coverUrl: 'https://placehold.jp/300x400',
         audioUrl: 'https://example.com/audio3.mp3',
         duration: 120,
         category: '心理学',

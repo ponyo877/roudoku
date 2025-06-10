@@ -25,6 +25,7 @@ import 'services/notification_service.dart';
 import 'services/swipe_service.dart';
 import 'services/api_service.dart';
 import 'screens/auth_wrapper.dart';
+import 'utils/constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,7 +69,7 @@ class RoudokuApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Initialize services
     final dio = Dio();
-    const baseUrl = 'http://localhost:8080'; // Update with your API base URL
+    final baseUrl = Constants.apiBaseUrl; // Use the correct API base URL with /api/v1
     final audioService = AudioService(dio: dio, baseUrl: baseUrl);
     final sessionService = SessionService(dio: dio, baseUrl: baseUrl);
     final contextService = ContextService(prefs);

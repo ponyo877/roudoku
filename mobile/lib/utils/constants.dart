@@ -1,17 +1,23 @@
 class Constants {
-  // ローカル開発用設定
-  static const String baseUrl = 'http://localhost:8080';
-  static const String baseUrlAndroid = 'http://10.0.2.2:8080'; // Android Emulator用
+  // Environment detection
+  static const bool isProduction = bool.fromEnvironment('PRODUCTION', defaultValue: false);
   
-  static const bool isProduction = false;
-  static const bool enableLogging = true;
-  static const bool enableTTS = false; // 開発時はTTS無効
+  // 本番環境と開発環境の設定
+  static const String baseUrl = isProduction 
+    ? 'https://YOUR_CLOUD_RUN_URL' // Will be updated after deployment
+    : 'http://localhost:8080';
+  static const String baseUrlAndroid = isProduction
+    ? 'https://YOUR_CLOUD_RUN_URL' // Will be updated after deployment  
+    : 'http://10.0.2.2:8080'; // Android Emulator用
   
-  // Firebase設定（開発用）
-  static const String firebaseProjectId = 'roudoku-dev';
+  static const bool enableLogging = !isProduction;
+  static const bool enableTTS = isProduction; // 本番環境ではTTS有効
+  
+  // Firebase設定
+  static const String firebaseProjectId = isProduction ? 'gke-test-287910' : 'roudoku-dev';
   
   // デバッグ用設定
-  static const bool enableNetworkLogging = true;
+  static const bool enableNetworkLogging = !isProduction;
   static const int connectionTimeout = 30; // seconds
   
   // API エンドポイント
@@ -19,8 +25,8 @@ class Constants {
   static String get apiBaseUrl => '$baseUrl/api/$apiVersion';
   
   // アプリ設定
-  static const String appName = 'Roudoku Dev';
-  static const String appVersion = '1.0.0-dev';
+  static const String appName = isProduction ? 'Aozora StoryWalk' : 'Roudoku Dev';
+  static const String appVersion = isProduction ? '1.0.0' : '1.0.0-dev';
   
   // UI設定
   static const int defaultPageSize = 20;

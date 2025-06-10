@@ -17,7 +17,7 @@ class NotificationService {
   // Get user notification preferences
   Future<NotificationPreferences> getNotificationPreferences(String userId) async {
     try {
-      final response = await _dio.get('$_baseUrl/api/v1/users/$userId/notifications/preferences');
+      final response = await _dio.get('$_baseUrl/users/$userId/notifications/preferences');
       
       if (response.statusCode == 200) {
         return NotificationPreferences.fromJson(response.data);
@@ -36,7 +36,7 @@ class NotificationService {
   ) async {
     try {
       final response = await _dio.put(
-        '$_baseUrl/api/v1/users/$userId/notifications/preferences',
+        '$_baseUrl/users/$userId/notifications/preferences',
         data: request.toJson(),
       );
       
@@ -58,7 +58,7 @@ class NotificationService {
   }) async {
     try {
       final response = await _dio.get(
-        '$_baseUrl/api/v1/users/$userId/notifications',
+        '$_baseUrl/users/$userId/notifications',
         queryParameters: {
           'limit': limit,
           if (unreadOnly) 'unread_only': true,
@@ -82,7 +82,7 @@ class NotificationService {
   Future<void> markNotificationAsRead(String userId, String notificationId) async {
     try {
       final response = await _dio.put(
-        '$_baseUrl/api/v1/users/$userId/notifications/$notificationId/read',
+        '$_baseUrl/users/$userId/notifications/$notificationId/read',
       );
       
       if (response.statusCode != 200) {
@@ -97,7 +97,7 @@ class NotificationService {
   Future<void> markAllNotificationsAsRead(String userId) async {
     try {
       final response = await _dio.put(
-        '$_baseUrl/api/v1/users/$userId/notifications/read-all',
+        '$_baseUrl/users/$userId/notifications/read-all',
       );
       
       if (response.statusCode != 200) {
@@ -111,7 +111,7 @@ class NotificationService {
   // Get notification summary
   Future<NotificationSummary> getNotificationSummary(String userId) async {
     try {
-      final response = await _dio.get('$_baseUrl/api/v1/users/$userId/notifications/summary');
+      final response = await _dio.get('$_baseUrl/users/$userId/notifications/summary');
       
       if (response.statusCode == 200) {
         return NotificationSummary.fromJson(response.data);
@@ -130,7 +130,7 @@ class NotificationService {
   }) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl/api/v1/notifications/send',
+        '$_baseUrl/notifications/send',
         data: {
           'user_id': userId,
           'payload': payload.toJson(),
@@ -149,7 +149,7 @@ class NotificationService {
   Future<void> updateFcmToken(String userId, String fcmToken) async {
     try {
       final response = await _dio.put(
-        '$_baseUrl/api/v1/users/$userId/fcm-token',
+        '$_baseUrl/users/$userId/fcm-token',
         data: {'fcm_token': fcmToken},
       );
       
@@ -169,7 +169,7 @@ class NotificationService {
   }) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl/api/v1/notifications/schedule',
+        '$_baseUrl/notifications/schedule',
         data: {
           'user_id': userId,
           'payload': payload.toJson(),
@@ -248,7 +248,7 @@ class NotificationService {
   // Get in-app notification settings
   Future<InAppNotificationSettings> getInAppNotificationSettings(String userId) async {
     try {
-      final response = await _dio.get('$_baseUrl/api/v1/users/$userId/notifications/in-app-settings');
+      final response = await _dio.get('$_baseUrl/users/$userId/notifications/in-app-settings');
       
       if (response.statusCode == 200) {
         return InAppNotificationSettings.fromJson(response.data);
@@ -281,7 +281,7 @@ class NotificationService {
   ) async {
     try {
       final response = await _dio.put(
-        '$_baseUrl/api/v1/users/$userId/notifications/in-app-settings',
+        '$_baseUrl/users/$userId/notifications/in-app-settings',
         data: settings.toJson(),
       );
       
