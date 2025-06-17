@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/domain"
@@ -21,22 +21,39 @@ type SwipeService interface {
 
 // swipeService implements SwipeService
 type swipeService struct {
-	swipeRepo repository.SwipeRepository
-	validator *validator.Validate
+	BaseService
+	swipeRepo         repository.SwipeRepository
+	validationService BusinessValidationService
 }
 
 // NewSwipeService creates a new swipe service
-func NewSwipeService(swipeRepo repository.SwipeRepository) SwipeService {
+func NewSwipeService(swipeRepo repository.SwipeRepository, validationService BusinessValidationService, logger *zap.Logger) SwipeService {
 	return &swipeService{
-		swipeRepo: swipeRepo,
-		validator: validator.New(),
+		BaseService:       NewBaseService(logger),
+		swipeRepo:         swipeRepo,
+		validationService: validationService,
 	}
 }
 
 // CreateSwipeLog creates a new swipe log
 func (s *swipeService) CreateSwipeLog(ctx context.Context, userID uuid.UUID, req *dto.CreateSwipeLogRequest) (*domain.SwipeLog, error) {
-	if err := s.validator.Struct(req); err != nil {
+	s.logger.Info("Creating swipe log", 
+		zap.String("user_id", userID.String()), 
+		zap.String("quote_id", req.QuoteID.String()),
+		zap.String("mode", req.Mode),
+		zap.Int("choice", req.Choice))
+	
+	if err := s.Validate(req); err != nil {
+		s.logger.Error("Validation failed", zap.Error(err))
 		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	// Business validation
+	if s.validationService != nil {
+		if err := s.validationService.ValidateSwipeLimit(ctx, userID); err != nil {
+			s.logger.Error("Business validation failed", zap.Error(err))
+			return nil, fmt.Errorf("business validation failed: %w", err)
+		}
 	}
 
 	mapper := mappers.NewSwipeMapper()

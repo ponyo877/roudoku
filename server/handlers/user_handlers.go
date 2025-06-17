@@ -1,13 +1,10 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/google/uuid"
-
 	"github.com/ponyo877/roudoku/server/dto"
+	"github.com/ponyo877/roudoku/server/handlers/utils"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
@@ -26,95 +23,87 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 // CreateUser handles POST /users
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	if err := utils.DecodeJSONBody(r, &req); err != nil {
+		utils.WriteJSONError(w, "Invalid request body", utils.CodeInvalidFormat, http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.userService.CreateUser(r.Context(), &req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err == services.ErrDuplicateEntry {
+			utils.WriteJSONError(w, "User already exists", utils.CodeConflict, http.StatusConflict)
+		} else {
+			utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
+		}
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	utils.WriteJSONSuccess(w, user, "User created successfully", http.StatusCreated)
 }
 
 // GetUser handles GET /users/{id}
 func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	idStr, ok := vars["id"]
-	if !ok {
-		http.Error(w, "Missing user ID", http.StatusBadRequest)
-		return
-	}
-
-	id, err := uuid.Parse(idStr)
+	id, err := utils.ParseUUIDParam(r, "id")
 	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.userService.GetUser(r.Context(), id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		if err == services.ErrUserNotFound {
+			utils.WriteJSONError(w, "User not found", utils.CodeResourceNotFound, http.StatusNotFound)
+		} else {
+			utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
+		}
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	utils.WriteJSONSuccess(w, user, "", http.StatusOK)
 }
 
 // UpdateUser handles PUT /users/{id}
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	idStr, ok := vars["id"]
-	if !ok {
-		http.Error(w, "Missing user ID", http.StatusBadRequest)
-		return
-	}
-
-	id, err := uuid.Parse(idStr)
+	id, err := utils.ParseUUIDParam(r, "id")
 	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
 		return
 	}
 
 	var req dto.UpdateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	if err := utils.DecodeJSONBody(r, &req); err != nil {
+		utils.WriteJSONError(w, "Invalid request body", utils.CodeInvalidFormat, http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.userService.UpdateUser(r.Context(), id, &req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err == services.ErrUserNotFound {
+			utils.WriteJSONError(w, "User not found", utils.CodeResourceNotFound, http.StatusNotFound)
+		} else {
+			utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
+		}
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	utils.WriteJSONSuccess(w, user, "User updated successfully", http.StatusOK)
 }
 
 // DeleteUser handles DELETE /users/{id}
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	idStr, ok := vars["id"]
-	if !ok {
-		http.Error(w, "Missing user ID", http.StatusBadRequest)
-		return
-	}
-
-	id, err := uuid.Parse(idStr)
+	id, err := utils.ParseUUIDParam(r, "id")
 	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
 		return
 	}
 
 	err = h.userService.DeleteUser(r.Context(), id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err == services.ErrUserNotFound {
+			utils.WriteJSONError(w, "User not found", utils.CodeResourceNotFound, http.StatusNotFound)
+		} else {
+			utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
+		}
 		return
 	}
 

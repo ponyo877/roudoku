@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/domain"
@@ -24,26 +24,42 @@ type SessionService interface {
 
 // sessionService implements SessionService
 type sessionService struct {
-	sessionRepo repository.SessionRepository
-	validator   *validator.Validate
+	BaseService
+	sessionRepo       repository.SessionRepository
+	validationService BusinessValidationService
 }
 
 // NewSessionService creates a new session service
-func NewSessionService(sessionRepo repository.SessionRepository) SessionService {
+func NewSessionService(sessionRepo repository.SessionRepository, validationService BusinessValidationService, logger *zap.Logger) SessionService {
 	return &sessionService{
-		sessionRepo: sessionRepo,
-		validator:   validator.New(),
+		BaseService:       NewBaseService(logger),
+		sessionRepo:       sessionRepo,
+		validationService: validationService,
 	}
 }
 
 // CreateReadingSession creates a new reading session
 func (s *sessionService) CreateReadingSession(ctx context.Context, userID uuid.UUID, req *dto.CreateReadingSessionRequest) (*domain.ReadingSession, error) {
-	if err := s.validator.Struct(req); err != nil {
+	s.logger.Info("Creating reading session", 
+		zap.String("user_id", userID.String()), 
+		zap.Int64("book_id", req.BookID),
+		zap.Int("start_pos", req.StartPos))
+	
+	if err := s.Validate(req); err != nil {
+		s.logger.Error("Validation failed", zap.Error(err))
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
 	mapper := mappers.NewSessionMapper()
 	session := mapper.CreateRequestToDomain(userID, req)
+
+	// Business validation
+	if s.validationService != nil {
+		if err := s.validationService.ValidateReadingSessionConsistency(ctx, session); err != nil {
+			s.logger.Error("Business validation failed", zap.Error(err))
+			return nil, fmt.Errorf("business validation failed: %w", err)
+		}
+	}
 
 	if err := s.sessionRepo.Create(ctx, session); err != nil {
 		return nil, fmt.Errorf("failed to create reading session: %w", err)
@@ -63,7 +79,10 @@ func (s *sessionService) GetReadingSession(ctx context.Context, sessionID uuid.U
 
 // UpdateReadingSession updates a reading session
 func (s *sessionService) UpdateReadingSession(ctx context.Context, sessionID uuid.UUID, req *dto.UpdateReadingSessionRequest) (*domain.ReadingSession, error) {
-	if err := s.validator.Struct(req); err != nil {
+	s.logger.Info("Updating reading session", zap.String("session_id", sessionID.String()))
+	
+	if err := s.Validate(req); err != nil {
+		s.logger.Error("Validation failed", zap.Error(err))
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
@@ -97,9 +116,8 @@ func (s *sessionService) UpdateReadingSession(ctx context.Context, sessionID uui
 
 // GetUserReadingSessions retrieves reading sessions for a user
 func (s *sessionService) GetUserReadingSessions(ctx context.Context, userID uuid.UUID, limit int) ([]*domain.ReadingSession, error) {
-	if limit <= 0 || limit > 100 {
-		limit = 50
-	}
+	limit = ValidateLimit(limit, DefaultLimit, MaxLimit)
+	s.logger.Debug("Getting user reading sessions", zap.String("user_id", userID.String()), zap.Int("limit", limit))
 
 	sessions, err := s.sessionRepo.GetByUserID(ctx, userID, limit)
 	if err != nil {
