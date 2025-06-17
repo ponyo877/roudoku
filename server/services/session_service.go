@@ -116,7 +116,10 @@ func (s *sessionService) UpdateReadingSession(ctx context.Context, sessionID uui
 
 // GetUserReadingSessions retrieves reading sessions for a user
 func (s *sessionService) GetUserReadingSessions(ctx context.Context, userID uuid.UUID, limit int) ([]*domain.ReadingSession, error) {
-	limit = ValidateLimit(limit, DefaultLimit, MaxLimit)
+	if err := s.ValidateLimit(limit); err != nil {
+		limit = DefaultLimit
+	}
+	limit = s.NormalizeLimit(limit)
 	s.logger.Debug("Getting user reading sessions", zap.String("user_id", userID.String()), zap.Int("limit", limit))
 
 	sessions, err := s.sessionRepo.GetByUserID(ctx, userID, limit)

@@ -34,22 +34,31 @@ class RecommendationCard extends StatelessWidget {
               // Book cover
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: book.coverUrl,
-                  width: 100,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.error),
-                  ),
-                ),
+                child: book.coverUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: book.coverUrl,
+                        width: 100,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          width: 100,
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          width: 100,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.menu_book, size: 40, color: Colors.grey),
+                        ),
+                      )
+                    : Container(
+                        width: 100,
+                        height: double.infinity,
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.menu_book, size: 40, color: Colors.grey),
+                      ),
               ),
               const SizedBox(width: 12),
               // Book details

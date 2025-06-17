@@ -6,8 +6,8 @@ import '../models/swipe.dart';
 import 'search_screen.dart';
 import 'profile_screen.dart';
 import 'context_setting_screen.dart';
-import 'swipe_screen.dart';
-import 'pair_comparison_screen.dart';
+import 'simple_swipe_screen.dart';
+import 'simple_pair_comparison_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -190,7 +190,7 @@ class _HomeContent extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => SwipeScreen(mode: mode),
+            builder: (context) => SimpleSwipeScreen(mode: mode),
           ),
         );
         break;
@@ -198,7 +198,7 @@ class _HomeContent extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const PairComparisonScreen(),
+            builder: (context) => const SimplePairComparisonScreen(),
           ),
         );
         break;

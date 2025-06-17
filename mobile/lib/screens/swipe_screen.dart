@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:dio/dio.dart';
 import '../models/swipe.dart';
-import '../services/swipe_service.dart';
+import '../services/simple_swipe_service.dart';
 import '../services/context_service.dart';
+import '../services/cloud_tts_service.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/swipe_card_widget.dart';
 
@@ -22,11 +24,12 @@ class SwipeScreen extends StatefulWidget {
 
 class _SwipeScreenState extends State<SwipeScreen>
     with TickerProviderStateMixin {
-  late SwipeService _swipeService;
+  late SimpleSwipeService _swipeService;
   late ContextService _contextService;
+  late CloudTtsService _ttsService;
   late AuthProvider _authProvider;
 
-  List<QuoteWithBook> _quotes = [];
+  List<Map<String, dynamic>> _quotes = [];
   bool _isLoading = false;
   bool _hasError = false;
   String? _errorMessage;
@@ -43,6 +46,9 @@ class _SwipeScreenState extends State<SwipeScreen>
   late AnimationController _loadingController;
   late AnimationController _stackController;
   late Animation<double> _loadingAnimation;
+  
+  // TTS state
+  bool _isSpeaking = false;
 
   // Preloading
   static const int _preloadThreshold = 3; // Load more when 3 cards left
@@ -59,8 +65,18 @@ class _SwipeScreenState extends State<SwipeScreen>
 
   void _initializeServices() {
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
-    _swipeService = Provider.of<SwipeService>(context, listen: false);
+    _swipeService = SimpleSwipeService(Dio());
     _contextService = Provider.of<ContextService>(context, listen: false);
+    _ttsService = Provider.of<CloudTtsService>(context, listen: false);
+    
+    // Setup TTS callbacks
+    _ttsService.onPlayingChanged = () {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = _ttsService.isPlaying;
+        });
+      }
+    };
   }
 
   void _initializeAnimations() {
@@ -108,22 +124,16 @@ class _SwipeScreenState extends State<SwipeScreen>
       }
 
       // Load quotes
-      final response = await _swipeService.getSwipeQuotes(
-        userId: _authProvider.user!.id,
-        mode: widget.mode,
+      final quotes = await _swipeService.getQuotesForSwipe(
         count: _initialLoadCount,
-        context: _currentContext,
       );
 
       setState(() {
-        _quotes = response.quotes;
-        _sessionId = response.sessionId;
+        _quotes = quotes;
+        _sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
         _currentIndex = 0;
         _isLoading = false;
       });
-
-      // Cache quotes for offline use
-      await _swipeService.cacheQuotes(response, widget.mode);
 
     } catch (e) {
       setState(() {
@@ -149,31 +159,14 @@ class _SwipeScreenState extends State<SwipeScreen>
     }
 
     try {
-      // Get IDs of quotes already shown
-      final excludeIds = _quotes.take(_currentIndex + _preloadThreshold).map((q) => q.quote.id).toList();
-
-      final response = await _swipeService.getSwipeQuotes(
-        userId: _authProvider.user!.id,
-        mode: widget.mode,
+      // Load more quotes
+      final moreQuotes = await _swipeService.getQuotesForSwipe(
         count: _subsequentLoadCount,
-        context: _currentContext,
-        excludeIds: excludeIds,
       );
 
       setState(() {
-        _quotes.addAll(response.quotes);
+        _quotes.addAll(moreQuotes);
       });
-
-      // Update cache
-      await _swipeService.cacheQuotes(
-        SwipeQuoteResponse(
-          quotes: _quotes,
-          totalCount: _quotes.length,
-          hasMore: response.hasMore,
-          sessionId: response.sessionId,
-        ),
-        widget.mode,
-      );
 
     } catch (e) {
       print('Error loading more quotes: $e');
@@ -211,16 +204,14 @@ class _SwipeScreenState extends State<SwipeScreen>
     }
   }
 
-  Future<void> _logSwipe(QuoteWithBook quoteWithBook, SwipeChoice choice, int duration) async {
+  Future<void> _logSwipe(Map<String, dynamic> quote, SwipeChoice choice, int duration) async {
     try {
+      final quoteId = quote['quote']['id'].toString();
       await _swipeService.logSwipe(
-        userId: _authProvider.user!.id,
-        quoteId: quoteWithBook.quote.id,
-        mode: widget.mode,
-        choice: choice,
-        contextData: _currentContext,
-        swipeDurationMs: duration,
-        sessionId: _sessionId,
+        userId: _authProvider.user?.id ?? 'anonymous',
+        quoteId: quoteId,
+        mode: widget.mode.name,
+        choice: choice.value,
       );
     } catch (e) {
       print('Error logging swipe: $e');
@@ -297,7 +288,7 @@ class _SwipeScreenState extends State<SwipeScreen>
     }
   }
 
-  void _showQuoteDetails(QuoteWithBook quoteWithBook) {
+  void _showQuoteDetails(Map<String, dynamic> quoteData) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -331,14 +322,14 @@ class _SwipeScreenState extends State<SwipeScreen>
                 
                 // Book info
                 Text(
-                  quoteWithBook.book.title,
+                  quoteData['book']['title'] ?? 'Unknown Book',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'by ${quoteWithBook.book.author}',
+                  'by ${quoteData['book']['author'] ?? 'Unknown Author'}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.grey.shade600,
                   ),
@@ -361,7 +352,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          quoteWithBook.quote.text,
+                          quoteData['quote']['text'] ?? 'Quote text not available',
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             height: 1.6,
                           ),
@@ -369,7 +360,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                         const SizedBox(height: 24),
                         
                         // Book description
-                        if (quoteWithBook.book.description.isNotEmpty) ...[
+                        if ((quoteData['book']['description'] ?? '').isNotEmpty) ...[
                           Text(
                             'About the Book:',
                             style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -379,13 +370,34 @@ class _SwipeScreenState extends State<SwipeScreen>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            quoteWithBook.book.description,
+                            quoteData['book']['description'] ?? '',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.grey.shade700,
                             ),
                           ),
                           const SizedBox(height: 24),
                         ],
+                        
+                        // TTS Button
+                        Center(
+                          child: IconButton(
+                            icon: Icon(
+                              _isSpeaking ? Icons.stop : Icons.volume_up,
+                              color: _isSpeaking ? Colors.red : Theme.of(context).primaryColor,
+                              size: 32,
+                            ),
+                            onPressed: () async {
+                              final quoteText = quoteData['quote']['text'] ?? '';
+                              if (_isSpeaking) {
+                                await _ttsService.stop();
+                              } else {
+                                await _ttsService.speak(quoteText);
+                              }
+                            },
+                            tooltip: _isSpeaking ? '読み上げを停止' : '引用文を読み上げ',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         
                         // Actions
                         Row(

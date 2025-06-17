@@ -1,14 +1,18 @@
 class Constants {
-  // Environment detection
-  static const bool isProduction = bool.fromEnvironment('PRODUCTION', defaultValue: false);
+  // Environment detection - Force production mode to use live server
+  static const bool isProduction = true; // Changed to true for production server
   
   // 本番環境と開発環境の設定
   static const String baseUrl = isProduction 
-    ? 'https://YOUR_CLOUD_RUN_URL' // Will be updated after deployment
+    ? 'https://roudoku-api-1083612487436.asia-northeast1.run.app'
     : 'http://localhost:8080';
   static const String baseUrlAndroid = isProduction
-    ? 'https://YOUR_CLOUD_RUN_URL' // Will be updated after deployment  
+    ? 'https://roudoku-api-1083612487436.asia-northeast1.run.app'
     : 'http://10.0.2.2:8080'; // Android Emulator用
+  
+  // Debug info
+  static String get currentEnvironment => isProduction ? 'Production' : 'Development';
+  static String get currentBaseUrl => baseUrl;
   
   static const bool enableLogging = !isProduction;
   static const bool enableTTS = isProduction; // 本番環境ではTTS有効

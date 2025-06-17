@@ -14,7 +14,7 @@ import (
 
 // postgresBookRepository implements BookRepository for PostgreSQL
 type postgresBookRepository struct {
-	db          *pgxpool.Pool
+	*BaseRepository
 	bookMapper  *mappers.BookMapper
 	quoteMapper *mappers.QuoteMapper
 }
@@ -22,9 +22,9 @@ type postgresBookRepository struct {
 // NewPostgresBookRepository creates a new PostgreSQL book repository
 func NewPostgresBookRepository(db *pgxpool.Pool) BookRepository {
 	return &postgresBookRepository{
-		db:          db,
-		bookMapper:  mappers.NewBookMapper(),
-		quoteMapper: mappers.NewQuoteMapper(),
+		BaseRepository: NewBaseRepository(db),
+		bookMapper:     mappers.NewBookMapper(),
+		quoteMapper:    mappers.NewQuoteMapper(),
 	}
 }
 
@@ -38,18 +38,14 @@ func (r *postgresBookRepository) Create(ctx context.Context, book *domain.Book) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 	`
 
-	_, err := r.db.Exec(ctx, query,
+	_, err := r.GetConnection().Exec(ctx, query,
 		entity.ID, entity.Title, entity.Author, entity.Epoch, entity.WordCount, entity.ContentURL,
 		entity.Summary, entity.Genre, entity.DifficultyLevel, entity.EstimatedReadingMinutes,
 		entity.DownloadCount, entity.RatingAverage, entity.RatingCount,
 		entity.IsPremium, entity.IsActive, entity.CreatedAt, entity.UpdatedAt,
 	)
 
-	if err != nil {
-		return fmt.Errorf("failed to create book: %w", err)
-	}
-
-	return nil
+	return r.HandleError(err, "create book")
 }
 
 // GetByID retrieves a book by its ID
@@ -63,7 +59,7 @@ func (r *postgresBookRepository) GetByID(ctx context.Context, id int64) (*domain
 	`
 
 	entity := &ent.BookEntity{}
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err := r.GetConnection().QueryRow(ctx, query, id).Scan(
 		&entity.ID, &entity.Title, &entity.Author, &entity.Epoch, &entity.WordCount,
 		&entity.ContentURL, &entity.Summary, &entity.Genre, &entity.DifficultyLevel,
 		&entity.EstimatedReadingMinutes, &entity.DownloadCount, &entity.RatingAverage,
@@ -71,7 +67,7 @@ func (r *postgresBookRepository) GetByID(ctx context.Context, id int64) (*domain
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get book by ID: %w", err)
+		return nil, r.HandleError(err, "get book by ID")
 	}
 
 	return r.bookMapper.EntityToDomain(entity), nil
@@ -298,6 +294,28 @@ func (r *postgresBookRepository) GetChaptersByBookID(ctx context.Context, bookID
 
 	chapters := r.bookMapper.ChapterEntityToDomainSlice(entities)
 	return chapters, nil
+}
+
+// GetChapterByID retrieves a chapter by its ID
+func (r *postgresBookRepository) GetChapterByID(ctx context.Context, chapterID string) (*domain.Chapter, error) {
+	query := `
+		SELECT id, book_id, title, content, position, word_count, created_at
+		FROM chapters 
+		WHERE id = $1
+	`
+
+	entity := new(ent.ChapterEntity)
+	err := r.db.QueryRow(ctx, query, chapterID).Scan(
+		&entity.ID, &entity.BookID, &entity.Title, &entity.Content,
+		&entity.Position, &entity.WordCount, &entity.CreatedAt,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get chapter by ID: %w", err)
+	}
+
+	chapter := r.bookMapper.ChapterEntityToDomain(entity)
+	return chapter, nil
 }
 
 // CreateQuote creates a new quote

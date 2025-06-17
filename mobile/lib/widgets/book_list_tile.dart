@@ -21,22 +21,33 @@ class BookListTile extends StatelessWidget {
         contentPadding: const EdgeInsets.all(8),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(4),
-          child: CachedNetworkImage(
-            imageUrl: book.coverUrl,
-            width: 60,
-            height: 80,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => Container(
-              color: Colors.grey[300],
-              child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-            errorWidget: (context, url, error) => Container(
-              color: Colors.grey[300],
-              child: const Icon(Icons.error),
-            ),
-          ),
+          child: book.coverUrl.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: book.coverUrl,
+                  width: 60,
+                  height: 80,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    width: 60,
+                    height: 80,
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    width: 60,
+                    height: 80,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.menu_book, size: 30, color: Colors.grey),
+                  ),
+                )
+              : Container(
+                  width: 60,
+                  height: 80,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.menu_book, size: 30, color: Colors.grey),
+                ),
         ),
         title: Text(
           book.title,

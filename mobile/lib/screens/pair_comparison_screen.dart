@@ -5,6 +5,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../models/swipe.dart';
 import '../services/swipe_service.dart';
 import '../services/context_service.dart';
+import '../services/cloud_tts_service.dart';
 import '../providers/auth_provider.dart';
 
 class PairComparisonScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
     with TickerProviderStateMixin {
   late SwipeService _swipeService;
   late ContextService _contextService;
+  late CloudTtsService _ttsService;
   late AuthProvider _authProvider;
 
   List<QuotePair> _pairs = [];
@@ -45,6 +47,9 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
   bool _isChoosing = false;
   String? _chosenQuoteId;
   DateTime? _choiceStartTime;
+  
+  // TTS state
+  bool _isSpeaking = false;
 
   // Preloading constants
   static const int _preloadThreshold = 2;
@@ -63,6 +68,16 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
     _swipeService = Provider.of<SwipeService>(context, listen: false);
     _contextService = Provider.of<ContextService>(context, listen: false);
+    _ttsService = Provider.of<CloudTtsService>(context, listen: false);
+    
+    // Setup TTS callbacks
+    _ttsService.onPlayingChanged = () {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = _ttsService.isPlaying;
+        });
+      }
+    };
   }
 
   void _initializeAnimations() {
@@ -704,14 +719,38 @@ class _PairComparisonScreenState extends State<PairComparisonScreen>
                     Expanded(
                       child: Center(
                         child: SingleChildScrollView(
-                          child: Text(
-                            quoteWithBook.quote.text,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  height: 1.5,
-                                  color: Colors.grey.shade800,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                quoteWithBook.quote.text,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      height: 1.5,
+                                      color: Colors.grey.shade800,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              IconButton(
+                                icon: Icon(
+                                  _isSpeaking ? Icons.stop : Icons.volume_up,
+                                  color: _isSpeaking 
+                                      ? Colors.red 
+                                      : Theme.of(context).primaryColor,
+                                  size: 20,
                                 ),
-                            textAlign: TextAlign.center,
+                                onPressed: () async {
+                                  final quoteText = quoteWithBook.quote.text;
+                                  if (_isSpeaking) {
+                                    await _ttsService.stop();
+                                  } else {
+                                    await _ttsService.speak(quoteText);
+                                  }
+                                },
+                                tooltip: _isSpeaking ? '読み上げを停止' : '引用文を読み上げ',
+                              ),
+                            ],
                           ),
                         ),
                       ),

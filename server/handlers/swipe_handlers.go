@@ -6,18 +6,21 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/ponyo877/roudoku/server/dto"
-	"github.com/ponyo877/roudoku/server/handlers/utils"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
+	"github.com/ponyo877/roudoku/server/pkg/utils"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
 // SwipeHandler handles swipe-related HTTP requests
 type SwipeHandler struct {
+	*BaseHandler
 	swipeService services.SwipeService
 }
 
 // NewSwipeHandler creates a new swipe handler
-func NewSwipeHandler(swipeService services.SwipeService) *SwipeHandler {
+func NewSwipeHandler(swipeService services.SwipeService, log *logger.Logger) *SwipeHandler {
 	return &SwipeHandler{
+		BaseHandler:  NewBaseHandler(log),
 		swipeService: swipeService,
 	}
 }
@@ -26,28 +29,50 @@ func NewSwipeHandler(swipeService services.SwipeService) *SwipeHandler {
 func (h *SwipeHandler) CreateSwipeLog(w http.ResponseWriter, r *http.Request) {
 	userID, err := utils.ParseUUIDParam(r, "user_id")
 	if err != nil {
-		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
 	var req dto.CreateSwipeLogRequest
-	if err := utils.DecodeJSONBody(r, &req); err != nil {
-		utils.WriteJSONError(w, "Invalid request body", utils.CodeInvalidFormat, http.StatusBadRequest)
+	if err := utils.DecodeJSON(r, &req); err != nil {
+		utils.WriteError(w, r, h.logger, err)
+		return
+	}
+
+	if err := h.validator.ValidateStruct(&req); err != nil {
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
 	swipeLog, err := h.swipeService.CreateSwipeLog(r.Context(), userID, &req)
 	if err != nil {
-		utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
-	utils.WriteJSONSuccess(w, swipeLog, "Swipe log created successfully", http.StatusCreated)
+	utils.WriteCreated(w, swipeLog)
 }
 
 // GetSwipeLogs handles GET /users/{user_id}/swipes
 func (h *SwipeHandler) GetSwipeLogs(w http.ResponseWriter, r *http.Request) {
 	userID, err := utils.ParseUUIDParam(r, "user_id")
+	if err != nil {
+		utils.WriteError(w, r, h.logger, err)
+		return
+	}
+
+	page, perPage := utils.ParsePaginationParams(r)
+	limit := perPage
+	offset := (page - 1) * perPage
+
+	swipeLogs, totalCount, err := h.swipeService.GetSwipeLogs(r.Context(), userID, limit, offset)
+	if err != nil {
+		utils.WriteError(w, r, h.logger, err)
+		return
+	}
+
+	meta := utils.CalculateMeta(page, perPage, totalCount)
+	utils.WriteSuccessWithMeta(w, swipeLogs, meta)
 	if err != nil {
 		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
 		return

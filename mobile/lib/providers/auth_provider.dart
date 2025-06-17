@@ -26,24 +26,31 @@ class AuthProvider extends ChangeNotifier {
     _firebaseUser = firebaseUser;
     
     if (firebaseUser != null) {
-      // Load user data from backend
-      _currentUser = await _userService.getUser(firebaseUser.uid);
-      if (_currentUser == null) {
-        // Create new user if doesn't exist
-        _currentUser = User(
-          id: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          photoUrl: firebaseUser.photoURL,
-          createdAt: DateTime.now(),
-        );
-        await _userService.createUser(_currentUser!);
-      }
+      // Create a local user without backend interaction for now
+      _currentUser = User(
+        id: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+        photoUrl: firebaseUser.photoURL,
+        createdAt: DateTime.now(),
+      );
+      
+      // Try to sync with backend in background without blocking
+      _syncUserInBackground(_currentUser!);
     } else {
       _currentUser = null;
     }
     
     notifyListeners();
+  }
+
+  void _syncUserInBackground(User user) async {
+    try {
+      // Try to create user in background - don't block UI if it fails
+      await _userService.createUser(user);
+    } catch (e) {
+      // Silently ignore background sync failures
+    }
   }
 
   Future<void> signInWithGoogle() async {
@@ -53,7 +60,6 @@ class AuthProvider extends ChangeNotifier {
       
       await _authService.signInWithGoogle();
     } catch (e) {
-      print('Error signing in with Google: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -66,15 +72,8 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
       
-      print('AuthProvider: Starting anonymous sign in...');
-      final result = await _authService.signInAnonymously();
-      print('AuthProvider: Anonymous sign in completed for user: ${result.user?.uid}');
+      await _authService.signInAnonymously();
     } catch (e) {
-      print('AuthProvider: Error signing in anonymously: $e');
-      if (e is firebase_auth.FirebaseAuthException) {
-        print('AuthProvider: Firebase Error Code: ${e.code}');
-        print('AuthProvider: Firebase Error Message: ${e.message}');
-      }
       rethrow;
     } finally {
       _isLoading = false;
@@ -89,7 +88,6 @@ class AuthProvider extends ChangeNotifier {
       
       await _authService.signOut();
     } catch (e) {
-      print('Error signing out: $e');
       rethrow;
     } finally {
       _isLoading = false;

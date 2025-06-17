@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
@@ -10,8 +10,7 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Copy environment file for production
-COPY .env.production .env
+# Environment variables will be set by Cloud Run
 
 # Build the unified application (includes API and recommendations)
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/main.go

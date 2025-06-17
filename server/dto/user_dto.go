@@ -9,6 +9,7 @@ import (
 // UserResponse represents a user response in the API layer
 type UserResponse struct {
 	ID                    uuid.UUID           `json:"id"`
+	FirebaseUID           string              `json:"firebase_uid"`
 	DisplayName           string              `json:"display_name"`
 	Email                 *string             `json:"email"`
 	VoicePreset           VoicePresetResponse `json:"voice_preset"`
@@ -27,6 +28,7 @@ type VoicePresetResponse struct {
 
 // CreateUserRequest represents the request to create a user
 type CreateUserRequest struct {
+	FirebaseUID string                  `json:"firebase_uid" validate:"required"`
 	DisplayName string                  `json:"display_name" validate:"omitempty,min=1,max=100"`
 	Email       *string                 `json:"email" validate:"omitempty,email"`
 	VoicePreset *VoicePresetRequest     `json:"voice_preset"`

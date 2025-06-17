@@ -4,7 +4,6 @@ import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:just_audio_background/just_audio_background.dart';
-import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'providers/auth_provider.dart';
@@ -12,18 +11,18 @@ import 'providers/book_provider.dart';
 import 'providers/audio_player_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/context_provider.dart';
-import 'providers/swipe_provider.dart';
 import 'providers/reading_analytics_provider.dart';
 import 'providers/notification_provider.dart';
 import 'services/audio_service.dart';
 import 'services/session_service.dart';
-import 'services/tts_service.dart';
+import 'services/unified_tts_service.dart';
+import 'services/unified_swipe_service.dart';
 import 'services/firestore_service.dart';
 import 'services/recommendation_service.dart';
 import 'services/context_service.dart';
 import 'services/notification_service.dart';
-import 'services/swipe_service.dart';
 import 'services/api_service.dart';
+import 'core/network/dio_client.dart';
 import 'screens/auth_wrapper.dart';
 import 'utils/constants.dart';
 
@@ -52,36 +51,35 @@ void main() async {
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
 
-  // Initialize TTS Service
-  final ttsService = TtsService();
-  await ttsService.initialize();
+  // Initialize Unified TTS Service
+  final unifiedTtsService = UnifiedTtsService();
+  await unifiedTtsService.initialize();
 
-  runApp(RoudokuApp(prefs: prefs, ttsService: ttsService));
+  runApp(RoudokuApp(prefs: prefs, unifiedTtsService: unifiedTtsService));
 }
 
 class RoudokuApp extends StatelessWidget {
   final SharedPreferences prefs;
-  final TtsService ttsService;
+  final UnifiedTtsService unifiedTtsService;
 
-  const RoudokuApp({super.key, required this.prefs, required this.ttsService});
+  const RoudokuApp({super.key, required this.prefs, required this.unifiedTtsService});
 
   @override
   Widget build(BuildContext context) {
-    // Initialize services
-    final dio = Dio();
-    final baseUrl = Constants.apiBaseUrl; // Use the correct API base URL with /api/v1
-    final audioService = AudioService(dio: dio, baseUrl: baseUrl);
-    final sessionService = SessionService(dio: dio, baseUrl: baseUrl);
+    // Initialize services using centralized Dio client
+    DioClient.instance.updateBaseUrl(Constants.apiBaseUrl);
+    final audioService = AudioService(dio: DioClient.instance.dio, baseUrl: Constants.apiBaseUrl);
+    final sessionService = SessionService(dio: DioClient.instance.dio, baseUrl: Constants.apiBaseUrl);
     final contextService = ContextService(prefs);
     final firestoreService = FirestoreService();
     final recommendationService = RecommendationService(
-      dio: dio,
-      baseUrl: baseUrl,
+      dio: DioClient.instance.dio,
+      baseUrl: Constants.apiBaseUrl,
       contextService: contextService,
     );
-    final notificationService = NotificationService(dio: dio, baseUrl: baseUrl);
-    final swipeService = SwipeService(dio, prefs);
-    final apiService = HttpApiService(dio: dio, baseUrl: baseUrl);
+    final notificationService = NotificationService(dio: DioClient.instance.dio, baseUrl: Constants.apiBaseUrl);
+    final unifiedSwipeService = UnifiedSwipeService.full(prefs);
+    final apiService = HttpApiService(dio: DioClient.instance.dio, baseUrl: Constants.apiBaseUrl);
 
     return MultiProvider(
       providers: [
@@ -91,13 +89,14 @@ class RoudokuApp extends StatelessWidget {
           create: (_) => AudioPlayerProvider(
             audioService: audioService,
             sessionService: sessionService,
+            ttsService: unifiedTtsService,
           ),
         ),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ContextProvider()),
-        ChangeNotifierProvider(
-          create: (_) => SwipeProvider(swipeService, contextService),
-        ),
+        // ChangeNotifierProvider(
+        //   create: (_) => SwipeProvider(swipeService, contextService),
+        // ), // Using SimpleSwipeService in screens instead
         ChangeNotifierProvider(
           create: (_) => ReadingAnalyticsProvider(apiService: apiService),
         ),
@@ -107,12 +106,12 @@ class RoudokuApp extends StatelessWidget {
         // Provide services for other screens
         Provider<AudioService>.value(value: audioService),
         Provider<SessionService>.value(value: sessionService),
-        Provider<TtsService>.value(value: ttsService),
+        Provider<UnifiedTtsService>.value(value: unifiedTtsService),
         Provider<ContextService>.value(value: contextService),
         Provider<FirestoreService>.value(value: firestoreService),
         Provider<RecommendationService>.value(value: recommendationService),
         Provider<NotificationService>.value(value: notificationService),
-        Provider<SwipeService>.value(value: swipeService),
+        Provider<UnifiedSwipeService>.value(value: unifiedSwipeService),
       ],
       child: MaterialApp(
         title: 'roudoku',

@@ -22,6 +22,7 @@ func (m *UserMapper) DomainToDTO(user *domain.User) *dto.UserResponse {
 
 	return &dto.UserResponse{
 		ID:          user.ID,
+		FirebaseUID: user.FirebaseUID,
 		DisplayName: user.DisplayName,
 		Email:       user.Email,
 		VoicePreset: dto.VoicePresetResponse{
@@ -38,7 +39,7 @@ func (m *UserMapper) DomainToDTO(user *domain.User) *dto.UserResponse {
 
 // CreateRequestToDomain converts create request to domain user
 func (m *UserMapper) CreateRequestToDomain(req *dto.CreateUserRequest) *domain.User {
-	user := domain.NewUser(req.DisplayName, req.Email)
+	user := domain.NewUser(req.FirebaseUID, req.DisplayName, req.Email)
 	
 	if req.VoicePreset != nil {
 		user.VoicePreset = domain.VoicePreset{
@@ -59,6 +60,7 @@ func (m *UserMapper) DomainToEntity(user *domain.User) *entities.UserEntity {
 
 	return &entities.UserEntity{
 		ID:          user.ID,
+		FirebaseUID: user.FirebaseUID,
 		DisplayName: user.DisplayName,
 		Email:       user.Email,
 		VoicePreset: entities.VoicePresetDB{
@@ -81,6 +83,7 @@ func (m *UserMapper) EntityToDomain(entity *entities.UserEntity) *domain.User {
 
 	return &domain.User{
 		ID:          entity.ID,
+		FirebaseUID: entity.FirebaseUID,
 		DisplayName: entity.DisplayName,
 		Email:       entity.Email,
 		VoicePreset: domain.VoicePreset{

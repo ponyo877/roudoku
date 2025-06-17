@@ -10,6 +10,7 @@ import (
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/mappers"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
 	"github.com/ponyo877/roudoku/server/repository"
 )
 
@@ -23,17 +24,15 @@ type RatingService interface {
 
 // ratingService implements RatingService
 type ratingService struct {
-	BaseService
-	ratingRepo       repository.RatingRepository
-	validationService BusinessValidationService
+	*BaseService
+	ratingRepo repository.RatingRepository
 }
 
 // NewRatingService creates a new rating service
-func NewRatingService(ratingRepo repository.RatingRepository, validationService BusinessValidationService, logger *zap.Logger) RatingService {
+func NewRatingService(ratingRepo repository.RatingRepository, log *logger.Logger) RatingService {
 	return &ratingService{
-		BaseService:       NewBaseService(logger),
-		ratingRepo:        ratingRepo,
-		validationService: validationService,
+		BaseService: NewBaseService(log),
+		ratingRepo:  ratingRepo,
 	}
 }
 
@@ -44,18 +43,11 @@ func (s *ratingService) CreateOrUpdateRating(ctx context.Context, userID uuid.UU
 		zap.Int64("book_id", req.BookID),
 		zap.Int("rating", req.Rating))
 	
-	if err := s.Validate(req); err != nil {
-		s.logger.Error("Validation failed", zap.Error(err))
-		return nil, fmt.Errorf("validation failed: %w", err)
+	if err := s.ValidateStruct(req); err != nil {
+		return nil, err
 	}
 
-	// Business validation
-	if s.validationService != nil {
-		if err := s.validationService.ValidateUserCanRateBook(ctx, userID, req.BookID); err != nil {
-			s.logger.Error("Business validation failed", zap.Error(err))
-			return nil, fmt.Errorf("business validation failed: %w", err)
-		}
-	}
+	// TODO: Add business validation here if needed
 
 	mapper := mappers.NewRatingMapper()
 	rating := mapper.CreateRequestToDomain(userID, req)
@@ -89,7 +81,10 @@ func (s *ratingService) GetRating(ctx context.Context, userID uuid.UUID, bookID 
 
 // GetUserRatings retrieves ratings for a user
 func (s *ratingService) GetUserRatings(ctx context.Context, userID uuid.UUID, limit int) ([]*domain.Rating, error) {
-	limit = ValidateLimit(limit, DefaultLimit, MaxLimit)
+	if err := s.ValidateLimit(limit); err != nil {
+		limit = DefaultLimit
+	}
+	limit = s.NormalizeLimit(limit)
 	s.logger.Debug("Getting user ratings", zap.String("user_id", userID.String()), zap.Int("limit", limit))
 
 	ratings, err := s.ratingRepo.GetByUserID(ctx, userID, limit)

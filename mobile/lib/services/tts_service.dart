@@ -13,7 +13,7 @@ class TtsService {
   
   // Voice preferences
   String _language = 'ja-JP';
-  double _volume = 0.8;
+  double _volume = 1.0; // Maximum volume for testing
   double _pitch = 1.0;
   double _speechRate = 0.5;
   String _engine = '';
@@ -38,6 +38,15 @@ class TtsService {
     _flutterTts = FlutterTts();
 
     await _setAwaitOptions();
+
+    // iOS specific settings
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await _flutterTts.setSharedInstance(true);
+      await _flutterTts.setIosAudioCategory(IosTextToSpeechAudioCategory.playback,
+          [IosTextToSpeechAudioCategoryOptions.allowBluetooth,
+           IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
+           IosTextToSpeechAudioCategoryOptions.mixWithOthers]);
+    }
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       await _getDefaultEngine();
@@ -133,14 +142,31 @@ class TtsService {
   }
 
   Future<void> speak(String text) async {
-    await _flutterTts.setVolume(_volume);
-    await _flutterTts.setSpeechRate(_speechRate);
-    await _flutterTts.setPitch(_pitch);
-    await _flutterTts.setLanguage(_language);
+    try {
+      print("TTS: Starting to speak text: ${text.substring(0, text.length > 50 ? 50 : text.length)}...");
+      
+      await _flutterTts.setVolume(_volume);
+      print("TTS: Volume set to $_volume");
+      
+      await _flutterTts.setSpeechRate(_speechRate);
+      print("TTS: Speech rate set to $_speechRate");
+      
+      await _flutterTts.setPitch(_pitch);
+      print("TTS: Pitch set to $_pitch");
+      
+      await _flutterTts.setLanguage(_language);
+      print("TTS: Language set to $_language");
 
-    if (text.isNotEmpty) {
-      _lastSpokenText = text;
-      await _flutterTts.speak(text);
+      if (text.isNotEmpty) {
+        _lastSpokenText = text;
+        final result = await _flutterTts.speak(text);
+        print("TTS: Speak result: $result");
+      } else {
+        print("TTS: Empty text provided");
+      }
+    } catch (e) {
+      print("TTS Error in speak: $e");
+      onError?.call(e.toString());
     }
   }
 

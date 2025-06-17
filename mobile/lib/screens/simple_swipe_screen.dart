@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:provider/provider.dart';
 import '../models/swipe.dart';
 import '../services/simple_swipe_service.dart';
+import '../services/cloud_tts_service.dart';
 import '../widgets/simple_swipe_card.dart';
 
 class SimpleSwipeScreen extends StatefulWidget {
@@ -18,17 +20,31 @@ class SimpleSwipeScreen extends StatefulWidget {
 
 class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
   late SimpleSwipeService _swipeService;
+  late CloudTtsService _ttsService;
   List<Map<String, dynamic>> _quotes = [];
   bool _isLoading = false;
   bool _hasError = false;
   String? _errorMessage;
   int _currentIndex = 0;
+  bool _isSpeaking = false;
 
   @override
   void initState() {
     super.initState();
     _swipeService = SimpleSwipeService(Dio());
+    _ttsService = Provider.of<CloudTtsService>(context, listen: false);
+    _setupTtsCallbacks();
     _loadQuotes();
+  }
+
+  void _setupTtsCallbacks() {
+    _ttsService.onPlayingChanged = () {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = _ttsService.isPlaying;
+        });
+      }
+    };
   }
 
   Future<void> _loadQuotes() async {
@@ -69,6 +85,9 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
       setState(() {
         _currentIndex++;
       });
+      
+      // Auto-speak next quote if enabled
+      _autoSpeakCurrentQuote();
     }
   }
 
@@ -87,6 +106,43 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
       setState(() {
         _currentIndex++;
       });
+      
+      // Auto-speak next quote if enabled
+      _autoSpeakCurrentQuote();
+    }
+  }
+  
+  void _autoSpeakCurrentQuote() {
+    if (_currentIndex < _quotes.length) {
+      final quote = _quotes[_currentIndex];
+      final quoteText = quote['quote']['text'] ?? '';
+      _ttsService.autoSpeak(quoteText);
+    }
+  }
+
+  Future<void> _speakCurrentQuote() async {
+    if (_currentIndex < _quotes.length) {
+      final quote = _quotes[_currentIndex];
+      final quoteText = quote['quote']['text'] ?? '';
+      
+      if (_isSpeaking) {
+        print("Stopping TTS...");
+        await _ttsService.stop();
+      } else {
+        print("Starting TTS for quote: $quoteText");
+        await _ttsService.speak(quoteText);
+      }
+    }
+  }
+
+  Future<void> _testTTS() async {
+    const testText = "これはテスト音声です。音声が聞こえますか？";
+    print("Testing TTS with: $testText");
+    
+    if (_isSpeaking) {
+      await _ttsService.stop();
+    } else {
+      await _ttsService.speak(testText);
     }
   }
 
@@ -96,6 +152,39 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
       appBar: AppBar(
         title: Text(widget.mode == SwipeMode.tinder ? 'Swipe Mode' : 'Quote Comparison'),
         centerTitle: true,
+        actions: [
+          // Auto-play toggle
+          IconButton(
+            icon: Icon(
+              _ttsService.autoPlayEnabled ? Icons.auto_awesome : Icons.auto_awesome_outlined,
+              color: _ttsService.autoPlayEnabled ? Colors.orange : null,
+            ),
+            onPressed: () {
+              setState(() {
+                _ttsService.setAutoPlayEnabled(!_ttsService.autoPlayEnabled);
+              });
+            },
+            tooltip: _ttsService.autoPlayEnabled ? '自動読み上げを停止' : '自動読み上げを有効化',
+          ),
+          // Test TTS button
+          IconButton(
+            icon: Icon(
+              Icons.volume_up,
+              color: Colors.green,
+            ),
+            onPressed: _testTTS,
+            tooltip: 'TTS テスト',
+          ),
+          if (_quotes.isNotEmpty && _currentIndex < _quotes.length)
+            IconButton(
+              icon: Icon(
+                _isSpeaking ? Icons.stop : Icons.record_voice_over,
+                color: _isSpeaking ? Colors.red : null,
+              ),
+              onPressed: _speakCurrentQuote,
+              tooltip: _isSpeaking ? '読み上げを停止' : '引用文を読み上げ',
+            ),
+        ],
       ),
       body: _buildBody(),
     );

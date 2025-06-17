@@ -12,18 +12,20 @@ class SessionService {
         _baseUrl = baseUrl;
 
   /// Create a new reading session
-  Future<ReadingSession> createSession(CreateSessionRequest request) async {
+  Future<ReadingSession> createSession(CreateSessionRequest request, {String? userId}) async {
     try {
+      // Use a default user ID for now (in production, this would come from authentication)
+      final userIdParam = userId ?? 'default-user';
       final response = await _dio.post(
-        '$_baseUrl/api/sessions',
+        '$_baseUrl/api/v1/users/$userIdParam/sessions',
         data: request.toJson(),
         options: Options(
           headers: await _getAuthHeaders(),
         ),
       );
 
-      if (response.statusCode == 201) {
-        return ReadingSession.fromJson(response.data['data']);
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return ReadingSession.fromJson(response.data['data'] ?? response.data);
       } else {
         throw Exception('Failed to create session: ${response.statusMessage}');
       }
@@ -33,17 +35,18 @@ class SessionService {
   }
 
   /// Get session by ID
-  Future<ReadingSession> getSession(String sessionId) async {
+  Future<ReadingSession> getSession(String sessionId, {String? userId}) async {
     try {
+      final userIdParam = userId ?? 'default-user';
       final response = await _dio.get(
-        '$_baseUrl/api/sessions/$sessionId',
+        '$_baseUrl/api/v1/users/$userIdParam/sessions/$sessionId',
         options: Options(
           headers: await _getAuthHeaders(),
         ),
       );
 
       if (response.statusCode == 200) {
-        return ReadingSession.fromJson(response.data['data']);
+        return ReadingSession.fromJson(response.data['data'] ?? response.data);
       } else {
         throw Exception('Failed to get session: ${response.statusMessage}');
       }

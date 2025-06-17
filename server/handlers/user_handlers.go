@@ -4,18 +4,21 @@ import (
 	"net/http"
 
 	"github.com/ponyo877/roudoku/server/dto"
-	"github.com/ponyo877/roudoku/server/handlers/utils"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
+	"github.com/ponyo877/roudoku/server/pkg/utils"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
 // UserHandler handles user-related HTTP requests
 type UserHandler struct {
+	*BaseHandler
 	userService services.UserService
 }
 
 // NewUserHandler creates a new user handler
-func NewUserHandler(userService services.UserService) *UserHandler {
+func NewUserHandler(userService services.UserService, log *logger.Logger) *UserHandler {
 	return &UserHandler{
+		BaseHandler: NewBaseHandler(log),
 		userService: userService,
 	}
 }
@@ -23,31 +26,40 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 // CreateUser handles POST /users
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateUserRequest
-	if err := utils.DecodeJSONBody(r, &req); err != nil {
-		utils.WriteJSONError(w, "Invalid request body", utils.CodeInvalidFormat, http.StatusBadRequest)
+	if err := utils.DecodeJSON(r, &req); err != nil {
+		utils.WriteError(w, r, h.logger, err)
+		return
+	}
+
+	if err := h.validator.ValidateStruct(&req); err != nil {
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
 	user, err := h.userService.CreateUser(r.Context(), &req)
 	if err != nil {
-		if err == services.ErrDuplicateEntry {
-			utils.WriteJSONError(w, "User already exists", utils.CodeConflict, http.StatusConflict)
-		} else {
-			utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
-		}
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
-	utils.WriteJSONSuccess(w, user, "User created successfully", http.StatusCreated)
+	utils.WriteCreated(w, user)
 }
 
 // GetUser handles GET /users/{id}
 func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.ParseUUIDParam(r, "id")
 	if err != nil {
-		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
+
+	user, err := h.userService.GetUser(r.Context(), id)
+	if err != nil {
+		utils.WriteError(w, r, h.logger, err)
+		return
+	}
+
+	utils.WriteSuccess(w, user)
 
 	user, err := h.userService.GetUser(r.Context(), id)
 	if err != nil {

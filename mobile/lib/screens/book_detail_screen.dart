@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/book.dart';
 import '../providers/audio_player_provider.dart';
 import '../providers/book_provider.dart';
+import '../services/cloud_tts_service.dart';
 import 'player_screen.dart';
 
 class BookDetailScreen extends StatefulWidget {
@@ -17,11 +18,27 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   bool _isBookmarked = false;
+  late CloudTtsService _ttsService;
+  bool _isSpeaking = false;
 
   @override
   void initState() {
     super.initState();
     _checkBookmarkStatus();
+    _initializeTts();
+  }
+  
+  void _initializeTts() {
+    _ttsService = Provider.of<CloudTtsService>(context, listen: false);
+    
+    // Setup TTS callbacks
+    _ttsService.onPlayingChanged = () {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = _ttsService.isPlaying;
+        });
+      }
+    };
   }
 
   void _checkBookmarkStatus() {
@@ -67,20 +84,25 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: widget.book.coverUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.error),
-                    ),
-                  ),
+                  widget.book.coverUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: widget.book.coverUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.menu_book, size: 80, color: Colors.grey),
+                          ),
+                        )
+                      : Container(
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.menu_book, size: 80, color: Colors.grey),
+                        ),
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -174,12 +196,33 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'あらすじ',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    const Text(
+                      'あらすじ',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(
+                        _isSpeaking ? Icons.stop : Icons.volume_up,
+                        color: _isSpeaking 
+                            ? Colors.red 
+                            : Theme.of(context).primaryColor,
+                      ),
+                      onPressed: () async {
+                        if (_isSpeaking) {
+                          await _ttsService.stop();
+                        } else {
+                          await _ttsService.speak(widget.book.description);
+                        }
+                      },
+                      tooltip: _isSpeaking ? '読み上げを停止' : 'あらすじを読み上げ',
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Text(

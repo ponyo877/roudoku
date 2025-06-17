@@ -9,6 +9,7 @@ import (
 // User represents a user in the domain layer
 type User struct {
 	ID                    uuid.UUID
+	FirebaseUID           string
 	DisplayName           string
 	Email                 *string
 	VoicePreset           VoicePreset
@@ -50,10 +51,11 @@ func (u *User) CanAccessPremiumContent() bool {
 }
 
 // NewUser creates a new user with default values
-func NewUser(displayName string, email *string) *User {
+func NewUser(firebaseUID string, displayName string, email *string) *User {
 	now := time.Now()
 	return &User{
 		ID:          uuid.New(),
+		FirebaseUID: firebaseUID,
 		DisplayName: displayName,
 		Email:       email,
 		VoicePreset: VoicePreset{

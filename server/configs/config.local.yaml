@@ -1,0 +1,33 @@
+server:
+  port: "8080"
+  timeout: 30s
+  shutdown_timeout: 5s
+
+database:
+  host: "localhost"
+  port: 5432
+  name: "roudoku"
+  user: "roudoku"
+  password: "roudoku_local_password"
+  ssl_mode: "disable"
+  max_open_conns: 10
+  max_idle_conns: 2
+  conn_max_lifetime: "30m"
+
+logging:
+  level: "debug"
+  format: "text"
+  output: "stdout"
+
+external_services:
+  google_cloud:
+    project_id: "roudoku-local"
+    credentials_path: "./credentials/local-service-account.json"
+  
+  tts:
+    voice_language: "ja-JP"
+    voice_name: "ja-JP-Wavenet-A"
+    audio_encoding: "MP3"
+    
+  storage:
+    bucket_name: "roudoku-local-storage"

@@ -5,25 +5,34 @@ import '../utils/constants.dart';
 class UserService {
   final Dio _dio = Dio(BaseOptions(
     baseUrl: Constants.apiBaseUrl,
-    connectTimeout: const Duration(seconds: 5),
-    receiveTimeout: const Duration(seconds: 3),
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+    sendTimeout: const Duration(seconds: 10),
+    validateStatus: (status) => status != null && status < 500, // Accept client errors but not server errors
   ));
 
   Future<User?> getUser(String userId) async {
-    try {
-      final response = await _dio.get('/users/$userId');
-      return User.fromJson(response.data);
-    } catch (e) {
-      print('Error fetching user: $e');
-      return null;
-    }
+    // For now, always return null since user lookup is disabled
+    return null;
   }
 
   Future<void> createUser(User user) async {
     try {
-      await _dio.post('/users', data: user.toJson());
+      // Create request in the format expected by server
+      final requestData = {
+        'firebase_uid': user.id,
+        'display_name': user.displayName ?? '',
+        'email': user.email,
+        'voice_preset': {
+          'gender': 'female',
+          'pitch': 0.5,
+          'speed': 1.0,
+        }
+      };
+      
+      await _dio.post('/users', data: requestData);
     } catch (e) {
-      print('Error creating user: $e');
+      // Silently fail user creation - app can work without backend user
     }
   }
 
@@ -41,13 +50,7 @@ class UserService {
       return response.data;
     } catch (e) {
       print('Error fetching user stats: $e');
-      // Return mock data for development
-      return {
-        'subscriptionType': 'free',
-        'listenedBooksCount': 12,
-        'totalListeningHours': 48,
-        'streakDays': 7,
-      };
+      rethrow;
     }
   }
 

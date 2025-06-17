@@ -58,18 +58,79 @@ class SwipeService {
         excludeIds: excludeIds,
       );
 
-      final response = await _dio.post(
-        '${ApiConstants.baseUrl}/api/swipe/quotes',
-        data: request.toJson(),
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ),
+      // Use random quotes from books for now
+      // Get a random book and fetch quotes from it
+      final booksResponse = await _dio.get('/books');
+      final books = booksResponse.data['books'] as List;
+      
+      if (books.isEmpty) {
+        throw Exception('No books available');
+      }
+      
+      // Get random quotes from multiple books
+      List<Map<String, dynamic>> allQuotes = [];
+      
+      for (int i = 0; i < books.length && allQuotes.length < count; i++) {
+        final book = books[i];
+        final bookId = book['id'];
+        
+        try {
+          final quotesResponse = await _dio.get(
+            '/books/$bookId/quotes/random',
+            queryParameters: {'limit': 5},
+          );
+          
+          final quotes = quotesResponse.data as List;
+          for (var quote in quotes) {
+            if (allQuotes.length < count) {
+              allQuotes.add({
+                'quote': {
+                  'id': quote['id'],
+                  'text': quote['text'],
+                  'book_id': quote['book_id'],
+                  'position': quote['position'],
+                  'chapter_title': quote['chapter_title'],
+                },
+                'book': {
+                  'id': book['id'],
+                  'title': book['title'],
+                  'author': book['author'],
+                  'epoch': book['epoch'],
+                  'word_count': book['word_count'],
+                  'content_url': book['content_url'],
+                  'summary': book['summary'],
+                  'genre': book['genre'],
+                  'difficulty_level': book['difficulty_level'],
+                  'estimated_reading_minutes': book['estimated_reading_minutes'],
+                  'download_count': book['download_count'],
+                  'rating_average': book['rating_average'],
+                  'rating_count': book['rating_count'],
+                  'is_premium': book['is_premium'],
+                  'is_active': book['is_active'],
+                  'created_at': book['created_at'],
+                  'updated_at': book['updated_at'],
+                },
+              });
+            }
+          }
+        } catch (e) {
+          print('Error fetching quotes for book $bookId: $e');
+          continue;
+        }
+      }
+      
+      final response = Response(
+        requestOptions: RequestOptions(path: ''),
+        statusCode: 200,
+        data: {
+          'quotes': allQuotes,
+          'session_id': 'temp_session_${DateTime.now().millisecondsSinceEpoch}',
+          'has_more': allQuotes.length >= count,
+        },
       );
 
       if (response.statusCode == 200) {
-        return SwipeQuoteResponse.fromJson(response.data['data'] ?? response.data);
+        return SwipeQuoteResponse.fromJson(response.data as Map<String, dynamic>);
       } else {
         throw Exception('Failed to get swipe quotes: ${response.statusMessage}');
       }
@@ -99,18 +160,96 @@ class SwipeService {
         excludeIds: excludeIds,
       );
 
-      final response = await _dio.post(
-        '${ApiConstants.baseUrl}/api/swipe/pairs',
-        data: request.toJson(),
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
+      // Create pairs from existing quotes
+      final quotesResponse = await getSwipeQuotes(
+        userId: userId,
+        mode: SwipeMode.facemash,
+        count: count * 2, // Get twice as many quotes to create pairs
+        context: context,
+        excludeIds: excludeIds,
+      );
+      
+      final quotes = quotesResponse.quotes;
+      if (quotes.length < 2) {
+        throw Exception('Not enough quotes to create pairs');
+      }
+      
+      // Create pairs from quotes
+      List<Map<String, dynamic>> pairs = [];
+      for (int i = 0; i < quotes.length - 1 && pairs.length < count; i += 2) {
+        pairs.add({
+          'id': 'pair_${DateTime.now().millisecondsSinceEpoch}_$i',
+          'quote_a': {
+            'quote': {
+              'id': quotes[i].quote.id,
+              'text': quotes[i].quote.text,
+              'book_id': quotes[i].quote.bookId,
+              'position': quotes[i].quote.position,
+              'chapter_title': quotes[i].quote.chapterTitle,
+            },
+            'book': {
+              'id': quotes[i].book.id,
+              'title': quotes[i].book.title,
+              'author': quotes[i].book.author,
+              'epoch': quotes[i].book.epoch,
+              'word_count': quotes[i].book.wordCount,
+              'content_url': quotes[i].book.contentUrl,
+              'summary': quotes[i].book.summary,
+              'genre': quotes[i].book.genre,
+              'difficulty_level': quotes[i].book.difficultyLevel,
+              'estimated_reading_minutes': quotes[i].book.estimatedReadingMinutes,
+              'download_count': quotes[i].book.downloadCount,
+              'rating_average': quotes[i].book.ratingAverage,
+              'rating_count': quotes[i].book.ratingCount,
+              'is_premium': quotes[i].book.isPremium,
+              'is_active': quotes[i].book.isActive,
+              'created_at': quotes[i].book.createdAt,
+              'updated_at': quotes[i].book.updatedAt,
+            },
           },
-        ),
+          'quote_b': {
+            'quote': {
+              'id': quotes[i + 1].quote.id,
+              'text': quotes[i + 1].quote.text,
+              'book_id': quotes[i + 1].quote.bookId,
+              'position': quotes[i + 1].quote.position,
+              'chapter_title': quotes[i + 1].quote.chapterTitle,
+            },
+            'book': {
+              'id': quotes[i + 1].book.id,
+              'title': quotes[i + 1].book.title,
+              'author': quotes[i + 1].book.author,
+              'epoch': quotes[i + 1].book.epoch,
+              'word_count': quotes[i + 1].book.wordCount,
+              'content_url': quotes[i + 1].book.contentUrl,
+              'summary': quotes[i + 1].book.summary,
+              'genre': quotes[i + 1].book.genre,
+              'difficulty_level': quotes[i + 1].book.difficultyLevel,
+              'estimated_reading_minutes': quotes[i + 1].book.estimatedReadingMinutes,
+              'download_count': quotes[i + 1].book.downloadCount,
+              'rating_average': quotes[i + 1].book.ratingAverage,
+              'rating_count': quotes[i + 1].book.ratingCount,
+              'is_premium': quotes[i + 1].book.isPremium,
+              'is_active': quotes[i + 1].book.isActive,
+              'created_at': quotes[i + 1].book.createdAt,
+              'updated_at': quotes[i + 1].book.updatedAt,
+            },
+          },
+        });
+      }
+      
+      final response = Response(
+        requestOptions: RequestOptions(path: ''),
+        statusCode: 200,
+        data: {
+          'pairs': pairs,
+          'session_id': quotesResponse.sessionId,
+          'has_more': pairs.length >= count,
+        },
       );
 
       if (response.statusCode == 200) {
-        return SwipePairResponse.fromJson(response.data['data'] ?? response.data);
+        return SwipePairResponse.fromJson(response.data as Map<String, dynamic>);
       } else {
         throw Exception('Failed to get swipe pairs: ${response.statusMessage}');
       }
@@ -155,7 +294,7 @@ class SwipeService {
       }
 
       final response = await _dio.post(
-        '${ApiConstants.baseUrl}/api/swipe/log',
+        '/swipe/log',
         data: request.toJson(),
         options: Options(
           headers: {
@@ -222,7 +361,7 @@ class SwipeService {
       }
 
       final response = await _dio.post(
-        '${ApiConstants.baseUrl}/api/swipe/log/batch',
+        '/swipe/log/batch',
         data: request.toJson(),
         options: Options(
           headers: {
@@ -271,7 +410,7 @@ class SwipeService {
       }
 
       final response = await _dio.get(
-        '${ApiConstants.baseUrl}/api/swipe/stats/$userId',
+        '/swipe/stats/$userId',
         queryParameters: queryParams,
       );
 
@@ -294,7 +433,7 @@ class SwipeService {
   }) async {
     try {
       final response = await _dio.get(
-        '${ApiConstants.baseUrl}/api/swipe/history',
+        '/swipe/history',
         queryParameters: {
           'limit': limit,
         },

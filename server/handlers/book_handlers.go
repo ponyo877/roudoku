@@ -1,28 +1,24 @@
 package handlers
 
 import (
-	"archive/zip"
-	"bytes"
-	"io"
 	"net/http"
-	"strings"
-
-	"golang.org/x/text/encoding/japanese"
-	"golang.org/x/text/transform"
 
 	"github.com/ponyo877/roudoku/server/dto"
-	"github.com/ponyo877/roudoku/server/handlers/utils"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
+	"github.com/ponyo877/roudoku/server/pkg/utils"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
 // BookHandler handles book-related HTTP requests
 type BookHandler struct {
+	*BaseHandler
 	bookService services.BookService
 }
 
 // NewBookHandler creates a new book handler
-func NewBookHandler(bookService services.BookService) *BookHandler {
+func NewBookHandler(bookService services.BookService, log *logger.Logger) *BookHandler {
 	return &BookHandler{
+		BaseHandler: NewBaseHandler(log),
 		bookService: bookService,
 	}
 }
@@ -30,39 +26,40 @@ func NewBookHandler(bookService services.BookService) *BookHandler {
 // CreateBook handles POST /books
 func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateBookRequest
-	if err := utils.DecodeJSONBody(r, &req); err != nil {
-		utils.WriteJSONError(w, "Invalid request body", utils.CodeInvalidFormat, http.StatusBadRequest)
+	if err := utils.DecodeJSON(r, &req); err != nil {
+		utils.WriteError(w, r, h.logger, err)
+		return
+	}
+
+	if err := h.validator.ValidateStruct(&req); err != nil {
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
 	book, err := h.bookService.CreateBook(r.Context(), &req)
 	if err != nil {
-		utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
-	utils.WriteJSONSuccess(w, book, "Book created successfully", http.StatusCreated)
+	utils.WriteCreated(w, book)
 }
 
 // GetBook handles GET /books/{id}
 func (h *BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.ParseInt64Param(r, "id")
 	if err != nil {
-		utils.WriteJSONError(w, "Invalid or missing book ID", utils.CodeInvalidParameter, http.StatusBadRequest)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
 	book, err := h.bookService.GetBook(r.Context(), id)
 	if err != nil {
-		if err == services.ErrBookNotFound {
-			utils.WriteJSONError(w, "Book not found", utils.CodeResourceNotFound, http.StatusNotFound)
-		} else {
-			utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
-		}
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
-	utils.WriteJSONSuccess(w, book, "", http.StatusOK)
+	utils.WriteSuccess(w, book)
 }
 
 // SearchBooks handles GET /books
@@ -70,26 +67,23 @@ func (h *BookHandler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 	req := &dto.BookSearchRequest{}
 
 	// Parse query parameters
-	if query := r.URL.Query().Get("query"); query != "" {
-		req.Query = query
-	}
-
-	if sortBy := r.URL.Query().Get("sort_by"); sortBy != "" {
-		req.SortBy = sortBy
-	}
+	req.Query = utils.ParseQueryString(r, "query", "")
+	req.SortBy = utils.ParseQueryString(r, "sort_by", "")
 
 	// Parse pagination parameters
-	pagination := utils.ParsePaginationParams(r, 20)
-	req.Limit = pagination.Limit
-	req.Offset = pagination.Offset
+	page, perPage := utils.ParsePaginationParams(r)
+	req.Limit = perPage
+	req.Offset = (page - 1) * perPage
 
 	response, err := h.bookService.SearchBooks(r.Context(), req)
 	if err != nil {
-		utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
-	utils.WriteJSONSuccess(w, response, "", http.StatusOK)
+	// Calculate meta information
+	meta := utils.CalculateMeta(page, perPage, response.TotalCount)
+	utils.WriteSuccessWithMeta(w, response.Books, meta)
 }
 
 // GetRandomQuotes handles GET /books/{id}/quotes/random

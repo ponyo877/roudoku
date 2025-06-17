@@ -11,6 +11,7 @@ import (
 // UserEntity represents a user in the database layer
 type UserEntity struct {
 	ID                    uuid.UUID      `db:"id"`
+	FirebaseUID           string         `db:"firebase_uid"`
 	DisplayName           string         `db:"display_name"`
 	Email                 *string        `db:"email"`
 	VoicePreset           VoicePresetDB  `db:"voice_preset"`

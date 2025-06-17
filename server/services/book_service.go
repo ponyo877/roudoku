@@ -9,6 +9,8 @@ import (
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/mappers"
+	"github.com/ponyo877/roudoku/server/pkg/errors"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
 	"github.com/ponyo877/roudoku/server/repository"
 )
 
@@ -24,36 +26,31 @@ type BookService interface {
 
 // bookService implements BookService
 type bookService struct {
-	BaseService
+	*BaseService
 	bookRepo repository.BookRepository
 }
 
 // NewBookService creates a new book service
-func NewBookService(bookRepo repository.BookRepository, logger *zap.Logger) BookService {
+func NewBookService(bookRepo repository.BookRepository, log *logger.Logger) BookService {
 	return &bookService{
-		BaseService: NewBaseService(logger),
+		BaseService: NewBaseService(log),
 		bookRepo:    bookRepo,
 	}
 }
 
 // CreateBook creates a new book
 func (s *bookService) CreateBook(ctx context.Context, req *dto.CreateBookRequest) (*domain.Book, error) {
-	s.logger.Info("Creating book", zap.String("title", req.Title), zap.String("author", req.Author))
-	
-	if err := s.Validate(req); err != nil {
-		s.logger.Error("Validation failed", zap.Error(err))
-		return nil, fmt.Errorf("validation failed: %w", err)
+	if err := s.ValidateStruct(req); err != nil {
+		return nil, err
 	}
 
 	mapper := mappers.NewBookMapper()
 	book := mapper.CreateRequestToDomain(req)
 
 	if err := s.bookRepo.Create(ctx, book); err != nil {
-		s.logger.Error("Failed to create book", zap.Error(err))
-		return nil, fmt.Errorf("failed to create book: %w", err)
+		return nil, errors.InternalServer("Failed to create book", err)
 	}
 
-	s.logger.Info("Book created successfully", zap.Int64("book_id", book.ID))
 	return book, nil
 }
 
@@ -79,7 +76,13 @@ func (s *bookService) SearchBooks(ctx context.Context, req *dto.BookSearchReques
 		}
 	}
 
-	req.Limit, req.Offset = ValidatePaginationParams(req.Limit, req.Offset)
+	if err := s.ValidateLimit(req.Limit); err != nil {
+		req.Limit = DefaultLimit
+	}
+	if err := s.ValidateOffset(req.Offset); err != nil {
+		req.Offset = 0
+	}
+	req.Limit = s.NormalizeLimit(req.Limit)
 
 	// Convert DTO search request to domain search request
 	mapper := mappers.NewBookMapper()
@@ -104,7 +107,10 @@ func (s *bookService) SearchBooks(ctx context.Context, req *dto.BookSearchReques
 
 // GetRandomQuotes retrieves random quotes from a book
 func (s *bookService) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*domain.Quote, error) {
-	limit = ValidateLimit(limit, DefaultQuotesLimit, MaxQuotesLimit)
+	if err := s.ValidateLimit(limit); err != nil {
+		limit = DefaultLimit
+	}
+	limit = s.NormalizeLimit(limit)
 	s.logger.Debug("Getting random quotes", zap.Int64("book_id", bookID), zap.Int("limit", limit))
 
 	quotes, err := s.bookRepo.GetRandomQuotes(ctx, bookID, limit)

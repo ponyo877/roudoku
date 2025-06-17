@@ -23,7 +23,7 @@ func Load() *Config {
 			Database: getEnv("DB_NAME", "roudoku"),
 			Username: getEnv("DB_USER", "roudoku"),
 			Password: getEnv("DB_PASSWORD", "roudoku_local_password"),
-			// SSLMode:  getEnv("DB_SSLMODE", "require"), // Enable SSL for public IP
+			SSLMode:  getEnv("DB_SSLMODE", "disable"), // SSL mode configuration
 		},
 	}
 }

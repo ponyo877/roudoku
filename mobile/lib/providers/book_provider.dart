@@ -24,7 +24,6 @@ class BookProvider extends ChangeNotifier {
       
       _recommendations = await _bookService.getRecommendations();
     } catch (e) {
-      print('Error loading recommendations: $e');
       _recommendations = [];
     } finally {
       _isLoading = false;
@@ -39,7 +38,6 @@ class BookProvider extends ChangeNotifier {
       
       _searchResults = await _bookService.getAllBooks();
     } catch (e) {
-      print('Error loading catalog: $e');
       _searchResults = [];
     } finally {
       _isSearching = false;
@@ -62,7 +60,6 @@ class BookProvider extends ChangeNotifier {
         category: category != 'すべて' ? category : null,
       );
     } catch (e) {
-      print('Error searching books: $e');
       _searchResults = [];
     } finally {
       _isSearching = false;
@@ -75,7 +72,6 @@ class BookProvider extends ChangeNotifier {
       _bookmarks = await _bookService.getBookmarks();
       notifyListeners();
     } catch (e) {
-      print('Error loading bookmarks: $e');
       _bookmarks = [];
     }
   }
@@ -102,7 +98,6 @@ class BookProvider extends ChangeNotifier {
     try {
       return await _bookService.getBookById(id);
     } catch (e) {
-      print('Error getting book by id: $e');
       return null;
     }
   }

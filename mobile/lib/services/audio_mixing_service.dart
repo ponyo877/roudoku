@@ -29,7 +29,7 @@ class AudioMixingService {
 
   /// Get current audio levels for visualization
   Stream<List<double>> getAudioLevels() {
-    // Return mock audio levels for now
+    // Return empty audio levels since this is not fully implemented
     return Stream.periodic(
       const Duration(milliseconds: 100),
       (_) => List.generate(10, (index) => 0.0),

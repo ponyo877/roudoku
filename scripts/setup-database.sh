@@ -6,7 +6,7 @@ set -e
 # Configuration
 PROJECT_ID="${PROJECT_ID:-gke-test-287910}"
 REGION="${REGION:-asia-northeast1}"
-DB_INSTANCE="${DB_INSTANCE:-roudoku-db}"
+DB_INSTANCE="${DB_INSTANCE:-gke-test-287910-postgres-main-09l5cj}"
 DB_NAME="${DB_NAME:-roudoku}"
 DB_USER="${DB_USER:-roudoku-user}"
 

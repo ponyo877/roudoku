@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:provider/provider.dart';
 import '../services/simple_swipe_service.dart';
+import '../services/cloud_tts_service.dart';
 
 class SimplePairComparisonScreen extends StatefulWidget {
   const SimplePairComparisonScreen({Key? key}) : super(key: key);
@@ -11,17 +13,31 @@ class SimplePairComparisonScreen extends StatefulWidget {
 
 class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen> {
   late SimpleSwipeService _swipeService;
+  late CloudTtsService _ttsService;
   List<Map<String, dynamic>> _pairs = [];
   bool _isLoading = false;
   bool _hasError = false;
   String? _errorMessage;
   int _currentIndex = 0;
+  bool _isSpeaking = false;
 
   @override
   void initState() {
     super.initState();
     _swipeService = SimpleSwipeService(Dio());
+    _ttsService = Provider.of<CloudTtsService>(context, listen: false);
+    _setupTtsCallbacks();
     _loadPairs();
+  }
+
+  void _setupTtsCallbacks() {
+    _ttsService.onPlayingChanged = () {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = _ttsService.isPlaying;
+        });
+      }
+    };
   }
 
   Future<void> _loadPairs() async {
@@ -61,6 +77,14 @@ class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen>
       setState(() {
         _currentIndex++;
       });
+    }
+  }
+
+  Future<void> _speakQuote(String quoteText) async {
+    if (_isSpeaking) {
+      await _ttsService.stop();
+    } else {
+      await _ttsService.speak(quoteText);
     }
   }
 
@@ -223,6 +247,16 @@ class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen>
                 ),
               ),
               const SizedBox(height: 16),
+              // TTS button
+              IconButton(
+                icon: Icon(
+                  _isSpeaking ? Icons.stop : Icons.volume_up,
+                  color: _isSpeaking ? Colors.red : Colors.blue,
+                ),
+                onPressed: () => _speakQuote(quoteText),
+                tooltip: _isSpeaking ? '読み上げを停止' : '引用文を読み上げ',
+              ),
+              const SizedBox(height: 8),
               Column(
                 children: [
                   Text(

@@ -11,6 +11,7 @@ import (
 
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/dto"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
 )
 
 // RecommendationService defines the interface for recommendation business logic
@@ -22,7 +23,7 @@ type RecommendationService interface {
 
 // recommendationService implements RecommendationService
 type recommendationService struct {
-	BaseService
+	*BaseService
 	bookService    BookService
 	swipeService   SwipeService
 	sessionService SessionService
@@ -35,10 +36,10 @@ func NewRecommendationService(
 	swipeService SwipeService,
 	sessionService SessionService,
 	ratingService RatingService,
-	logger *zap.Logger,
+	log *logger.Logger,
 ) RecommendationService {
 	return &recommendationService{
-		BaseService:    NewBaseService(logger),
+		BaseService:    NewBaseService(log),
 		bookService:    bookService,
 		swipeService:   swipeService,
 		sessionService: sessionService,
@@ -58,7 +59,10 @@ type UserPreferences struct {
 
 // GetRecommendations generates book recommendations for a user
 func (s *recommendationService) GetRecommendations(ctx context.Context, userID uuid.UUID, limit int) ([]*domain.Book, error) {
-	limit = ValidateLimit(limit, DefaultLimit, MaxLimit)
+	if err := s.ValidateLimit(limit); err != nil {
+		limit = DefaultLimit
+	}
+	limit = s.NormalizeLimit(limit)
 	s.logger.Info("Generating recommendations", 
 		zap.String("user_id", userID.String()),
 		zap.Int("limit", limit))

@@ -97,15 +97,84 @@ firebase projects:addfirebase $PROJECT_ID || echo "Firebase may already be added
 echo "Deploying Firestore rules..."
 firebase deploy --only firestore:rules --project $PROJECT_ID || echo "Firestore rules deployment skipped"
 
+# Step 12: Build and deploy API server
+echo "Building and deploying API server..."
+cd server
+
+# Build new Docker image with timestamp tag
+IMAGE_TAG=$(date +%s)
+echo "Building image with tag: $IMAGE_TAG"
+
+gcloud builds submit --tag ${REGION}-docker.pkg.dev/${PROJECT_ID}/roudoku-docker/api:${IMAGE_TAG} .
+
+if [ $? -eq 0 ]; then
+    echo "Docker build successful. Deploying to Cloud Run..."
+    
+    # Deploy to Cloud Run with the new image
+    gcloud run deploy roudoku-api \
+        --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/roudoku-docker/api:${IMAGE_TAG} \
+        --region $REGION \
+        --platform managed \
+        --allow-unauthenticated \
+        --set-env-vars=PROJECT_ID=${PROJECT_ID},DB_HOST=35.221.91.3,DB_NAME=roudoku,DB_USER=roudoku_app,DB_PASSWORD=roudoku2024,DB_SSLMODE=require \
+        --set-cloudsql-instances=gke-test-287910:asia-northeast1:gke-test-287910-postgres-main-09l5cj \
+        --max-instances=10 \
+        --min-instances=1 \
+        --cpu=1 \
+        --memory=1Gi \
+        --port=8080 \
+        --timeout=300
+    
+    if [ $? -eq 0 ]; then
+        echo "API deployment successful!"
+        
+        # Test the TTS endpoint
+        echo "Testing TTS endpoint..."
+        sleep 10  # Wait for service to be ready
+        
+        TTS_RESPONSE=$(curl -s -w "%{http_code}" -X POST \
+            https://roudoku-api-1083612487436.asia-northeast1.run.app/api/v1/tts/synthesize \
+            -H "Content-Type: application/json" \
+            -d '{"text":"テスト音声です"}' \
+            --max-time 10)
+        
+        HTTP_CODE=$(echo "$TTS_RESPONSE" | tail -c 4)
+        
+        if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ TTS endpoint is working correctly!"
+        else
+            echo "⚠️  TTS endpoint returned HTTP $HTTP_CODE"
+            echo "Response: $TTS_RESPONSE"
+        fi
+        
+        # Test health endpoint
+        echo "Testing health endpoint..."
+        HEALTH_RESPONSE=$(curl -s https://roudoku-api-1083612487436.asia-northeast1.run.app/api/v1/health)
+        echo "Health check response: $HEALTH_RESPONSE"
+        
+    else
+        echo "❌ API deployment failed!"
+        exit 1
+    fi
+else
+    echo "❌ Docker build failed!"
+    exit 1
+fi
+
+cd ..
+
 echo ""
 echo "Deployment complete!"
 echo "==================="
+echo ""
+echo "Services deployed:"
+echo "- API Server: https://roudoku-api-1083612487436.asia-northeast1.run.app"
+echo "- TTS Endpoint: https://roudoku-api-1083612487436.asia-northeast1.run.app/api/v1/tts/synthesize"
 echo ""
 echo "Next steps:"
 echo "1. Run database migrations: ./scripts/setup-database.sh"
 echo "2. Configure Firebase Authentication in the console"
 echo "3. Update mobile app configuration files"
-echo "4. Deploy the API: gcloud builds submit --config cloudbuild.yaml"
 echo ""
 echo "Useful commands:"
 echo "- Check Cloud Run services: gcloud run services list --region=$REGION"
