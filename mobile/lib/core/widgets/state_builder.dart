@@ -26,7 +26,10 @@ class StateBuilder<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (state.isError) {
-      return errorBuilder?.call(context, state.errorMessage ?? 'An error occurred') ??
+      return errorBuilder?.call(
+            context,
+            state.errorMessage ?? 'An error occurred',
+          ) ??
           ErrorDisplay(
             message: state.errorMessage ?? 'An error occurred',
             onRetry: onRetry,
@@ -34,7 +37,8 @@ class StateBuilder<T> extends StatelessWidget {
     }
 
     if (state.isLoading && !state.hasData) {
-      return loadingBuilder?.call(context) ?? const Center(child: LoadingSpinner());
+      return loadingBuilder?.call(context) ??
+          const Center(child: LoadingSpinner());
     }
 
     if (!state.hasData) {
@@ -45,13 +49,10 @@ class StateBuilder<T> extends StatelessWidget {
           );
     }
 
-    final content = builder(context, state.data!);
+    final content = builder(context, state.data as T);
 
     if (showLoadingOverlay && state.isLoading) {
-      return LoadingOverlay(
-        isLoading: true,
-        child: content,
-      );
+      return LoadingOverlay(isLoading: true, child: content);
     }
 
     return content;
@@ -83,7 +84,10 @@ class ListStateBuilder<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (state.isError && !state.hasData) {
-      return errorBuilder?.call(context, state.errorMessage ?? 'An error occurred') ??
+      return errorBuilder?.call(
+            context,
+            state.errorMessage ?? 'An error occurred',
+          ) ??
           ErrorDisplay(
             message: state.errorMessage ?? 'An error occurred',
             onRetry: onRetry,
@@ -91,7 +95,7 @@ class ListStateBuilder<T> extends StatelessWidget {
     }
 
     if (state.isLoading && !state.hasData) {
-      return loadingBuilder?.call(context) ?? 
+      return loadingBuilder?.call(context) ??
           ListView.builder(
             itemCount: 5,
             itemBuilder: (context, index) => const LoadingListTile(),

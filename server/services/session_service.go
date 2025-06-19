@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/mappers"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
 	"github.com/ponyo877/roudoku/server/repository"
 )
 
@@ -24,13 +24,13 @@ type SessionService interface {
 
 // sessionService implements SessionService
 type sessionService struct {
-	BaseService
+	*BaseService
 	sessionRepo       repository.SessionRepository
 	validationService BusinessValidationService
 }
 
 // NewSessionService creates a new session service
-func NewSessionService(sessionRepo repository.SessionRepository, validationService BusinessValidationService, logger *zap.Logger) SessionService {
+func NewSessionService(sessionRepo repository.SessionRepository, validationService BusinessValidationService, logger *logger.Logger) SessionService {
 	return &sessionService{
 		BaseService:       NewBaseService(logger),
 		sessionRepo:       sessionRepo,
@@ -40,13 +40,10 @@ func NewSessionService(sessionRepo repository.SessionRepository, validationServi
 
 // CreateReadingSession creates a new reading session
 func (s *sessionService) CreateReadingSession(ctx context.Context, userID uuid.UUID, req *dto.CreateReadingSessionRequest) (*domain.ReadingSession, error) {
-	s.logger.Info("Creating reading session", 
-		zap.String("user_id", userID.String()), 
-		zap.Int64("book_id", req.BookID),
-		zap.Int("start_pos", req.StartPos))
+	s.logger.Info("Creating reading session")
 	
-	if err := s.Validate(req); err != nil {
-		s.logger.Error("Validation failed", zap.Error(err))
+	if err := s.ValidateStruct(req); err != nil {
+		s.logger.Error("Validation failed")
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
@@ -56,7 +53,7 @@ func (s *sessionService) CreateReadingSession(ctx context.Context, userID uuid.U
 	// Business validation
 	if s.validationService != nil {
 		if err := s.validationService.ValidateReadingSessionConsistency(ctx, session); err != nil {
-			s.logger.Error("Business validation failed", zap.Error(err))
+			s.logger.Error("Business validation failed")
 			return nil, fmt.Errorf("business validation failed: %w", err)
 		}
 	}
@@ -79,10 +76,10 @@ func (s *sessionService) GetReadingSession(ctx context.Context, sessionID uuid.U
 
 // UpdateReadingSession updates a reading session
 func (s *sessionService) UpdateReadingSession(ctx context.Context, sessionID uuid.UUID, req *dto.UpdateReadingSessionRequest) (*domain.ReadingSession, error) {
-	s.logger.Info("Updating reading session", zap.String("session_id", sessionID.String()))
+	s.logger.Info("Updating reading session")
 	
-	if err := s.Validate(req); err != nil {
-		s.logger.Error("Validation failed", zap.Error(err))
+	if err := s.ValidateStruct(req); err != nil {
+		s.logger.Error("Validation failed")
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
@@ -120,7 +117,7 @@ func (s *sessionService) GetUserReadingSessions(ctx context.Context, userID uuid
 		limit = DefaultLimit
 	}
 	limit = s.NormalizeLimit(limit)
-	s.logger.Debug("Getting user reading sessions", zap.String("user_id", userID.String()), zap.Int("limit", limit))
+	s.logger.Debug("Getting user reading sessions")
 
 	sessions, err := s.sessionRepo.GetByUserID(ctx, userID, limit)
 	if err != nil {

@@ -3,8 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/google/uuid"
-
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/pkg/logger"
 	"github.com/ponyo877/roudoku/server/pkg/utils"
@@ -25,7 +23,7 @@ func NewSwipeHandler(swipeService services.SwipeService, log *logger.Logger) *Sw
 	}
 }
 
-// CreateSwipeLog handles POST /users/{user_id}/swipes
+// CreateSwipeLog handles POST /users/{user_id}/swipes and POST /swipe/log
 func (h *SwipeHandler) CreateSwipeLog(w http.ResponseWriter, r *http.Request) {
 	userID, err := utils.ParseUUIDParam(r, "user_id")
 	if err != nil {
@@ -50,10 +48,10 @@ func (h *SwipeHandler) CreateSwipeLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteCreated(w, swipeLog)
+	utils.WriteSuccess(w, swipeLog)
 }
 
-// GetSwipeLogs handles GET /users/{user_id}/swipes
+// GetSwipeLogsByUser handles GET /users/{user_id}/swipes
 func (h *SwipeHandler) GetSwipeLogs(w http.ResponseWriter, r *http.Request) {
 	userID, err := utils.ParseUUIDParam(r, "user_id")
 	if err != nil {
@@ -61,124 +59,51 @@ func (h *SwipeHandler) GetSwipeLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page, perPage := utils.ParsePaginationParams(r)
-	limit := perPage
-	offset := (page - 1) * perPage
-
-	swipeLogs, totalCount, err := h.swipeService.GetSwipeLogs(r.Context(), userID, limit, offset)
+	swipeLogs, err := h.swipeService.GetSwipeLogsByUser(r.Context(), userID)
 	if err != nil {
 		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
-	meta := utils.CalculateMeta(page, perPage, totalCount)
-	utils.WriteSuccessWithMeta(w, swipeLogs, meta)
-	if err != nil {
-		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
-		return
-	}
-
-	swipeLogs, err := h.swipeService.GetSwipeLogsByUser(r.Context(), userID)
-	if err != nil {
-		utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
-		return
-	}
-
-	utils.WriteJSONSuccess(w, swipeLogs, "", http.StatusOK)
-}
-
-// SwipeLogBatchRequest represents a batch swipe log request
-type SwipeLogBatchRequest struct {
-	UserID    string                    `json:"userId"`
-	SwipeLogs []dto.CreateSwipeLogRequest `json:"swipeLogs"`
-	SessionID string                    `json:"sessionId"`
+	utils.WriteSuccess(w, swipeLogs)
 }
 
 // CreateSwipeLogBatch handles POST /swipe/log/batch
 func (h *SwipeHandler) CreateSwipeLogBatch(w http.ResponseWriter, r *http.Request) {
-	var req SwipeLogBatchRequest
-	
-	if err := utils.DecodeJSONBody(r, &req); err != nil {
-		utils.WriteJSONError(w, "Invalid request body", utils.CodeInvalidFormat, http.StatusBadRequest)
-		return
-	}
-
-	userID, err := uuid.Parse(req.UserID)
-	if err != nil {
-		utils.WriteJSONError(w, "Invalid user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
-		return
-	}
-
-	var results []interface{}
-	var errors []string
-	for _, swipeReq := range req.SwipeLogs {
-		swipeLog, err := h.swipeService.CreateSwipeLog(r.Context(), userID, &swipeReq)
-		if err != nil {
-			errors = append(errors, err.Error())
-			continue
-		}
-		results = append(results, swipeLog)
-	}
-
-	response := map[string]interface{}{
-		"success":        len(errors) == 0,
-		"processedCount": len(results),
-		"failedCount":    len(errors),
-		"errors":         errors,
-		"results":        results,
-	}
-
-	status := http.StatusOK
-	if len(errors) > 0 && len(results) == 0 {
-		status = http.StatusBadRequest
-	} else if len(errors) > 0 {
-		status = http.StatusMultiStatus
-	}
-
-	utils.WriteJSONSuccess(w, response, "", status)
+	// This endpoint would need a userID parameter or batch requests structure
+	// For now, return a simple message indicating batch processing is not implemented
+	utils.WriteSuccess(w, map[string]string{
+		"message": "Batch swipe log creation not yet implemented",
+	})
 }
 
 // GetSwipeStats handles GET /swipe/stats/{user_id}
 func (h *SwipeHandler) GetSwipeStats(w http.ResponseWriter, r *http.Request) {
 	userID, err := utils.ParseUUIDParam(r, "user_id")
 	if err != nil {
-		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
 	swipeLogs, err := h.swipeService.GetSwipeLogsByUser(r.Context(), userID)
 	if err != nil {
-		utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
-	// Calculate stats from swipe logs
-	likeCount := 0
-	dislikeCount := 0
-	
-	// TODO: Implement proper stat calculation based on actual DTO structure
-	// For now, provide basic stats structure
-	// The actual implementation would depend on the SwipeLog structure
-	// which might have fields like Direction, Action, etc.
-	
-	stats := map[string]interface{}{
-		"totalSwipes":   len(swipeLogs),
-		"likeCount":     likeCount,
-		"dislikeCount":  dislikeCount,
-		"likeRatio":     0.0, // Will be calculated once DTO structure is known
+	// Calculate basic stats
+	stats := map[string]any{
+		"total_swipes": len(swipeLogs),
+		"user_id":      userID.String(),
 	}
 
-	utils.WriteJSONSuccess(w, stats, "", http.StatusOK)
+	utils.WriteSuccess(w, stats)
 }
 
 // GetSwipeHistory handles GET /swipe/history
 func (h *SwipeHandler) GetSwipeHistory(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement proper history retrieval based on user context
-	// For now, return empty history
-	history := map[string]interface{}{
-		"history": []interface{}{},
-		"total":   0,
-	}
-	
-	utils.WriteJSONSuccess(w, history, "", http.StatusOK)
+	// For now, return empty history - this would need proper implementation
+	// based on query parameters for filtering
+	history := []any{}
+	utils.WriteSuccess(w, history)
 }

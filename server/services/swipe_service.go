@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/mappers"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
 	"github.com/ponyo877/roudoku/server/repository"
 )
 
@@ -21,13 +21,13 @@ type SwipeService interface {
 
 // swipeService implements SwipeService
 type swipeService struct {
-	BaseService
+	*BaseService
 	swipeRepo         repository.SwipeRepository
 	validationService BusinessValidationService
 }
 
 // NewSwipeService creates a new swipe service
-func NewSwipeService(swipeRepo repository.SwipeRepository, validationService BusinessValidationService, logger *zap.Logger) SwipeService {
+func NewSwipeService(swipeRepo repository.SwipeRepository, validationService BusinessValidationService, logger *logger.Logger) SwipeService {
 	return &swipeService{
 		BaseService:       NewBaseService(logger),
 		swipeRepo:         swipeRepo,
@@ -37,21 +37,17 @@ func NewSwipeService(swipeRepo repository.SwipeRepository, validationService Bus
 
 // CreateSwipeLog creates a new swipe log
 func (s *swipeService) CreateSwipeLog(ctx context.Context, userID uuid.UUID, req *dto.CreateSwipeLogRequest) (*domain.SwipeLog, error) {
-	s.logger.Info("Creating swipe log", 
-		zap.String("user_id", userID.String()), 
-		zap.String("quote_id", req.QuoteID.String()),
-		zap.String("mode", req.Mode),
-		zap.Int("choice", req.Choice))
+	s.logger.Info("Creating swipe log")
 	
-	if err := s.Validate(req); err != nil {
-		s.logger.Error("Validation failed", zap.Error(err))
+	if err := s.ValidateStruct(req); err != nil {
+		s.logger.Error("Validation failed")
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
 	// Business validation
 	if s.validationService != nil {
 		if err := s.validationService.ValidateSwipeLimit(ctx, userID); err != nil {
-			s.logger.Error("Business validation failed", zap.Error(err))
+			s.logger.Error("Business validation failed")
 			return nil, fmt.Errorf("business validation failed: %w", err)
 		}
 	}

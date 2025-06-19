@@ -1,11 +1,6 @@
 import '../../core/logging/logger.dart';
 
-enum LoadingState {
-  initial,
-  loading,
-  success,
-  error,
-}
+enum LoadingState { initial, loading, success, error }
 
 abstract class BaseState<T> {
   final LoadingState loadingState;
@@ -18,7 +13,8 @@ abstract class BaseState<T> {
     this.data,
     this.errorMessage,
     DateTime? lastUpdated,
-  }) : lastUpdated = lastUpdated ?? const DateTime.fromMillisecondsSinceEpoch(0);
+  }) : lastUpdated =
+           lastUpdated ?? const DateTime.fromMillisecondsSinceEpoch(0);
 
   bool get isInitial => loadingState == LoadingState.initial;
   bool get isLoading => loadingState == LoadingState.loading;
@@ -52,10 +48,7 @@ class DataState<T> extends BaseState<T> {
   }
 
   factory DataState.loading([T? currentData]) {
-    return DataState(
-      loadingState: LoadingState.loading,
-      data: currentData,
-    );
+    return DataState(loadingState: LoadingState.loading, data: currentData);
   }
 
   factory DataState.success(T data) {

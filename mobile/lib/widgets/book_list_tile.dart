@@ -6,11 +6,7 @@ class BookListTile extends StatelessWidget {
   final Book book;
   final VoidCallback onTap;
 
-  const BookListTile({
-    Key? key,
-    required this.book,
-    required this.onTap,
-  }) : super(key: key);
+  const BookListTile({super.key, required this.book, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -39,21 +35,27 @@ class BookListTile extends StatelessWidget {
                     width: 60,
                     height: 80,
                     color: Colors.grey[300],
-                    child: const Icon(Icons.menu_book, size: 30, color: Colors.grey),
+                    child: const Icon(
+                      Icons.menu_book,
+                      size: 30,
+                      color: Colors.grey,
+                    ),
                   ),
                 )
               : Container(
                   width: 60,
                   height: 80,
                   color: Colors.grey[300],
-                  child: const Icon(Icons.menu_book, size: 30, color: Colors.grey),
+                  child: const Icon(
+                    Icons.menu_book,
+                    size: 30,
+                    color: Colors.grey,
+                  ),
                 ),
         ),
         title: Text(
           book.title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -62,42 +64,25 @@ class BookListTile extends StatelessWidget {
           children: [
             Text(
               book.author,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(
-                  Icons.access_time,
-                  size: 14,
-                  color: Colors.grey[500],
-                ),
+                Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
                 const SizedBox(width: 2),
                 Text(
                   '${book.duration}分',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
                 const SizedBox(width: 12),
-                Icon(
-                  Icons.category,
-                  size: 14,
-                  color: Colors.grey[500],
-                ),
+                Icon(Icons.category, size: 14, color: Colors.grey[500]),
                 const SizedBox(width: 2),
                 Text(
                   book.category,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
@@ -108,10 +93,7 @@ class BookListTile extends StatelessWidget {
           children: [
             if (book.isPremium)
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.amber[700],
                   borderRadius: BorderRadius.circular(12),
@@ -130,18 +112,11 @@ class BookListTile extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.star,
-                    size: 14,
-                    color: Colors.amber[700],
-                  ),
+                  Icon(Icons.star, size: 14, color: Colors.amber[700]),
                   const SizedBox(width: 2),
                   Text(
                     book.rating.toStringAsFixed(1),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
               ),

@@ -17,20 +17,21 @@ abstract class BaseProvider<T> extends ChangeNotifier {
   void updateState(BaseState<T> newState) {
     final oldState = _state.loadingState;
     _state = newState;
-    
+
     if (oldState != newState.loadingState) {
-      Logger.ui('State changed in ${runtimeType}: ${oldState.name} -> ${newState.loadingState.name}');
+      Logger.ui(
+        'State changed in $runtimeType: ${oldState.name} -> ${newState.loadingState.name}',
+      );
     }
-    
+
     notifyListeners();
   }
 
   void clearError() {
     if (_state.isError) {
-      updateState(_state.copyWith(
-        loadingState: LoadingState.initial,
-        errorMessage: null,
-      ));
+      updateState(
+        _state.copyWith(loadingState: LoadingState.initial, errorMessage: null),
+      );
     }
   }
 
@@ -50,12 +51,12 @@ abstract class BaseProvider<T> extends ChangeNotifier {
 
       // Execute operation
       final result = await operation();
-      
+
       // Set success state
       updateState(onSuccess(result));
     } catch (e) {
-      Logger.error('Operation failed in ${runtimeType}', e);
-      
+      Logger.error('Operation failed in $runtimeType', e);
+
       // Set error state
       if (onError != null) {
         updateState(onError(e.toString()));
@@ -83,7 +84,7 @@ abstract class BaseProvider<T> extends ChangeNotifier {
 
   @override
   void dispose() {
-    Logger.ui('Disposing ${runtimeType}');
+    Logger.ui('Disposing $runtimeType');
     super.dispose();
   }
 }
@@ -101,7 +102,7 @@ abstract class ListProvider<T> extends BaseProvider<List<T>> {
     if (refresh) {
       updateState(ListState<T>.refreshing(items));
     }
-    
+
     await executeAsync(
       () => fetchData(page: refresh ? 0 : currentPage + 1),
       onSuccess: (result) {
@@ -132,9 +133,5 @@ class ListResult<T> {
   final bool hasMore;
   final int page;
 
-  ListResult({
-    required this.items,
-    required this.hasMore,
-    required this.page,
-  });
+  ListResult({required this.items, required this.hasMore, required this.page});
 }

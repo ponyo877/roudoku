@@ -9,6 +9,7 @@ import (
 
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/handlers"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
 	"github.com/ponyo877/roudoku/server/services"
 )
 
@@ -34,20 +35,34 @@ func (m *mockBookRepository) CreateChapter(ctx context.Context, chapter *domain.
 func (m *mockBookRepository) GetChaptersByBookID(ctx context.Context, bookID int64) ([]*domain.Chapter, error) {
 	return nil, nil
 }
+func (m *mockBookRepository) GetChapterByID(ctx context.Context, chapterID string) (*domain.Chapter, error) {
+	return nil, nil
+}
 func (m *mockBookRepository) CreateQuote(ctx context.Context, quote *domain.Quote) error { return nil }
 func (m *mockBookRepository) GetRandomQuotes(ctx context.Context, bookID int64, limit int) ([]*domain.Quote, error) {
 	return nil, nil
 }
 
 func main() {
+	// Initialize logger
+	loggerConfig := logger.Config{
+		Level:  "info",
+		Format: "console",
+		Output: "stdout",
+	}
+	appLogger, err := logger.New(loggerConfig)
+	if err != nil {
+		log.Fatalf("Failed to initialize logger: %v", err)
+	}
+
 	// Initialize mock repository
 	bookRepo := &mockBookRepository{}
 
 	// Initialize services
-	bookService := services.NewBookService(bookRepo)
+	bookService := services.NewBookService(bookRepo, appLogger)
 
 	// Initialize handlers
-	bookHandler := handlers.NewBookHandler(bookService)
+	bookHandler := handlers.NewBookHandler(bookService, appLogger)
 
 	// Setup routes
 	router := mux.NewRouter()

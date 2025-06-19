@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/context_provider.dart';
 
 class ContextSettingScreen extends StatefulWidget {
-  const ContextSettingScreen({Key? key}) : super(key: key);
+  const ContextSettingScreen({super.key});
 
   @override
   State<ContextSettingScreen> createState() => _ContextSettingScreenState();
@@ -11,7 +11,7 @@ class ContextSettingScreen extends StatefulWidget {
 
 class _ContextSettingScreenState extends State<ContextSettingScreen> {
   final TextEditingController _goalController = TextEditingController();
-  
+
   @override
   void initState() {
     super.initState();
@@ -28,9 +28,7 @@ class _ContextSettingScreenState extends State<ContextSettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('コンテキスト設定'),
-      ),
+      appBar: AppBar(title: const Text('コンテキスト設定')),
       body: Consumer<ContextProvider>(
         builder: (context, contextProvider, child) {
           return SingleChildScrollView(
@@ -40,98 +38,82 @@ class _ContextSettingScreenState extends State<ContextSettingScreen> {
               children: [
                 const Text(
                   'あなたの興味や目標を教えてください',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'より良い本の推薦のために、あなたの情報を活用します',
-                  style: TextStyle(
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // 興味のあるカテゴリ
                 const Text(
                   '興味のあるカテゴリ',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: [
-                    'ビジネス',
-                    '自己啓発',
-                    '小説',
-                    '歴史',
-                    '科学',
-                    '技術',
-                    '健康',
-                    '料理',
-                    '旅行',
-                    '芸術',
-                  ].map((category) {
-                    final isSelected = contextProvider.selectedCategories.contains(category);
-                    return FilterChip(
-                      label: Text(category),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        if (selected) {
-                          contextProvider.addCategory(category);
-                        } else {
-                          contextProvider.removeCategory(category);
-                        }
-                      },
-                    );
-                  }).toList(),
+                  children:
+                      [
+                        'ビジネス',
+                        '自己啓発',
+                        '小説',
+                        '歴史',
+                        '科学',
+                        '技術',
+                        '健康',
+                        '料理',
+                        '旅行',
+                        '芸術',
+                      ].map((category) {
+                        final isSelected = contextProvider.selectedCategories
+                            .contains(category);
+                        return FilterChip(
+                          label: Text(category),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) {
+                              contextProvider.addCategory(category);
+                            } else {
+                              contextProvider.removeCategory(category);
+                            }
+                          },
+                        );
+                      }).toList(),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // 読書の目的
                 const Text(
                   '読書の目的',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
                 Column(
-                  children: [
-                    'スキルアップ',
-                    'リラックス',
-                    '知識習得',
-                    'エンターテイメント',
-                    '語学学習',
-                  ].map((purpose) {
-                    return RadioListTile<String>(
-                      title: Text(purpose),
-                      value: purpose,
-                      groupValue: contextProvider.readingPurpose,
-                      onChanged: (value) {
-                        if (value != null) {
-                          contextProvider.setReadingPurpose(value);
-                        }
-                      },
-                    );
-                  }).toList(),
+                  children: ['スキルアップ', 'リラックス', '知識習得', 'エンターテイメント', '語学学習']
+                      .map((purpose) {
+                        return RadioListTile<String>(
+                          title: Text(purpose),
+                          value: purpose,
+                          groupValue: contextProvider.readingPurpose,
+                          onChanged: (value) {
+                            if (value != null) {
+                              contextProvider.setReadingPurpose(value);
+                            }
+                          },
+                        );
+                      })
+                      .toList(),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // 現在の目標
                 const Text(
                   '現在の目標',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -145,14 +127,11 @@ class _ContextSettingScreenState extends State<ContextSettingScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // 読書時間の設定
                 const Text(
                   '1日の読書時間目標',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -179,7 +158,7 @@ class _ContextSettingScreenState extends State<ContextSettingScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                
+
                 // 通知設定
                 SwitchListTile(
                   title: const Text('毎日のリマインダー'),
@@ -189,11 +168,13 @@ class _ContextSettingScreenState extends State<ContextSettingScreen> {
                     contextProvider.setReminderEnabled(value);
                   },
                 ),
-                
+
                 if (contextProvider.reminderEnabled) ...[
                   ListTile(
                     title: const Text('リマインダー時刻'),
-                    subtitle: Text(contextProvider.reminderTime.format(context)),
+                    subtitle: Text(
+                      contextProvider.reminderTime.format(context),
+                    ),
                     trailing: const Icon(Icons.access_time),
                     onTap: () async {
                       final time = await showTimePicker(
@@ -206,9 +187,9 @@ class _ContextSettingScreenState extends State<ContextSettingScreen> {
                     },
                   ),
                 ],
-                
+
                 const SizedBox(height: 32),
-                
+
                 // 保存ボタン
                 SizedBox(
                   width: double.infinity,
@@ -216,9 +197,7 @@ class _ContextSettingScreenState extends State<ContextSettingScreen> {
                     onPressed: () {
                       contextProvider.setCurrentGoal(_goalController.text);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('設定を保存しました'),
-                        ),
+                        const SnackBar(content: Text('設定を保存しました')),
                       );
                       Navigator.pop(context);
                     },
@@ -228,10 +207,7 @@ class _ContextSettingScreenState extends State<ContextSettingScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      '設定を保存',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    child: const Text('設定を保存', style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],

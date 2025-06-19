@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/domain"
@@ -38,10 +37,7 @@ func NewRatingService(ratingRepo repository.RatingRepository, log *logger.Logger
 
 // CreateOrUpdateRating creates or updates a rating
 func (s *ratingService) CreateOrUpdateRating(ctx context.Context, userID uuid.UUID, req *dto.CreateRatingRequest) (*domain.Rating, error) {
-	s.logger.Info("Creating or updating rating", 
-		zap.String("user_id", userID.String()), 
-		zap.Int64("book_id", req.BookID),
-		zap.Int("rating", req.Rating))
+	s.logger.Info("Creating or updating rating")
 	
 	if err := s.ValidateStruct(req); err != nil {
 		return nil, err
@@ -85,7 +81,7 @@ func (s *ratingService) GetUserRatings(ctx context.Context, userID uuid.UUID, li
 		limit = DefaultLimit
 	}
 	limit = s.NormalizeLimit(limit)
-	s.logger.Debug("Getting user ratings", zap.String("user_id", userID.String()), zap.Int("limit", limit))
+	s.logger.Debug("Getting user ratings")
 
 	ratings, err := s.ratingRepo.GetByUserID(ctx, userID, limit)
 	if err != nil {

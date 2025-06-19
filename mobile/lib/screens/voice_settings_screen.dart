@@ -6,7 +6,7 @@ import '../models/session_models.dart' as session_models;
 import '../services/audio_service.dart' as audio_service;
 
 class VoiceSettingsScreen extends StatefulWidget {
-  const VoiceSettingsScreen({Key? key}) : super(key: key);
+  const VoiceSettingsScreen({super.key});
 
   @override
   State<VoiceSettingsScreen> createState() => _VoiceSettingsScreenState();
@@ -21,22 +21,34 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
   String? _loadingError;
 
   // Conversion methods between VoiceSettings types
-  static audio_service.VoiceSettings sessionToAudioSettings(session_models.VoiceSettings sessionSettings) {
+  static audio_service.VoiceSettings sessionToAudioSettings(
+    session_models.VoiceSettings sessionSettings,
+  ) {
     return audio_service.VoiceSettings(
       voice: sessionSettings.voiceId ?? 'ja-JP-Wavenet-A',
       gender: 'FEMALE', // Default, will be overridden by voice selection
       language: sessionSettings.language ?? 'ja-JP',
       speed: sessionSettings.rate,
-      pitch: (sessionSettings.pitch - 1.0) * 20.0, // Convert from 0-2 range (center 1.0) to -20 to +20
-      volumeGain: (sessionSettings.volume - 1.0) * 10.0, // Convert from 0-2 range (center 1.0) to -10 to +10
+      pitch:
+          (sessionSettings.pitch - 1.0) *
+          20.0, // Convert from 0-2 range (center 1.0) to -20 to +20
+      volumeGain:
+          (sessionSettings.volume - 1.0) *
+          10.0, // Convert from 0-2 range (center 1.0) to -10 to +10
     );
   }
 
-  static session_models.VoiceSettings audioToSessionSettings(audio_service.VoiceSettings audioSettings) {
+  static session_models.VoiceSettings audioToSessionSettings(
+    audio_service.VoiceSettings audioSettings,
+  ) {
     return session_models.VoiceSettings(
-      pitch: (audioSettings.pitch / 20.0) + 1.0, // Convert from -20 to +20 range to 0-2 (center 1.0)
+      pitch:
+          (audioSettings.pitch / 20.0) +
+          1.0, // Convert from -20 to +20 range to 0-2 (center 1.0)
       rate: audioSettings.speed,
-      volume: (audioSettings.volumeGain / 10.0) + 1.0, // Convert from -10 to +10 range to 0-2 (center 1.0)
+      volume:
+          (audioSettings.volumeGain / 10.0) +
+          1.0, // Convert from -10 to +10 range to 0-2 (center 1.0)
       voiceId: audioSettings.voice,
       language: audioSettings.language,
     );
@@ -74,7 +86,10 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
   void initState() {
     super.initState();
     _previewPlayer = AudioPlayer();
-    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+    final audioProvider = Provider.of<AudioPlayerProvider>(
+      context,
+      listen: false,
+    );
     _currentSettings = sessionToAudioSettings(audioProvider.voiceSettings);
     _loadAvailableVoices();
   }
@@ -92,7 +107,10 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
     });
 
     try {
-      final audioService = Provider.of<audio_service.AudioService>(context, listen: false);
+      final audioService = Provider.of<audio_service.AudioService>(
+        context,
+        listen: false,
+      );
       _availableVoices = await audioService.getAvailableVoices();
     } catch (e) {
       setState(() {
@@ -119,7 +137,10 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
     });
 
     try {
-      final audioService = Provider.of<audio_service.AudioService>(context, listen: false);
+      final audioService = Provider.of<audio_service.AudioService>(
+        context,
+        listen: false,
+      );
       final previewRequest = audio_service.AudioPreviewRequest(
         voiceSettings: settings,
         sampleText: 'こんにちは。これは音声のプレビューです。この声と速度はいかがでしょうか。',
@@ -142,15 +163,18 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
         _isPlayingPreview = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('プレビューの再生に失敗しました: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('プレビューの再生に失敗しました: $e')));
       }
     }
   }
 
   void _applySettings() {
-    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+    final audioProvider = Provider.of<AudioPlayerProvider>(
+      context,
+      listen: false,
+    );
     final sessionSettings = audioToSessionSettings(_currentSettings);
     audioProvider.setVoiceSettings(sessionSettings);
     Navigator.of(context).pop();
@@ -205,7 +229,9 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                         children: [
                           Text(
                             'エラー: $_loadingError',
-                            style: TextStyle(color: Theme.of(context).colorScheme.error),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           ElevatedButton(
@@ -217,7 +243,8 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                     else
                       Column(
                         children: _voiceOptions.map((voiceOption) {
-                          final isSelected = _currentSettings.voice == voiceOption.name;
+                          final isSelected =
+                              _currentSettings.voice == voiceOption.name;
                           return Card(
                             elevation: isSelected ? 4 : 1,
                             color: isSelected
@@ -235,13 +262,17 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                               title: Text(
                                 voiceOption.displayName,
                                 style: TextStyle(
-                                  fontWeight: isSelected ? FontWeight.bold : null,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : null,
                                 ),
                               ),
                               subtitle: Text(voiceOption.description),
                               trailing: IconButton(
                                 icon: Icon(
-                                  _isPlayingPreview ? Icons.stop : Icons.play_arrow,
+                                  _isPlayingPreview
+                                      ? Icons.stop
+                                      : Icons.play_arrow,
                                 ),
                                 onPressed: () => _playVoicePreview(
                                   audio_service.VoiceSettings(
@@ -256,14 +287,15 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                               ),
                               onTap: () {
                                 setState(() {
-                                  _currentSettings = audio_service.VoiceSettings(
-                                    voice: voiceOption.name,
-                                    gender: voiceOption.gender,
-                                    language: 'ja-JP',
-                                    speed: _currentSettings.speed,
-                                    pitch: _currentSettings.pitch,
-                                    volumeGain: _currentSettings.volumeGain,
-                                  );
+                                  _currentSettings =
+                                      audio_service.VoiceSettings(
+                                        voice: voiceOption.name,
+                                        gender: voiceOption.gender,
+                                        language: 'ja-JP',
+                                        speed: _currentSettings.speed,
+                                        pitch: _currentSettings.pitch,
+                                        volumeGain: _currentSettings.volumeGain,
+                                      );
                                 });
                               },
                             ),
@@ -304,7 +336,8 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                             min: 0.5,
                             max: 2.0,
                             divisions: 15,
-                            label: '${_currentSettings.speed.toStringAsFixed(1)}x',
+                            label:
+                                '${_currentSettings.speed.toStringAsFixed(1)}x',
                             onChanged: (value) {
                               setState(() {
                                 _currentSettings = audio_service.VoiceSettings(
@@ -354,7 +387,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Pitch Control
                     Text('音の高さ: ${_currentSettings.pitch.toStringAsFixed(1)}'),
                     Slider(
@@ -376,17 +409,20 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                         });
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Volume Gain Control
-                    Text('音量調整: ${_currentSettings.volumeGain.toStringAsFixed(1)} dB'),
+                    Text(
+                      '音量調整: ${_currentSettings.volumeGain.toStringAsFixed(1)} dB',
+                    ),
                     Slider(
                       value: _currentSettings.volumeGain,
                       min: -10.0,
                       max: 10.0,
                       divisions: 20,
-                      label: '${_currentSettings.volumeGain.toStringAsFixed(1)} dB',
+                      label:
+                          '${_currentSettings.volumeGain.toStringAsFixed(1)} dB',
                       onChanged: (value) {
                         setState(() {
                           _currentSettings = audio_service.VoiceSettings(
@@ -412,7 +448,8 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
               child: OutlinedButton(
                 onPressed: () {
                   setState(() {
-                    _currentSettings = audio_service.VoiceSettings.defaultSettings;
+                    _currentSettings =
+                        audio_service.VoiceSettings.defaultSettings;
                   });
                 },
                 child: const Text('デフォルトに戻す'),

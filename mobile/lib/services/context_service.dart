@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:geolocator/geolocator.dart';
@@ -14,30 +13,33 @@ class ContextService {
   final Battery _battery = Battery();
   final Connectivity _connectivity = Connectivity();
   final WeatherFactory _weatherFactory;
-  
+
   // Weather API key - in production, this should be stored securely
   static const String _weatherApiKey = 'your_openweathermap_api_key';
-  
+
   // Cached context data
   ContextData? _lastKnownContext;
   Position? _lastKnownPosition;
   Timer? _contextUpdateTimer;
-  
+
   // Sensors
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   String _deviceMotion = 'stationary';
-  
-  ContextService(this._prefs) : _weatherFactory = WeatherFactory(_weatherApiKey) {
+
+  ContextService(this._prefs)
+    : _weatherFactory = WeatherFactory(_weatherApiKey) {
     _startContextMonitoring();
   }
 
   /// Start monitoring context changes
   void _startContextMonitoring() {
     // Monitor device motion
-    _accelerometerSubscription = accelerometerEvents.listen((AccelerometerEvent event) {
+    _accelerometerSubscription = accelerometerEvents.listen((
+      AccelerometerEvent event,
+    ) {
       _updateDeviceMotion(event);
     });
-    
+
     // Update context periodically
     _contextUpdateTimer = Timer.periodic(const Duration(minutes: 15), (_) {
       _updateCachedContext();
@@ -56,7 +58,7 @@ class ContextService {
       final timeOfDay = _getTimeOfDay(now);
       final dayOfWeek = _getDayOfWeek(now);
       final isWeekend = now.weekday >= 6;
-      
+
       // Get location context (if permission granted)
       double? latitude, longitude;
       String? location;
@@ -122,7 +124,7 @@ class ContextService {
       // Cache the context
       _lastKnownContext = context;
       _cacheContext(context);
-      
+
       return context;
     } catch (e) {
       print('Error getting current context: $e');
@@ -153,7 +155,7 @@ class ContextService {
   /// Get current position with permission check
   Future<Position?> _getCurrentPosition() async {
     final permission = await checkLocationPermission();
-    
+
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
       return null;
@@ -179,7 +181,7 @@ class ContextService {
         position.latitude,
         position.longitude,
       );
-      
+
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
         final locationName = [
@@ -187,7 +189,7 @@ class ContextService {
           placemark.administrativeArea,
           placemark.country,
         ].where((element) => element != null && element.isNotEmpty).join(', ');
-        
+
         // Cache location name
         await _prefs.setString('last_known_location', locationName);
         return locationName;
@@ -206,7 +208,7 @@ class ContextService {
         print('Weather API key not configured');
         return null;
       }
-      
+
       final weather = await _weatherFactory.currentWeatherByLocation(
         latitude,
         longitude,
@@ -280,7 +282,7 @@ class ContextService {
   /// Update device motion based on accelerometer data
   void _updateDeviceMotion(AccelerometerEvent event) {
     final acceleration = (event.x.abs() + event.y.abs() + event.z.abs()) / 3;
-    
+
     if (acceleration > 15) {
       _deviceMotion = 'vehicle';
     } else if (acceleration > 5) {
@@ -308,13 +310,17 @@ class ContextService {
       'thursday',
       'friday',
       'saturday',
-      'sunday'
+      'sunday',
     ];
     return weekdays[dateTime.weekday - 1];
   }
 
   /// Get basic context when full context is unavailable
-  ContextData _getBasicContext(String? userMood, String? userSituation, int? availableTime) {
+  ContextData _getBasicContext(
+    String? userMood,
+    String? userSituation,
+    int? availableTime,
+  ) {
     final now = DateTime.now();
     return ContextData(
       timeOfDay: _getTimeOfDay(now),
@@ -347,17 +353,19 @@ class ContextService {
 
   /// Update cached context periodically
   void _updateCachedContext() {
-    getCurrentContext().then((context) {
-      _lastKnownContext = context;
-    }).catchError((e) {
-      print('Error updating cached context: $e');
-    });
+    getCurrentContext()
+        .then((context) {
+          _lastKnownContext = context;
+        })
+        .catchError((e) {
+          print('Error updating cached context: $e');
+        });
   }
 
   /// Get mood suggestions based on context
   List<String> getMoodSuggestions(ContextData context) {
     final suggestions = <String>[];
-    
+
     // Time-based suggestions
     switch (context.timeOfDay) {
       case 'morning':
@@ -400,7 +408,7 @@ class ContextService {
   /// Get situation suggestions based on context
   List<String> getSituationSuggestions(ContextData context) {
     final suggestions = <String>[];
-    
+
     // Time-based suggestions
     switch (context.timeOfDay) {
       case 'morning':

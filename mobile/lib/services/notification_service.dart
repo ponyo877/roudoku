@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/notification_models.dart';
@@ -8,21 +7,25 @@ class NotificationService {
   final String _baseUrl;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  NotificationService({
-    required Dio dio,
-    required String baseUrl,
-  })  : _dio = dio,
-        _baseUrl = baseUrl;
+  NotificationService({required Dio dio, required String baseUrl})
+    : _dio = dio,
+      _baseUrl = baseUrl;
 
   // Get user notification preferences
-  Future<NotificationPreferences> getNotificationPreferences(String userId) async {
+  Future<NotificationPreferences> getNotificationPreferences(
+    String userId,
+  ) async {
     try {
-      final response = await _dio.get('$_baseUrl/users/$userId/notifications/preferences');
-      
+      final response = await _dio.get(
+        '$_baseUrl/users/$userId/notifications/preferences',
+      );
+
       if (response.statusCode == 200) {
         return NotificationPreferences.fromJson(response.data);
       } else {
-        throw Exception('Failed to get notification preferences: ${response.statusCode}');
+        throw Exception(
+          'Failed to get notification preferences: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to get notification preferences: $e');
@@ -31,7 +34,7 @@ class NotificationService {
 
   // Update user notification preferences
   Future<NotificationPreferences> updateNotificationPreferences(
-    String userId, 
+    String userId,
     UpdateNotificationPreferencesRequest request,
   ) async {
     try {
@@ -39,11 +42,13 @@ class NotificationService {
         '$_baseUrl/users/$userId/notifications/preferences',
         data: request.toJson(),
       );
-      
+
       if (response.statusCode == 200) {
         return NotificationPreferences.fromJson(response.data);
       } else {
-        throw Exception('Failed to update notification preferences: ${response.statusCode}');
+        throw Exception(
+          'Failed to update notification preferences: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to update notification preferences: $e');
@@ -59,14 +64,12 @@ class NotificationService {
     try {
       final response = await _dio.get(
         '$_baseUrl/users/$userId/notifications',
-        queryParameters: {
-          'limit': limit,
-          if (unreadOnly) 'unread_only': true,
-        },
+        queryParameters: {'limit': limit, if (unreadOnly) 'unread_only': true},
       );
-      
+
       if (response.statusCode == 200) {
-        final List<dynamic> notificationsData = response.data['notifications'] ?? [];
+        final List<dynamic> notificationsData =
+            response.data['notifications'] ?? [];
         return notificationsData
             .map((notification) => InAppNotification.fromJson(notification))
             .toList();
@@ -79,14 +82,19 @@ class NotificationService {
   }
 
   // Mark notification as read
-  Future<void> markNotificationAsRead(String userId, String notificationId) async {
+  Future<void> markNotificationAsRead(
+    String userId,
+    String notificationId,
+  ) async {
     try {
       final response = await _dio.put(
         '$_baseUrl/users/$userId/notifications/$notificationId/read',
       );
-      
+
       if (response.statusCode != 200) {
-        throw Exception('Failed to mark notification as read: ${response.statusCode}');
+        throw Exception(
+          'Failed to mark notification as read: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to mark notification as read: $e');
@@ -99,9 +107,11 @@ class NotificationService {
       final response = await _dio.put(
         '$_baseUrl/users/$userId/notifications/read-all',
       );
-      
+
       if (response.statusCode != 200) {
-        throw Exception('Failed to mark all notifications as read: ${response.statusCode}');
+        throw Exception(
+          'Failed to mark all notifications as read: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to mark all notifications as read: $e');
@@ -111,12 +121,16 @@ class NotificationService {
   // Get notification summary
   Future<NotificationSummary> getNotificationSummary(String userId) async {
     try {
-      final response = await _dio.get('$_baseUrl/users/$userId/notifications/summary');
-      
+      final response = await _dio.get(
+        '$_baseUrl/users/$userId/notifications/summary',
+      );
+
       if (response.statusCode == 200) {
         return NotificationSummary.fromJson(response.data);
       } else {
-        throw Exception('Failed to get notification summary: ${response.statusCode}');
+        throw Exception(
+          'Failed to get notification summary: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to get notification summary: $e');
@@ -131,14 +145,13 @@ class NotificationService {
     try {
       final response = await _dio.post(
         '$_baseUrl/notifications/send',
-        data: {
-          'user_id': userId,
-          'payload': payload.toJson(),
-        },
+        data: {'user_id': userId, 'payload': payload.toJson()},
       );
-      
+
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to send push notification: ${response.statusCode}');
+        throw Exception(
+          'Failed to send push notification: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to send push notification: $e');
@@ -152,7 +165,7 @@ class NotificationService {
         '$_baseUrl/users/$userId/fcm-token',
         data: {'fcm_token': fcmToken},
       );
-      
+
       if (response.statusCode != 200) {
         throw Exception('Failed to update FCM token: ${response.statusCode}');
       }
@@ -176,9 +189,11 @@ class NotificationService {
           'scheduled_time': scheduledTime.toIso8601String(),
         },
       );
-      
+
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to schedule notification: ${response.statusCode}');
+        throw Exception(
+          'Failed to schedule notification: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to schedule notification: $e');
@@ -193,23 +208,27 @@ class NotificationService {
         .orderBy('created_at', descending: true)
         .limit(50)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => InAppNotification.fromJson(doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => InAppNotification.fromJson(doc.data()))
+              .toList(),
+        );
   }
 
   // Listen to notification preferences changes
-  Stream<NotificationPreferences?> getNotificationPreferencesStream(String userId) {
+  Stream<NotificationPreferences?> getNotificationPreferencesStream(
+    String userId,
+  ) {
     return _firestore
         .collection('notification_preferences')
         .doc(userId)
         .snapshots()
         .map((doc) {
-      if (doc.exists && doc.data() != null) {
-        return NotificationPreferences.fromJson(doc.data()!);
-      }
-      return null;
-    });
+          if (doc.exists && doc.data() != null) {
+            return NotificationPreferences.fromJson(doc.data()!);
+          }
+          return null;
+        });
   }
 
   // Local notification helpers
@@ -238,7 +257,7 @@ class NotificationService {
       for (var doc in expiredQuery.docs) {
         batch.delete(doc.reference);
       }
-      
+
       await batch.commit();
     } catch (e) {
       print('Error clearing expired notifications: $e');
@@ -246,10 +265,14 @@ class NotificationService {
   }
 
   // Get in-app notification settings
-  Future<InAppNotificationSettings> getInAppNotificationSettings(String userId) async {
+  Future<InAppNotificationSettings> getInAppNotificationSettings(
+    String userId,
+  ) async {
     try {
-      final response = await _dio.get('$_baseUrl/users/$userId/notifications/in-app-settings');
-      
+      final response = await _dio.get(
+        '$_baseUrl/users/$userId/notifications/in-app-settings',
+      );
+
       if (response.statusCode == 200) {
         return InAppNotificationSettings.fromJson(response.data);
       } else {
@@ -276,7 +299,7 @@ class NotificationService {
 
   // Update in-app notification settings
   Future<InAppNotificationSettings> updateInAppNotificationSettings(
-    String userId, 
+    String userId,
     InAppNotificationSettings settings,
   ) async {
     try {
@@ -284,11 +307,13 @@ class NotificationService {
         '$_baseUrl/users/$userId/notifications/in-app-settings',
         data: settings.toJson(),
       );
-      
+
       if (response.statusCode == 200) {
         return InAppNotificationSettings.fromJson(response.data);
       } else {
-        throw Exception('Failed to update in-app notification settings: ${response.statusCode}');
+        throw Exception(
+          'Failed to update in-app notification settings: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to update in-app notification settings: $e');
@@ -320,9 +345,6 @@ class NotificationService {
       data: {'test': 'true'},
     );
 
-    await sendPushNotification(
-      userId: userId,
-      payload: testPayload,
-    );
+    await sendPushNotification(userId: userId, payload: testPayload);
   }
 }

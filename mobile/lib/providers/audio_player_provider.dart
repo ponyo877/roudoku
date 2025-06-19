@@ -18,30 +18,33 @@ class AudioPlayerProvider extends ChangeNotifier {
   int _currentChapterIndex = 0;
   Timer? _sleepTimer;
   session_models.ReadingSession? _currentSession;
-  session_models.VoiceSettings _voiceSettings = session_models.VoiceSettings.defaultSettings;
+  session_models.VoiceSettings _voiceSettings =
+      session_models.VoiceSettings.defaultSettings;
   Timer? _progressUpdateTimer;
-  
+
   // Loading states
   bool _isLoadingAudio = false;
   String? _loadingError;
   bool _isUsingTts = false;
-  
+
   Book? get currentBook => _currentBook;
   int get currentChapterIndex => _currentChapterIndex;
-  Chapter? get currentChapter => 
-      _currentBook != null && _currentChapterIndex < _currentBook!.chapters.length 
-          ? _currentBook!.chapters[_currentChapterIndex] 
-          : null;
+  Chapter? get currentChapter =>
+      _currentBook != null &&
+          _currentChapterIndex < _currentBook!.chapters.length
+      ? _currentBook!.chapters[_currentChapterIndex]
+      : null;
   session_models.ReadingSession? get currentSession => _currentSession;
   session_models.VoiceSettings get voiceSettings => _voiceSettings;
   bool get isLoadingAudio => _isLoadingAudio;
   String? get loadingError => _loadingError;
-  
-  bool get hasNextChapter => 
-      _currentBook != null && _currentChapterIndex < _currentBook!.chapters.length - 1;
-  
+
+  bool get hasNextChapter =>
+      _currentBook != null &&
+      _currentChapterIndex < _currentBook!.chapters.length - 1;
+
   bool get hasPreviousChapter => _currentChapterIndex > 0;
-  
+
   Duration? get duration => _audioPlayer.duration;
   Stream<Duration> get positionStream => _audioPlayer.positionStream;
   Stream<bool> get playingStream => _audioPlayer.playingStream;
@@ -59,12 +62,15 @@ class AudioPlayerProvider extends ChangeNotifier {
 
   void _initializePlayer() {
     // Set up audio session
-    _audioPlayer.playbackEventStream.listen((event) {
-      // Handle playback events
-    }, onError: (Object e, StackTrace stackTrace) {
-      print('A stream error occurred: $e');
-    });
-    
+    _audioPlayer.playbackEventStream.listen(
+      (event) {
+        // Handle playback events
+      },
+      onError: (Object e, StackTrace stackTrace) {
+        print('A stream error occurred: $e');
+      },
+    );
+
     // Set the audio player for the unified TTS service
     _ttsService.setAudioPlayer(_audioPlayer);
   }
@@ -72,21 +78,23 @@ class AudioPlayerProvider extends ChangeNotifier {
   Future<void> setBook(Book book, {int chapterIndex = 0}) async {
     _currentBook = book;
     _currentChapterIndex = chapterIndex;
-    
+
     // Check for active session
     try {
-      _currentSession = await _sessionService.getActiveSession(int.parse(book.id));
+      _currentSession = await _sessionService.getActiveSession(
+        int.parse(book.id),
+      );
       if (_currentSession != null) {
         _currentChapterIndex = _currentSession!.currentPos;
       }
     } catch (e) {
       print('No active session found: $e');
     }
-    
+
     // Skip session creation for now to avoid 404 errors
     // TODO: Implement proper user management and session creation
     print('Skipping session creation until user management is implemented');
-    
+
     await _loadAudio();
     _startProgressTracking();
     notifyListeners();
@@ -95,8 +103,12 @@ class AudioPlayerProvider extends ChangeNotifier {
   Future<void> _loadAudio() async {
     if (_currentBook == null) return;
 
-    print('🎵 _loadAudio: Starting audio load for book: ${_currentBook!.title}, chapter: $_currentChapterIndex');
-    print('🎵 _loadAudio: Book chapters count: ${_currentBook!.chapters.length}');
+    print(
+      '🎵 _loadAudio: Starting audio load for book: ${_currentBook!.title}, chapter: $_currentChapterIndex',
+    );
+    print(
+      '🎵 _loadAudio: Book chapters count: ${_currentBook!.chapters.length}',
+    );
     print('🎵 _loadAudio: Book audioUrl: ${_currentBook!.audioUrl}');
 
     _isLoadingAudio = true;
@@ -106,24 +118,23 @@ class AudioPlayerProvider extends ChangeNotifier {
 
     try {
       AudioSource? audioSource;
-      
+
       // Skip original audio file loading for now since we're using database content
       // Instead, directly use TTS for the chapter content
       print('Skipping original audio, using TTS for database content');
-      
+
       // Use TTS to read the actual chapter content from database
       _isUsingTts = true;
       print('Using TTS for chapter content from database');
-      
+
       // Use TTS to speak the chapter content
       if (_currentBook != null && currentChapter != null) {
         await _ttsService.speak(currentChapter!.title);
         print('TTS started for chapter title');
       }
-      
+
       _isLoadingAudio = false;
       notifyListeners();
-      
     } catch (e) {
       _isLoadingAudio = false;
       _loadingError = e.toString();
@@ -131,21 +142,23 @@ class AudioPlayerProvider extends ChangeNotifier {
       print("Error loading audio: $e");
     }
   }
-  
+
   Future<void> _loadTtsAudio() async {
     if (_currentBook == null) return;
-    
+
     try {
       // Generate sample text for the chapter
       final chapterText = _generateChapterText();
-      
+
       // Use TTS service to generate audio (this will create a temporary file)
       await _ttsService.speak(chapterText);
-      
+
       // For now, we'll create a placeholder audio source
       // In a real implementation, you'd save the TTS audio to a file and use that
       final audioSource = AudioSource.uri(
-        Uri.parse('https://www.soundjay.com/misc/sounds/beep-07a.wav'), // Placeholder
+        Uri.parse(
+          'https://www.soundjay.com/misc/sounds/beep-07a.wav',
+        ), // Placeholder
         tag: MediaItem(
           id: '${_currentBook!.id}_$_currentChapterIndex',
           album: _currentBook!.author,
@@ -153,24 +166,25 @@ class AudioPlayerProvider extends ChangeNotifier {
           artUri: Uri.tryParse(_currentBook!.coverUrl),
         ),
       );
-      
+
       await _audioPlayer.setAudioSource(audioSource);
       _isLoadingAudio = false;
       notifyListeners();
-      
     } catch (e) {
       throw Exception('TTS audio loading failed: $e');
     }
   }
-  
+
   String _generateChapterText() {
-    print('🎵 _generateChapterText: Book=${_currentBook?.title}, chapterIndex=$_currentChapterIndex, chaptersLength=${_currentBook?.chapters.length}');
-    
+    print(
+      '🎵 _generateChapterText: Book=${_currentBook?.title}, chapterIndex=$_currentChapterIndex, chaptersLength=${_currentBook?.chapters.length}',
+    );
+
     if (_currentBook == null) {
       print('🎵 _generateChapterText: ERROR - No current book');
       return '書籍が選択されていません。';
     }
-    
+
     if (_currentChapterIndex >= _currentBook!.chapters.length) {
       print('🎵 _generateChapterText: ERROR - Chapter index out of range');
       // Instead of error, provide fallback content for the book
@@ -179,26 +193,30 @@ class AudioPlayerProvider extends ChangeNotifier {
 このアプリでは、${_currentBook!.author}による「${_currentBook!.title}」の音声版をお楽しみいただけます。
 ${_currentBook!.description}''';
     }
-    
+
     final chapter = _currentBook!.chapters[_currentChapterIndex];
     print('🎵 _generateChapterText: Chapter title=${chapter.title}');
-    
+
     // Use sample chapter content based on the book
     String chapterContent = _getSampleChapterContent();
-    print('🎵 _generateChapterText: Generated content length=${chapterContent.length}');
-    
+    print(
+      '🎵 _generateChapterText: Generated content length=${chapterContent.length}',
+    );
+
     return '''
 第${_currentChapterIndex + 1}章: ${chapter.title}
 
 $chapterContent
 ''';
   }
-  
+
   String _getSampleChapterContent() {
     if (_currentBook == null) return '';
-    
-    print('🎵 _getSampleChapterContent: Checking book title: "${_currentBook!.title}"');
-    
+
+    print(
+      '🎵 _getSampleChapterContent: Checking book title: "${_currentBook!.title}"',
+    );
+
     // Sample content based on book title
     if (_currentBook!.title.contains('吾輩は猫である')) {
       print('🎵 _getSampleChapterContent: Matched 吾輩は猫である');
@@ -216,8 +234,11 @@ $chapterContent
         default:
           return '''${_currentBook!.title}の続きの内容です。猫の視点から人間社会を観察し、風刺的に描いた夏目漱石の代表作の一部です。''';
       }
-    } else if (_currentBook!.title.contains('坊') || _currentBook!.title.toLowerCase().contains('botchan')) {
-      print('🎵 _getSampleChapterContent: Matched 坊っちゃん - chapterIndex=$_currentChapterIndex');
+    } else if (_currentBook!.title.contains('坊') ||
+        _currentBook!.title.toLowerCase().contains('botchan')) {
+      print(
+        '🎵 _getSampleChapterContent: Matched 坊っちゃん - chapterIndex=$_currentChapterIndex',
+      );
       switch (_currentChapterIndex) {
         case 0:
           return '''親譲りの無鉄砲で小供の時から損ばかりしている。小学校に居る時分学校の二階から飛び降りて一週間ほど腰を抜かした事がある。
@@ -241,16 +262,18 @@ $chapterContent
 この物語は、主人公の坊ちゃんが愛媛県の松山中学校に数学教師として赴任し、そこで出会う個性豊かな同僚たちや生徒たちとの交流を通じて成長していく様子を描いています。''';
       }
     }
-    
-    print('🎵 _getSampleChapterContent: No specific match found, using default content');
+
+    print(
+      '🎵 _getSampleChapterContent: No specific match found, using default content',
+    );
     // Default content with safe access
-    final chapterTitle = _currentChapterIndex < _currentBook!.chapters.length 
-        ? _currentBook!.chapters[_currentChapterIndex].title 
+    final chapterTitle = _currentChapterIndex < _currentBook!.chapters.length
+        ? _currentBook!.chapters[_currentChapterIndex].title
         : '第${_currentChapterIndex + 1}章';
-    final chapterDuration = _currentChapterIndex < _currentBook!.chapters.length 
-        ? _currentBook!.chapters[_currentChapterIndex].duration 
+    final chapterDuration = _currentChapterIndex < _currentBook!.chapters.length
+        ? _currentBook!.chapters[_currentChapterIndex].duration
         : 30;
-        
+
     return '''これは${_currentBook!.title}の第${_currentChapterIndex + 1}章、「$chapterTitle」の内容です。
 
 ${_currentBook!.description}
@@ -258,19 +281,22 @@ ${_currentBook!.description}
 実際の書籍では、ここに章の本文が含まれます。
 この章の予想読書時間は約$chapterDuration分です。''';
   }
-  
+
   Future<String> _getGeneratedAudioUrl() async {
     if (_currentBook == null) {
       throw Exception('No book selected');
     }
-    
+
     // Construct the URL for the generated audio
     // Use Constants.baseUrl to handle both dev and production environments
     final baseUrl = Constants.baseUrl;
-    final audioUrl = '$baseUrl/api/v1/audio/book?book_id=${_currentBook!.id}&chapter_id=$_currentChapterIndex';
-    
-    print('Generated audio URL: $audioUrl for book "${_currentBook!.title}" chapter ${_currentChapterIndex + 1}');
-    
+    final audioUrl =
+        '$baseUrl/api/v1/audio/book?book_id=${_currentBook!.id}&chapter_id=$_currentChapterIndex';
+
+    print(
+      'Generated audio URL: $audioUrl for book "${_currentBook!.title}" chapter ${_currentChapterIndex + 1}',
+    );
+
     return audioUrl;
   }
 
@@ -287,9 +313,11 @@ ${_currentBook!.description}
   }
 
   Future<void> seekToChapter(int chapterIndex) async {
-    if (_currentBook == null || 
-        chapterIndex < 0 || 
-        chapterIndex >= _currentBook!.chapters.length) return;
+    if (_currentBook == null ||
+        chapterIndex < 0 ||
+        chapterIndex >= _currentBook!.chapters.length) {
+      return;
+    }
 
     _currentChapterIndex = chapterIndex;
     await _loadAudio(); // Load new chapter audio
@@ -312,7 +340,9 @@ ${_currentBook!.description}
   Future<void> rewind() async {
     final currentPosition = _audioPlayer.position;
     final newPosition = currentPosition - const Duration(seconds: 30);
-    await _audioPlayer.seek(newPosition.isNegative ? Duration.zero : newPosition);
+    await _audioPlayer.seek(
+      newPosition.isNegative ? Duration.zero : newPosition,
+    );
   }
 
   Future<void> fastForward() async {
@@ -351,7 +381,7 @@ ${_currentBook!.description}
       _loadAudio();
     }
   }
-  
+
   void _startProgressTracking() {
     _progressUpdateTimer?.cancel();
     _progressUpdateTimer = Timer.periodic(
@@ -359,25 +389,25 @@ ${_currentBook!.description}
       (_) => _updateSessionProgress(),
     );
   }
-  
+
   Future<void> _updateSessionProgress() async {
     if (_currentSession == null) return;
-    
+
     try {
       final position = _audioPlayer.position;
       final duration = _audioPlayer.duration ?? Duration.zero;
-      
+
       final update = session_models.SessionProgressUpdate(
         currentPos: _currentChapterIndex,
         currentTime: position,
       );
-      
+
       await _sessionService.updateProgress(_currentSession!.id, update);
     } catch (e) {
       print('Failed to update session progress: $e');
     }
   }
-  
+
   Future<void> endCurrentSession() async {
     if (_currentSession != null) {
       try {
@@ -388,7 +418,7 @@ ${_currentBook!.description}
       }
     }
   }
-  
+
   @override
   void dispose() {
     _sleepTimer?.cancel();

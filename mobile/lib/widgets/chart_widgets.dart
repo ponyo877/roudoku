@@ -5,15 +5,12 @@ import '../models/reading_analytics.dart';
 class WeeklyReadingChart extends StatelessWidget {
   final List<DailyReadingStats> weeklyStats;
 
-  const WeeklyReadingChart({
-    Key? key,
-    required this.weeklyStats,
-  }) : super(key: key);
+  const WeeklyReadingChart({super.key, required this.weeklyStats});
 
   @override
   Widget build(BuildContext context) {
     final spots = _generateSpots();
-    
+
     return LineChart(
       LineChartData(
         gridData: FlGridData(
@@ -21,10 +18,7 @@ class WeeklyReadingChart extends StatelessWidget {
           drawVerticalLine: false,
           horizontalInterval: 30,
           getDrawingHorizontalLine: (value) {
-            return FlLine(
-              color: Colors.grey[300]!,
-              strokeWidth: 1,
-            );
+            return FlLine(color: Colors.grey[300]!, strokeWidth: 1);
           },
         ),
         titlesData: FlTitlesData(
@@ -163,24 +157,18 @@ class WeeklyReadingChart extends StatelessWidget {
 class GenreDistributionChart extends StatelessWidget {
   final List<GenreStats> genreStats;
 
-  const GenreDistributionChart({
-    Key? key,
-    required this.genreStats,
-  }) : super(key: key);
+  const GenreDistributionChart({super.key, required this.genreStats});
 
   @override
   Widget build(BuildContext context) {
     if (genreStats.isEmpty) {
       return const Center(
-        child: Text(
-          'ジャンルデータがありません',
-          style: TextStyle(color: Colors.grey),
-        ),
+        child: Text('ジャンルデータがありません', style: TextStyle(color: Colors.grey)),
       );
     }
 
     final sections = _generateSections();
-    
+
     return Row(
       children: [
         Expanded(
@@ -292,10 +280,7 @@ class GenreDistributionChart extends StatelessWidget {
             ),
             Text(
               '${genre.booksReadCount}',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -309,19 +294,16 @@ class ReadingSpeedChart extends StatelessWidget {
   final List<String> labels;
 
   const ReadingSpeedChart({
-    Key? key,
+    super.key,
     required this.speedData,
     required this.labels,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     if (speedData.isEmpty) {
       return const Center(
-        child: Text(
-          '読書速度データがありません',
-          style: TextStyle(color: Colors.grey),
-        ),
+        child: Text('読書速度データがありません', style: TextStyle(color: Colors.grey)),
       );
     }
 
@@ -396,10 +378,7 @@ class ReadingSpeedChart extends StatelessWidget {
           drawVerticalLine: false,
           horizontalInterval: 50,
           getDrawingHorizontalLine: (value) {
-            return FlLine(
-              color: Colors.grey[300]!,
-              strokeWidth: 1,
-            );
+            return FlLine(color: Colors.grey[300]!, strokeWidth: 1);
           },
         ),
       ),
@@ -444,12 +423,12 @@ class ProgressRingChart extends StatelessWidget {
   final double size;
 
   const ProgressRingChart({
-    Key? key,
+    super.key,
     required this.progress,
     required this.centerText,
     this.color = Colors.blue,
     this.size = 120,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -499,19 +478,13 @@ class ProgressRingChart extends StatelessWidget {
 class MonthlyTrendChart extends StatelessWidget {
   final List<MonthlyReadingSummary> monthlyData;
 
-  const MonthlyTrendChart({
-    Key? key,
-    required this.monthlyData,
-  }) : super(key: key);
+  const MonthlyTrendChart({super.key, required this.monthlyData});
 
   @override
   Widget build(BuildContext context) {
     if (monthlyData.isEmpty) {
       return const Center(
-        child: Text(
-          '月次データがありません',
-          style: TextStyle(color: Colors.grey),
-        ),
+        child: Text('月次データがありません', style: TextStyle(color: Colors.grey)),
       );
     }
 
@@ -522,10 +495,7 @@ class MonthlyTrendChart extends StatelessWidget {
           drawVerticalLine: false,
           horizontalInterval: 1,
           getDrawingHorizontalLine: (value) {
-            return FlLine(
-              color: Colors.grey[300]!,
-              strokeWidth: 1,
-            );
+            return FlLine(color: Colors.grey[300]!, strokeWidth: 1);
           },
         ),
         titlesData: FlTitlesData(

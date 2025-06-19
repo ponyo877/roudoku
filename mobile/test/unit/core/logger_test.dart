@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../../../lib/core/logging/logger.dart';
+import 'package:roudoku/core/logging/logger.dart';
 
 void main() {
   group('Logger', () {
@@ -25,7 +25,10 @@ void main() {
 
     test('should log error messages with exception', () {
       final exception = Exception('Test exception');
-      expect(() => Logger.error('Error with exception', exception), returnsNormally);
+      expect(
+        () => Logger.error('Error with exception', exception),
+        returnsNormally,
+      );
     });
 
     group('Feature-specific logging', () {
@@ -54,7 +57,7 @@ void main() {
       test('should respect debug mode setting', () {
         Logger.setDebugMode(false);
         expect(() => Logger.debug('Should not appear'), returnsNormally);
-        
+
         Logger.setDebugMode(true);
         expect(() => Logger.debug('Should appear'), returnsNormally);
       });

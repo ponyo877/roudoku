@@ -15,12 +15,12 @@ func ParseUUIDParam(r *http.Request, paramName string) (uuid.UUID, error) {
 	vars := mux.Vars(r)
 	idStr, exists := vars[paramName]
 	if !exists {
-		return uuid.Nil, errors.BadRequest("Missing " + paramName + " parameter")
+		return uuid.Nil, errors.BadRequest("Missing " + paramName + " parameter", nil)
 	}
 
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return uuid.Nil, errors.BadRequest("Invalid " + paramName + " format")
+		return uuid.Nil, errors.BadRequest("Invalid " + paramName + " format", err)
 	}
 
 	return id, nil
@@ -30,12 +30,12 @@ func ParseInt64Param(r *http.Request, paramName string) (int64, error) {
 	vars := mux.Vars(r)
 	valueStr, exists := vars[paramName]
 	if !exists {
-		return 0, errors.BadRequest("Missing " + paramName + " parameter")
+		return 0, errors.BadRequest("Missing " + paramName + " parameter", nil)
 	}
 
 	value, err := strconv.ParseInt(valueStr, 10, 64)
 	if err != nil {
-		return 0, errors.BadRequest("Invalid " + paramName + " format")
+		return 0, errors.BadRequest("Invalid " + paramName + " format", err)
 	}
 
 	return value, nil
@@ -45,12 +45,12 @@ func ParseIntParam(r *http.Request, paramName string) (int, error) {
 	vars := mux.Vars(r)
 	valueStr, exists := vars[paramName]
 	if !exists {
-		return 0, errors.BadRequest("Missing " + paramName + " parameter")
+		return 0, errors.BadRequest("Missing " + paramName + " parameter", nil)
 	}
 
 	value, err := strconv.Atoi(valueStr)
 	if err != nil {
-		return 0, errors.BadRequest("Invalid " + paramName + " format")
+		return 0, errors.BadRequest("Invalid " + paramName + " format", err)
 	}
 
 	return value, nil
@@ -97,14 +97,14 @@ func ParsePaginationParams(r *http.Request) (page, perPage int) {
 
 func DecodeJSON(r *http.Request, dst interface{}) error {
 	if r.Header.Get("Content-Type") != "application/json" {
-		return errors.BadRequest("Content-Type must be application/json")
+		return errors.BadRequest("Content-Type must be application/json", nil)
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(dst); err != nil {
-		return errors.BadRequest("Invalid JSON format: " + err.Error())
+		return errors.BadRequest("Invalid JSON format: " + err.Error(), err)
 	}
 
 	return nil

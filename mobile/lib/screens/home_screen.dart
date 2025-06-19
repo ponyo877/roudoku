@@ -10,7 +10,7 @@ import 'simple_swipe_screen.dart';
 import 'simple_pair_comparison_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -46,18 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'ホーム',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: '検索',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'プロフィール',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: '検索'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'プロフィール'),
         ],
       ),
     );
@@ -65,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _HomeContent extends StatelessWidget {
-  const _HomeContent({Key? key}) : super(key: key);
+  const _HomeContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +71,7 @@ class _HomeContent extends StatelessWidget {
               children: [
                 const Text(
                   'roudoku',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.settings),
@@ -107,10 +95,7 @@ class _HomeContent extends StatelessWidget {
               children: [
                 const Text(
                   'Discover with Swipe',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -119,10 +104,12 @@ class _HomeContent extends StatelessWidget {
                       child: _SwipeModeCard(
                         mode: SwipeMode.tinder,
                         title: 'Swipe Mode',
-                        description: 'Swipe through quotes to find your favorites',
+                        description:
+                            'Swipe through quotes to find your favorites',
                         icon: Icons.swipe,
                         color: Colors.purple,
-                        onTap: () => _navigateToSwipeMode(context, SwipeMode.tinder),
+                        onTap: () =>
+                            _navigateToSwipeMode(context, SwipeMode.tinder),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -133,7 +120,8 @@ class _HomeContent extends StatelessWidget {
                         description: 'Choose between two quotes',
                         icon: Icons.compare_arrows,
                         color: Colors.orange,
-                        onTap: () => _navigateToSwipeMode(context, SwipeMode.facemash),
+                        onTap: () =>
+                            _navigateToSwipeMode(context, SwipeMode.facemash),
                       ),
                     ),
                   ],
@@ -146,10 +134,7 @@ class _HomeContent extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
               'あなたへのおすすめ',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
           ),
           const SizedBox(height: 16),
@@ -157,15 +142,11 @@ class _HomeContent extends StatelessWidget {
             child: Consumer<BookProvider>(
               builder: (context, bookProvider, child) {
                 if (bookProvider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 if (bookProvider.recommendations.isEmpty) {
-                  return const Center(
-                    child: Text('おすすめの本が見つかりません'),
-                  );
+                  return const Center(child: Text('おすすめの本が見つかりません'));
                 }
 
                 return ListView.builder(
@@ -215,14 +196,14 @@ class _SwipeModeCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _SwipeModeCard({
-    Key? key,
+    super.key,
     required this.mode,
     required this.title,
     required this.description,
     required this.icon,
     required this.color,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -234,16 +215,10 @@ class _SwipeModeCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              color.withOpacity(0.1),
-              color.withOpacity(0.05),
-            ],
+            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
           ),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withOpacity(0.3),
-            width: 1,
-          ),
+          border: Border.all(color: color.withOpacity(0.3), width: 1),
           boxShadow: [
             BoxShadow(
               color: color.withOpacity(0.1),
@@ -261,11 +236,7 @@ class _SwipeModeCard extends StatelessWidget {
                 color: color.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 12),
             Text(
@@ -295,11 +266,7 @@ class _SwipeModeCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                Icon(
-                  Icons.arrow_forward,
-                  color: color,
-                  size: 14,
-                ),
+                Icon(Icons.arrow_forward, color: color, size: 14),
               ],
             ),
           ],

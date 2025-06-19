@@ -10,7 +10,7 @@ import 'player_screen.dart';
 class BookDetailScreen extends StatefulWidget {
   final Book book;
 
-  const BookDetailScreen({Key? key, required this.book}) : super(key: key);
+  const BookDetailScreen({super.key, required this.book});
 
   @override
   State<BookDetailScreen> createState() => _BookDetailScreenState();
@@ -27,10 +27,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     _checkBookmarkStatus();
     _initializeTts();
   }
-  
+
   void _initializeTts() {
     _ttsService = Provider.of<CloudTtsService>(context, listen: false);
-    
+
     // Setup TTS callbacks
     _ttsService.onPlayingChanged = () {
       if (mounted) {
@@ -63,12 +63,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   void _startListening() {
     final audioProvider = context.read<AudioPlayerProvider>();
     audioProvider.setBook(widget.book);
-    
+
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => PlayerScreen(book: widget.book),
-      ),
+      MaterialPageRoute(builder: (context) => PlayerScreen(book: widget.book)),
     );
   }
 
@@ -96,12 +94,20 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                           ),
                           errorWidget: (context, url, error) => Container(
                             color: Colors.grey[300],
-                            child: const Icon(Icons.menu_book, size: 80, color: Colors.grey),
+                            child: const Icon(
+                              Icons.menu_book,
+                              size: 80,
+                              color: Colors.grey,
+                            ),
                           ),
                         )
                       : Container(
                           color: Colors.grey[300],
-                          child: const Icon(Icons.menu_book, size: 80, color: Colors.grey),
+                          child: const Icon(
+                            Icons.menu_book,
+                            size: 80,
+                            color: Colors.grey,
+                          ),
                         ),
                   Container(
                     decoration: BoxDecoration(
@@ -209,8 +215,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     IconButton(
                       icon: Icon(
                         _isSpeaking ? Icons.stop : Icons.volume_up,
-                        color: _isSpeaking 
-                            ? Colors.red 
+                        color: _isSpeaking
+                            ? Colors.red
                             : Theme.of(context).primaryColor,
                       ),
                       onPressed: () async {
@@ -227,18 +233,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 const SizedBox(height: 12),
                 Text(
                   widget.book.description,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
+                  style: const TextStyle(fontSize: 16, height: 1.5),
                 ),
                 const SizedBox(height: 24),
                 const Text(
                   '章一覧',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 ...List.generate(
@@ -254,17 +254,21 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                         ),
                       ),
                       title: Text(widget.book.chapters[index].title),
-                      subtitle: Text('${widget.book.chapters[index].duration}分'),
+                      subtitle: Text(
+                        '${widget.book.chapters[index].duration}分',
+                      ),
                       trailing: const Icon(Icons.play_circle_outline),
                       onTap: () {
-                        final audioProvider = context.read<AudioPlayerProvider>();
+                        final audioProvider = context
+                            .read<AudioPlayerProvider>();
                         audioProvider.setBook(widget.book);
                         audioProvider.seekToChapter(index);
-                        
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => PlayerScreen(book: widget.book),
+                            builder: (context) =>
+                                PlayerScreen(book: widget.book),
                           ),
                         );
                       },

@@ -13,10 +13,7 @@ import '../widgets/swipe_card_widget.dart';
 class SwipeScreen extends StatefulWidget {
   final SwipeMode mode;
 
-  const SwipeScreen({
-    Key? key,
-    this.mode = SwipeMode.tinder,
-  }) : super(key: key);
+  const SwipeScreen({super.key, this.mode = SwipeMode.tinder});
 
   @override
   State<SwipeScreen> createState() => _SwipeScreenState();
@@ -35,18 +32,18 @@ class _SwipeScreenState extends State<SwipeScreen>
   String? _errorMessage;
   String? _sessionId;
   int _currentIndex = 0;
-  
+
   // Context and stats
   ContextData? _currentContext;
   int _swipeCount = 0;
   int _likeCount = 0;
   int _loveCount = 0;
-  
+
   // Animation controllers
   late AnimationController _loadingController;
   late AnimationController _stackController;
   late Animation<double> _loadingAnimation;
-  
+
   // TTS state
   bool _isSpeaking = false;
 
@@ -68,7 +65,7 @@ class _SwipeScreenState extends State<SwipeScreen>
     _swipeService = SimpleSwipeService(Dio());
     _contextService = Provider.of<ContextService>(context, listen: false);
     _ttsService = Provider.of<CloudTtsService>(context, listen: false);
-    
+
     // Setup TTS callbacks
     _ttsService.onPlayingChanged = () {
       if (mounted) {
@@ -90,13 +87,9 @@ class _SwipeScreenState extends State<SwipeScreen>
       vsync: this,
     );
 
-    _loadingAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _loadingController,
-      curve: Curves.easeInOut,
-    ));
+    _loadingAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _loadingController, curve: Curves.easeInOut),
+    );
 
     _loadingController.repeat(reverse: true);
   }
@@ -119,9 +112,7 @@ class _SwipeScreenState extends State<SwipeScreen>
 
     try {
       // Get current context
-      if (_contextService != null) {
-        _currentContext = await _contextService.getCurrentContext();
-      }
+      _currentContext = await _contextService.getCurrentContext();
 
       // Load quotes
       final quotes = await _swipeService.getQuotesForSwipe(
@@ -134,14 +125,13 @@ class _SwipeScreenState extends State<SwipeScreen>
         _currentIndex = 0;
         _isLoading = false;
       });
-
     } catch (e) {
       setState(() {
         _hasError = true;
         _errorMessage = e.toString();
         _isLoading = false;
       });
-      
+
       // Defer showing SnackBar until after the build is complete
       if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -167,7 +157,6 @@ class _SwipeScreenState extends State<SwipeScreen>
       setState(() {
         _quotes.addAll(moreQuotes);
       });
-
     } catch (e) {
       print('Error loading more quotes: $e');
       // Don't show error for background loading
@@ -178,7 +167,7 @@ class _SwipeScreenState extends State<SwipeScreen>
     if (_currentIndex >= _quotes.length) return;
 
     final quote = _quotes[_currentIndex];
-    
+
     // Update stats
     setState(() {
       _swipeCount++;
@@ -204,7 +193,11 @@ class _SwipeScreenState extends State<SwipeScreen>
     }
   }
 
-  Future<void> _logSwipe(Map<String, dynamic> quote, SwipeChoice choice, int duration) async {
+  Future<void> _logSwipe(
+    Map<String, dynamic> quote,
+    SwipeChoice choice,
+    int duration,
+  ) async {
     try {
       final quoteId = quote['quote']['id'].toString();
       await _swipeService.logSwipe(
@@ -319,7 +312,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Book info
                 Text(
                   quoteData['book']['title'] ?? 'Unknown Book',
@@ -335,7 +328,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Quote
                 Expanded(
                   child: SingleChildScrollView(
@@ -345,49 +338,55 @@ class _SwipeScreenState extends State<SwipeScreen>
                       children: [
                         Text(
                           'Quote:',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
-                          ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          quoteData['quote']['text'] ?? 'Quote text not available',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            height: 1.6,
-                          ),
+                          quoteData['quote']['text'] ??
+                              'Quote text not available',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(height: 1.6),
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // Book description
-                        if ((quoteData['book']['description'] ?? '').isNotEmpty) ...[
+                        if ((quoteData['book']['description'] ?? '')
+                            .isNotEmpty) ...[
                           Text(
                             'About the Book:',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).primaryColor,
-                            ),
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).primaryColor,
+                                ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             quoteData['book']['description'] ?? '',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey.shade700,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.grey.shade700),
                           ),
                           const SizedBox(height: 24),
                         ],
-                        
+
                         // TTS Button
                         Center(
                           child: IconButton(
                             icon: Icon(
                               _isSpeaking ? Icons.stop : Icons.volume_up,
-                              color: _isSpeaking ? Colors.red : Theme.of(context).primaryColor,
+                              color: _isSpeaking
+                                  ? Colors.red
+                                  : Theme.of(context).primaryColor,
                               size: 32,
                             ),
                             onPressed: () async {
-                              final quoteText = quoteData['quote']['text'] ?? '';
+                              final quoteText =
+                                  quoteData['quote']['text'] ?? '';
                               if (_isSpeaking) {
                                 await _ttsService.stop();
                               } else {
@@ -398,7 +397,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Actions
                         Row(
                           children: [
@@ -436,11 +435,11 @@ class _SwipeScreenState extends State<SwipeScreen>
   }
 
   void _switchMode() {
-    final newMode = widget.mode == SwipeMode.tinder ? SwipeMode.facemash : SwipeMode.tinder;
+    final newMode = widget.mode == SwipeMode.tinder
+        ? SwipeMode.facemash
+        : SwipeMode.tinder;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => SwipeScreen(mode: newMode),
-      ),
+      MaterialPageRoute(builder: (context) => SwipeScreen(mode: newMode)),
     );
   }
 
@@ -507,16 +506,16 @@ class _SwipeScreenState extends State<SwipeScreen>
           const SizedBox(height: 24),
           Text(
             'Loading quotes...',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.grey.shade600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
           ),
           const SizedBox(height: 8),
           Text(
             widget.mode.description,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.grey.shade500,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade500),
             textAlign: TextAlign.center,
           ),
         ],
@@ -531,25 +530,21 @@ class _SwipeScreenState extends State<SwipeScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.shade300,
-            ),
+            Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
             const SizedBox(height: 24),
             Text(
               'Oops! Something went wrong',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               _errorMessage ?? 'Unable to load quotes',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -570,24 +565,20 @@ class _SwipeScreenState extends State<SwipeScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.library_books,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
+            Icon(Icons.library_books, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 24),
             Text(
               'No quotes available',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Check back later for new content',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -608,7 +599,11 @@ class _SwipeScreenState extends State<SwipeScreen>
           alignment: Alignment.center,
           children: [
             // Build stack of cards (show up to 3)
-            for (int i = _currentIndex; i < _currentIndex + 3 && i < _quotes.length; i++)
+            for (
+              int i = _currentIndex;
+              i < _currentIndex + 3 && i < _quotes.length;
+              i++
+            )
               AnimationConfiguration.staggeredList(
                 position: i - _currentIndex,
                 duration: const Duration(milliseconds: 300),
@@ -624,13 +619,17 @@ class _SwipeScreenState extends State<SwipeScreen>
                   ),
                 ),
               ),
-            
+
             // Loading indicator for next cards
-            if (_isLoading && _quotes.length - _currentIndex <= _preloadThreshold)
+            if (_isLoading &&
+                _quotes.length - _currentIndex <= _preloadThreshold)
               Positioned(
                 bottom: 20,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(20),
@@ -649,10 +648,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                       const SizedBox(width: 8),
                       Text(
                         'Loading more...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 12),
                       ),
                     ],
                   ),
@@ -693,13 +689,13 @@ class _SwipeScreenState extends State<SwipeScreen>
               ),
               Text(
                 'Swipes',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
               ),
             ],
           ),
-          
+
           // Action buttons
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -729,7 +725,7 @@ class _SwipeScreenState extends State<SwipeScreen>
               ),
             ],
           ),
-          
+
           // Progress
           Column(
             mainAxisSize: MainAxisSize.min,
@@ -743,9 +739,9 @@ class _SwipeScreenState extends State<SwipeScreen>
               ),
               Text(
                 'Left',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
               ),
             ],
           ),
@@ -772,11 +768,7 @@ class _SwipeScreenState extends State<SwipeScreen>
             borderRadius: BorderRadius.circular(25),
             border: Border.all(color: color.withOpacity(0.3)),
           ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 24,
-          ),
+          child: Icon(icon, color: color, size: 24),
         ),
       ),
     );
@@ -784,7 +776,7 @@ class _SwipeScreenState extends State<SwipeScreen>
 
   void _performSwipeAction(SwipeChoice choice) {
     if (_currentIndex >= _quotes.length) return;
-    
+
     // Simulate programmatic swipe
     _onSwipe(choice, 0);
   }

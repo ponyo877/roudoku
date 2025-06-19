@@ -12,13 +12,13 @@ class SwipeCardWidget extends StatefulWidget {
   final double stackIndex;
 
   const SwipeCardWidget({
-    Key? key,
+    super.key,
     required this.quoteWithBook,
     this.onSwipe,
     this.onTap,
     this.isTopCard = false,
     this.stackIndex = 0,
-  }) : super(key: key);
+  });
 
   @override
   State<SwipeCardWidget> createState() => _SwipeCardWidgetState();
@@ -73,37 +73,26 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
       vsync: this,
     );
 
-    _positionAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _positionController,
-      curve: Curves.easeOutCubic,
-    ));
+    _positionAnimation = Tween<Offset>(begin: Offset.zero, end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _positionController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     _scaleAnimation = Tween<double>(
       begin: 1.0 - (widget.stackIndex * 0.05),
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _scaleController, curve: Curves.easeOut));
 
-    _rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _rotationController,
-      curve: Curves.easeOut,
-    ));
+    _rotationAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
+      CurvedAnimation(parent: _rotationController, curve: Curves.easeOut),
+    );
 
-    _overlayAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _overlayController,
-      curve: Curves.easeOut,
-    ));
+    _overlayAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _overlayController, curve: Curves.easeOut),
+    );
 
     // Auto-scale up if this becomes the top card
     if (widget.isTopCard) {
@@ -114,15 +103,12 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
   @override
   void didUpdateWidget(SwipeCardWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Update scale animation when stack position changes
     _scaleAnimation = Tween<double>(
       begin: _scaleAnimation.value,
       end: 1.0 - (widget.stackIndex * 0.05),
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _scaleController, curve: Curves.easeOut));
 
     if (widget.isTopCard && !oldWidget.isTopCard) {
       _scaleController.forward();
@@ -140,12 +126,12 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
 
   void _onPanStart(DragStartDetails details) {
     if (!widget.isTopCard) return;
-    
+
     _isDragging = true;
     _swipeStartTime = DateTime.now();
     _dragOffset = Offset.zero;
     _currentSwipeDirection = null;
-    
+
     // Provide haptic feedback
     HapticFeedback.lightImpact();
   }
@@ -162,7 +148,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
     if (direction != _currentSwipeDirection) {
       _currentSwipeDirection = direction;
       _updateOverlayAnimation(direction);
-      
+
       // Provide haptic feedback when crossing threshold
       if (_shouldTriggerHaptic(direction)) {
         HapticFeedback.mediumImpact();
@@ -176,7 +162,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
     _isDragging = false;
     final direction = _getSwipeDirection(_dragOffset);
     final velocity = details.velocity;
-    
+
     // Calculate swipe duration
     final swipeDuration = _swipeStartTime != null
         ? DateTime.now().difference(_swipeStartTime!).inMilliseconds
@@ -184,7 +170,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
 
     // Determine if swipe should be accepted
     final shouldAcceptSwipe = _shouldAcceptSwipe(_dragOffset, velocity);
-    
+
     if (shouldAcceptSwipe && direction != null) {
       _performSwipe(direction, swipeDuration);
     } else {
@@ -194,7 +180,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
 
   SwipeDirection? _getSwipeDirection(Offset offset) {
     const threshold = 30.0;
-    
+
     if (offset.dx.abs() > offset.dy.abs()) {
       // Horizontal swipe
       if (offset.dx > threshold) {
@@ -210,7 +196,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
         return SwipeDirection.down;
       }
     }
-    
+
     return null;
   }
 
@@ -218,16 +204,16 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
     // Accept swipe if distance or velocity threshold is met
     const distanceThreshold = _swipeThreshold;
     const velocityThreshold = 500.0;
-    
+
     final distance = offset.distance;
     final speed = velocity.pixelsPerSecond.distance;
-    
+
     return distance > distanceThreshold || speed > velocityThreshold;
   }
 
   bool _shouldTriggerHaptic(SwipeDirection? direction) {
     if (direction == null) return false;
-    
+
     final distance = _dragOffset.distance;
     return distance > _swipeThreshold * 0.7; // Trigger at 70% of threshold
   }
@@ -267,21 +253,24 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
     }
 
     // Animate card off screen
-    _positionAnimation = Tween<Offset>(
-      begin: _dragOffset / MediaQuery.of(context).size.width,
-      end: targetOffset,
-    ).animate(CurvedAnimation(
-      parent: _positionController,
-      curve: Curves.easeInCubic,
-    ));
+    _positionAnimation =
+        Tween<Offset>(
+          begin: _dragOffset / MediaQuery.of(context).size.width,
+          end: targetOffset,
+        ).animate(
+          CurvedAnimation(
+            parent: _positionController,
+            curve: Curves.easeInCubic,
+          ),
+        );
 
-    _rotationAnimation = Tween<double>(
-      begin: _getRotationFromOffset(_dragOffset),
-      end: targetRotation,
-    ).animate(CurvedAnimation(
-      parent: _rotationController,
-      curve: Curves.easeOut,
-    ));
+    _rotationAnimation =
+        Tween<double>(
+          begin: _getRotationFromOffset(_dragOffset),
+          end: targetRotation,
+        ).animate(
+          CurvedAnimation(parent: _rotationController, curve: Curves.easeOut),
+        );
 
     // Trigger animations
     _positionController.forward();
@@ -302,9 +291,9 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
       _dragOffset = Offset.zero;
       _currentSwipeDirection = null;
     });
-    
+
     _overlayController.reverse();
-    
+
     // Light haptic feedback for reset
     HapticFeedback.lightImpact();
   }
@@ -363,7 +352,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    
+
     return AnimatedBuilder(
       animation: Listenable.merge([
         _positionController,
@@ -394,36 +383,38 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
                 onPanEnd: _onPanEnd,
                 onTap: widget.onTap,
                 child: Semantics(
-                  label: 'Quote card from ${widget.quoteWithBook.book.title} by ${widget.quoteWithBook.book.author}',
-                  hint: 'Tap to view details. Swipe left to dislike, right to like, up to love, down to skip.',
+                  label:
+                      'Quote card from ${widget.quoteWithBook.book.title} by ${widget.quoteWithBook.book.author}',
+                  hint:
+                      'Tap to view details. Swipe left to dislike, right to like, up to love, down to skip.',
                   child: Container(
-                  width: screenSize.width * 0.85,
-                  height: screenSize.height * 0.7,
-                  margin: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 10,
-                        offset: Offset(0, widget.stackIndex * 2),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Stack(
-                      children: [
-                        // Card content
-                        _buildCardContent(),
-                        
-                        // Swipe overlay
-                        if (_currentSwipeDirection != null)
-                          _buildSwipeOverlay(),
+                    width: screenSize.width * 0.85,
+                    height: screenSize.height * 0.7,
+                    margin: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 10,
+                          offset: Offset(0, widget.stackIndex * 2),
+                        ),
                       ],
                     ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Stack(
+                        children: [
+                          // Card content
+                          _buildCardContent(),
+
+                          // Swipe overlay
+                          if (_currentSwipeDirection != null)
+                            _buildSwipeOverlay(),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
                 ),
               ),
             ),
@@ -436,14 +427,14 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
   /// Alternative accessibility method for performing swipe actions via buttons
   void _performAccessibleSwipe(SwipeChoice choice) {
     if (!widget.isTopCard) return;
-    
+
     final duration = _swipeStartTime != null
         ? DateTime.now().difference(_swipeStartTime!).inMilliseconds
         : 0;
-    
+
     // Provide haptic feedback
     HapticFeedback.mediumImpact();
-    
+
     // Notify parent widget
     if (widget.onSwipe != null) {
       widget.onSwipe!(choice, duration);
@@ -459,10 +450,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Colors.grey.shade50,
-          ],
+          colors: [Colors.white, Colors.grey.shade50],
         ),
       ),
       child: Padding(
@@ -485,9 +473,9 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             // Book title
             Text(
               book.title,
@@ -498,9 +486,9 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Quote text
             Expanded(
               child: Center(
@@ -521,9 +509,9 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Quote info
             if (quote.chapterTitle != null) ...[
               Text(
@@ -536,15 +524,23 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
               ),
               const SizedBox(height: 8),
             ],
-            
+
             // Swipe instructions
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildSwipeHint(Icons.close, 'Nope', Colors.red.shade300),
-                _buildSwipeHint(Icons.keyboard_arrow_down, 'Skip', Colors.orange.shade300),
+                _buildSwipeHint(
+                  Icons.keyboard_arrow_down,
+                  'Skip',
+                  Colors.orange.shade300,
+                ),
                 _buildSwipeHint(Icons.favorite, 'Like', Colors.green.shade300),
-                _buildSwipeHint(Icons.favorite_border, 'Love', Colors.purple.shade300),
+                _buildSwipeHint(
+                  Icons.favorite_border,
+                  'Love',
+                  Colors.purple.shade300,
+                ),
               ],
             ),
           ],
@@ -557,11 +553,7 @@ class _SwipeCardWidgetState extends State<SwipeCardWidget>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: color,
-          size: 20,
-        ),
+        Icon(icon, color: color, size: 20),
         const SizedBox(height: 4),
         Text(
           label,

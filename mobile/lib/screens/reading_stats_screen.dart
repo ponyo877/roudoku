@@ -7,7 +7,7 @@ import '../widgets/reading_stats_card.dart';
 import '../widgets/chart_widgets.dart';
 
 class ReadingStatsScreen extends StatefulWidget {
-  const ReadingStatsScreen({Key? key}) : super(key: key);
+  const ReadingStatsScreen({super.key});
 
   @override
   State<ReadingStatsScreen> createState() => _ReadingStatsScreenState();
@@ -27,8 +27,10 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
 
   Future<void> _loadData() async {
     try {
-      await Provider.of<ReadingAnalyticsProvider>(context, listen: false)
-          .loadReadingStatistics();
+      await Provider.of<ReadingAnalyticsProvider>(
+        context,
+        listen: false,
+      ).loadReadingStatistics();
     } finally {
       if (mounted) {
         setState(() {
@@ -70,9 +72,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
           : Consumer<ReadingAnalyticsProvider>(
               builder: (context, provider, child) {
                 if (provider.statistics == null) {
-                  return const Center(
-                    child: Text('統計データを読み込めませんでした'),
-                  );
+                  return const Center(child: Text('統計データを読み込めませんでした'));
                 }
 
                 return TabBarView(
@@ -88,8 +88,8 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showGoalCreateDialog(),
-        child: const Icon(Icons.add),
         tooltip: '新しい目標を設定',
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -162,10 +162,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
             if (stats.favoriteGenres.isNotEmpty) ...[
               const Text(
                 'よく読むジャンル',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               _buildGenreChart(stats.favoriteGenres),
@@ -186,7 +183,10 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
           children: [
             Row(
               children: [
-                Icon(Icons.calendar_month, color: Theme.of(context).primaryColor),
+                Icon(
+                  Icons.calendar_month,
+                  color: Theme.of(context).primaryColor,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   '${summary.year}年${summary.monthName}の読書',
@@ -202,7 +202,10 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildSummaryItem('読了', '${summary.totalBooksRead}冊'),
-                _buildSummaryItem('読書時間', '${summary.totalReadingTimeMinutes ~/ 60}h'),
+                _buildSummaryItem(
+                  '読書時間',
+                  '${summary.totalReadingTimeMinutes ~/ 60}h',
+                ),
                 _buildSummaryItem('連続日数', '${summary.readingStreakDays}日'),
                 _buildSummaryItem('実績獲得', '${summary.newAchievementsCount}個'),
               ],
@@ -211,10 +214,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
               const SizedBox(height: 12),
               Text(
                 '今月のお気に入りジャンル: ${summary.favoriteGenre}',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
             ],
           ],
@@ -228,18 +228,9 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
       children: [
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
     );
   }
@@ -254,10 +245,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
           children: [
             const Text(
               '週間読書時間',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -294,10 +282,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
             children: [
               const Text(
                 '読書目標',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               ElevatedButton.icon(
                 onPressed: _showGoalCreateDialog,
@@ -313,26 +298,17 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
               child: Column(
                 children: [
                   const SizedBox(height: 64),
-                  Icon(
-                    Icons.flag,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
+                  Icon(Icons.flag, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
                   Text(
                     '読書目標を設定しましょう',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     '目標を設定することで読書習慣を\n身につけやすくなります',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(color: Colors.grey[500]),
                   ),
                 ],
               ),
@@ -365,38 +341,28 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
                 PopupMenuButton<String>(
                   onSelected: (value) => _handleGoalAction(value, goal),
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Text('編集'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('削除'),
-                    ),
+                    const PopupMenuItem(value: 'edit', child: Text('編集')),
+                    const PopupMenuItem(value: 'delete', child: Text('削除')),
                   ],
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              goal.progressText,
-              style: const TextStyle(fontSize: 18),
-            ),
+            Text(goal.progressText, style: const TextStyle(fontSize: 18)),
             const SizedBox(height: 12),
             LinearProgressIndicator(
               value: goal.progressPercentage / 100,
               backgroundColor: Colors.grey[300],
               valueColor: AlwaysStoppedAnimation<Color>(
-                goal.progressPercentage >= 100 ? Colors.green : Theme.of(context).primaryColor,
+                goal.progressPercentage >= 100
+                    ? Colors.green
+                    : Theme.of(context).primaryColor,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               '${goal.progressPercentage.toInt()}% 達成',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
           ],
         ),
@@ -412,10 +378,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
         children: [
           const Text(
             '最近の実績',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
 
@@ -424,32 +387,24 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
               child: Column(
                 children: [
                   const SizedBox(height: 64),
-                  Icon(
-                    Icons.emoji_events,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
+                  Icon(Icons.emoji_events, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
                   Text(
                     'まだ実績がありません',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     '読書を続けて実績を獲得しましょう',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(color: Colors.grey[500]),
                   ),
                 ],
               ),
             )
           else
-            ...stats.recentAchievements.map((achievement) => 
-              _buildAchievementCard(achievement)),
+            ...stats.recentAchievements.map(
+              (achievement) => _buildAchievementCard(achievement),
+            ),
 
           const SizedBox(height: 24),
           ElevatedButton(
@@ -480,10 +435,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
         trailing: achievement.earnedAt != null
             ? Text(
                 '${achievement.earnedAt!.month}/${achievement.earnedAt!.day}',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
               )
             : null,
       ),
@@ -498,10 +450,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
         children: [
           const Text(
             '詳細統計',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
 
@@ -529,10 +478,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
           children: [
             const Text(
               '読書ストリーク',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Row(
@@ -558,25 +504,21 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
     );
   }
 
-  Widget _buildStreakItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStreakItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 32),
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-          ),
-        ),
+        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
       ],
     );
   }
@@ -590,10 +532,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
           children: [
             const Text(
               'ジャンル別読書記録',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (genres.isEmpty)
@@ -631,10 +570,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
           children: [
             const Text(
               '読書速度',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Row(
@@ -661,18 +597,9 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
       children: [
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-          ),
-        ),
+        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
       ],
     );
   }
@@ -727,19 +654,21 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
 
   Future<void> _deleteGoal(ReadingGoal goal) async {
     try {
-      await Provider.of<ReadingAnalyticsProvider>(context, listen: false)
-          .deleteReadingGoal(goal.id);
-      
+      await Provider.of<ReadingAnalyticsProvider>(
+        context,
+        listen: false,
+      ).deleteReadingGoal(goal.id);
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('目標を削除しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('目標を削除しました')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('目標の削除に失敗しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('目標の削除に失敗しました')));
       }
     }
   }
@@ -750,7 +679,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen>
 }
 
 class GoalCreateDialog extends StatefulWidget {
-  const GoalCreateDialog({Key? key}) : super(key: key);
+  const GoalCreateDialog({super.key});
 
   @override
   State<GoalCreateDialog> createState() => _GoalCreateDialogState();
@@ -775,9 +704,15 @@ class _GoalCreateDialogState extends State<GoalCreateDialog> {
               value: _goalType,
               decoration: const InputDecoration(labelText: '目標の種類'),
               items: const [
-                DropdownMenuItem(value: 'daily_minutes', child: Text('1日の読書時間')),
+                DropdownMenuItem(
+                  value: 'daily_minutes',
+                  child: Text('1日の読書時間'),
+                ),
                 DropdownMenuItem(value: 'weekly_books', child: Text('週間読書冊数')),
-                DropdownMenuItem(value: 'monthly_chapters', child: Text('月間読書章数')),
+                DropdownMenuItem(
+                  value: 'monthly_chapters',
+                  child: Text('月間読書章数'),
+                ),
                 DropdownMenuItem(value: 'yearly_books', child: Text('年間読書冊数')),
               ],
               onChanged: (value) {
@@ -817,10 +752,7 @@ class _GoalCreateDialogState extends State<GoalCreateDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('キャンセル'),
         ),
-        TextButton(
-          onPressed: _createGoal,
-          child: const Text('作成'),
-        ),
+        TextButton(onPressed: _createGoal, child: const Text('作成')),
       ],
     );
   }
@@ -865,20 +797,22 @@ class _GoalCreateDialogState extends State<GoalCreateDialog> {
         endDate: _endDate,
       );
 
-      await Provider.of<ReadingAnalyticsProvider>(context, listen: false)
-          .createReadingGoal(request);
+      await Provider.of<ReadingAnalyticsProvider>(
+        context,
+        listen: false,
+      ).createReadingGoal(request);
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('目標を作成しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('目標を作成しました')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('目標の作成に失敗しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('目標の作成に失敗しました')));
       }
     }
   }
@@ -887,7 +821,7 @@ class _GoalCreateDialogState extends State<GoalCreateDialog> {
 class GoalEditDialog extends StatefulWidget {
   final ReadingGoal goal;
 
-  const GoalEditDialog({Key? key, required this.goal}) : super(key: key);
+  const GoalEditDialog({super.key, required this.goal});
 
   @override
   State<GoalEditDialog> createState() => _GoalEditDialogState();
@@ -953,10 +887,7 @@ class _GoalEditDialogState extends State<GoalEditDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('キャンセル'),
         ),
-        TextButton(
-          onPressed: _updateGoal,
-          child: const Text('更新'),
-        ),
+        TextButton(onPressed: _updateGoal, child: const Text('更新')),
       ],
     );
   }
@@ -984,20 +915,22 @@ class _GoalEditDialogState extends State<GoalEditDialog> {
         isActive: _isActive,
       );
 
-      await Provider.of<ReadingAnalyticsProvider>(context, listen: false)
-          .updateReadingGoal(widget.goal.id, request);
+      await Provider.of<ReadingAnalyticsProvider>(
+        context,
+        listen: false,
+      ).updateReadingGoal(widget.goal.id, request);
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('目標を更新しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('目標を更新しました')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('目標の更新に失敗しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('目標の更新に失敗しました')));
       }
     }
   }

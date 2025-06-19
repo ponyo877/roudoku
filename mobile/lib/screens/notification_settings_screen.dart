@@ -5,13 +5,15 @@ import '../providers/notification_provider.dart';
 import '../providers/auth_provider.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
-  const NotificationSettingsScreen({Key? key}) : super(key: key);
+  const NotificationSettingsScreen({super.key});
 
   @override
-  State<NotificationSettingsScreen> createState() => _NotificationSettingsScreenState();
+  State<NotificationSettingsScreen> createState() =>
+      _NotificationSettingsScreenState();
 }
 
-class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
+class _NotificationSettingsScreenState
+    extends State<NotificationSettingsScreen> {
   bool _isLoading = true;
 
   @override
@@ -24,10 +26,12 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userId = authProvider.user?.id;
-      
+
       if (userId != null) {
-        await Provider.of<NotificationProvider>(context, listen: false)
-            .loadNotificationPreferences(userId);
+        await Provider.of<NotificationProvider>(
+          context,
+          listen: false,
+        ).loadNotificationPreferences(userId);
       }
     } finally {
       if (mounted) {
@@ -52,9 +56,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           : Consumer<NotificationProvider>(
               builder: (context, provider, child) {
                 if (provider.preferences == null) {
-                  return const Center(
-                    child: Text('通知設定を読み込めませんでした'),
-                  );
+                  return const Center(child: Text('通知設定を読み込めませんでした'));
                 }
 
                 return RefreshIndicator(
@@ -94,14 +96,14 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           children: [
             Row(
               children: [
-                Icon(Icons.notifications, color: Theme.of(context).primaryColor),
+                Icon(
+                  Icons.notifications,
+                  color: Theme.of(context).primaryColor,
+                ),
                 const SizedBox(width: 8),
                 const Text(
                   '通知設定',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -110,17 +112,15 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               title: const Text('プッシュ通知'),
               subtitle: const Text('アプリからの通知を受け取る'),
               value: prefs.pushNotificationsEnabled,
-              onChanged: (value) => _updatePreferences(
-                pushNotificationsEnabled: value,
-              ),
+              onChanged: (value) =>
+                  _updatePreferences(pushNotificationsEnabled: value),
             ),
             SwitchListTile(
               title: const Text('メール通知'),
               subtitle: const Text('重要な情報をメールで受け取る'),
               value: prefs.emailNotificationsEnabled,
-              onChanged: (value) => _updatePreferences(
-                emailNotificationsEnabled: value,
-              ),
+              onChanged: (value) =>
+                  _updatePreferences(emailNotificationsEnabled: value),
             ),
           ],
         ),
@@ -141,10 +141,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 const SizedBox(width: 8),
                 const Text(
                   '読書リマインダー',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -153,9 +150,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               title: const Text('毎日のリマインダー'),
               subtitle: const Text('読書の時間をお知らせします'),
               value: prefs.dailyRemindersEnabled,
-              onChanged: (value) => _updatePreferences(
-                dailyRemindersEnabled: value,
-              ),
+              onChanged: (value) =>
+                  _updatePreferences(dailyRemindersEnabled: value),
             ),
             if (prefs.dailyRemindersEnabled) ...[
               ListTile(
@@ -165,9 +161,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 onTap: () => _showTimePickerDialog(
                   title: 'リマインダーの時間',
                   currentTime: prefs.dailyReminderTimeFormatted,
-                  onTimeSelected: (time) => _updatePreferences(
-                    dailyReminderTime: '$time:00',
-                  ),
+                  onTimeSelected: (time) =>
+                      _updatePreferences(dailyReminderTime: '$time:00'),
                 ),
               ),
             ],
@@ -190,10 +185,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 const SizedBox(width: 8),
                 const Text(
                   '読書レポート',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -202,9 +194,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               title: const Text('週間レポート'),
               subtitle: const Text('読書活動のまとめをお送りします'),
               value: prefs.weeklyReportsEnabled,
-              onChanged: (value) => _updatePreferences(
-                weeklyReportsEnabled: value,
-              ),
+              onChanged: (value) =>
+                  _updatePreferences(weeklyReportsEnabled: value),
             ),
             if (prefs.weeklyReportsEnabled) ...[
               ListTile(
@@ -213,9 +204,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showWeekdayPickerDialog(
                   currentDay: prefs.weeklyReportDay,
-                  onDaySelected: (day) => _updatePreferences(
-                    weeklyReportDay: day,
-                  ),
+                  onDaySelected: (day) =>
+                      _updatePreferences(weeklyReportDay: day),
                 ),
               ),
             ],
@@ -238,10 +228,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 const SizedBox(width: 8),
                 const Text(
                   '通知の種類',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -250,33 +237,29 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               title: const Text('実績獲得通知'),
               subtitle: const Text('新しい実績を獲得した時'),
               value: prefs.achievementNotificationsEnabled,
-              onChanged: (value) => _updatePreferences(
-                achievementNotificationsEnabled: value,
-              ),
+              onChanged: (value) =>
+                  _updatePreferences(achievementNotificationsEnabled: value),
             ),
             SwitchListTile(
               title: const Text('目標達成通知'),
               subtitle: const Text('読書目標を達成した時'),
               value: prefs.goalMilestoneNotificationsEnabled,
-              onChanged: (value) => _updatePreferences(
-                goalMilestoneNotificationsEnabled: value,
-              ),
+              onChanged: (value) =>
+                  _updatePreferences(goalMilestoneNotificationsEnabled: value),
             ),
             SwitchListTile(
               title: const Text('おすすめ本通知'),
               subtitle: const Text('新しいおすすめの本が見つかった時'),
               value: prefs.recommendationNotificationsEnabled,
-              onChanged: (value) => _updatePreferences(
-                recommendationNotificationsEnabled: value,
-              ),
+              onChanged: (value) =>
+                  _updatePreferences(recommendationNotificationsEnabled: value),
             ),
             SwitchListTile(
               title: const Text('サブスクリプション通知'),
               subtitle: const Text('課金やプラン変更に関する通知'),
               value: prefs.subscriptionNotificationsEnabled,
-              onChanged: (value) => _updatePreferences(
-                subscriptionNotificationsEnabled: value,
-              ),
+              onChanged: (value) =>
+                  _updatePreferences(subscriptionNotificationsEnabled: value),
             ),
           ],
         ),
@@ -297,10 +280,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 const SizedBox(width: 8),
                 const Text(
                   'サイレント時間',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -312,9 +292,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               onTap: () => _showTimePickerDialog(
                 title: 'サイレント開始時間',
                 currentTime: prefs.quietHoursStartFormatted,
-                onTimeSelected: (time) => _updatePreferences(
-                  quietHoursStart: '$time:00',
-                ),
+                onTimeSelected: (time) =>
+                    _updatePreferences(quietHoursStart: '$time:00'),
               ),
             ),
             ListTile(
@@ -324,19 +303,15 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               onTap: () => _showTimePickerDialog(
                 title: 'サイレント終了時間',
                 currentTime: prefs.quietHoursEndFormatted,
-                onTimeSelected: (time) => _updatePreferences(
-                  quietHoursEnd: '$time:00',
-                ),
+                onTimeSelected: (time) =>
+                    _updatePreferences(quietHoursEnd: '$time:00'),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
                 'サイレント時間中は通知が送信されません',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ),
           ],
@@ -358,10 +333,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 const SizedBox(width: 8),
                 const Text(
                   'その他',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -383,10 +355,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
                 'タイムゾーン: ${prefs.timezone}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ),
           ],
@@ -427,38 +396,73 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userId = authProvider.user?.id;
-      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
-      
+      final notificationProvider = Provider.of<NotificationProvider>(
+        context,
+        listen: false,
+      );
+
       if (userId != null && notificationProvider.preferences != null) {
         // Create updated preferences based on current preferences and the request
         final updatedPreferences = notificationProvider.preferences!.copyWith(
-          dailyRemindersEnabled: dailyRemindersEnabled ?? notificationProvider.preferences!.dailyRemindersEnabled,
-          dailyReminderTime: dailyReminderTime ?? notificationProvider.preferences!.dailyReminderTime,
-          weeklyReportsEnabled: weeklyReportsEnabled ?? notificationProvider.preferences!.weeklyReportsEnabled,
-          weeklyReportDay: weeklyReportDay ?? notificationProvider.preferences!.weeklyReportDay,
-          achievementNotificationsEnabled: achievementNotificationsEnabled ?? notificationProvider.preferences!.achievementNotificationsEnabled,
-          goalMilestoneNotificationsEnabled: goalMilestoneNotificationsEnabled ?? notificationProvider.preferences!.goalMilestoneNotificationsEnabled,
-          recommendationNotificationsEnabled: recommendationNotificationsEnabled ?? notificationProvider.preferences!.recommendationNotificationsEnabled,
-          subscriptionNotificationsEnabled: subscriptionNotificationsEnabled ?? notificationProvider.preferences!.subscriptionNotificationsEnabled,
-          pushNotificationsEnabled: pushNotificationsEnabled ?? notificationProvider.preferences!.pushNotificationsEnabled,
-          emailNotificationsEnabled: emailNotificationsEnabled ?? notificationProvider.preferences!.emailNotificationsEnabled,
-          quietHoursStart: quietHoursStart ?? notificationProvider.preferences!.quietHoursStart,
-          quietHoursEnd: quietHoursEnd ?? notificationProvider.preferences!.quietHoursEnd,
+          dailyRemindersEnabled:
+              dailyRemindersEnabled ??
+              notificationProvider.preferences!.dailyRemindersEnabled,
+          dailyReminderTime:
+              dailyReminderTime ??
+              notificationProvider.preferences!.dailyReminderTime,
+          weeklyReportsEnabled:
+              weeklyReportsEnabled ??
+              notificationProvider.preferences!.weeklyReportsEnabled,
+          weeklyReportDay:
+              weeklyReportDay ??
+              notificationProvider.preferences!.weeklyReportDay,
+          achievementNotificationsEnabled:
+              achievementNotificationsEnabled ??
+              notificationProvider.preferences!.achievementNotificationsEnabled,
+          goalMilestoneNotificationsEnabled:
+              goalMilestoneNotificationsEnabled ??
+              notificationProvider
+                  .preferences!
+                  .goalMilestoneNotificationsEnabled,
+          recommendationNotificationsEnabled:
+              recommendationNotificationsEnabled ??
+              notificationProvider
+                  .preferences!
+                  .recommendationNotificationsEnabled,
+          subscriptionNotificationsEnabled:
+              subscriptionNotificationsEnabled ??
+              notificationProvider
+                  .preferences!
+                  .subscriptionNotificationsEnabled,
+          pushNotificationsEnabled:
+              pushNotificationsEnabled ??
+              notificationProvider.preferences!.pushNotificationsEnabled,
+          emailNotificationsEnabled:
+              emailNotificationsEnabled ??
+              notificationProvider.preferences!.emailNotificationsEnabled,
+          quietHoursStart:
+              quietHoursStart ??
+              notificationProvider.preferences!.quietHoursStart,
+          quietHoursEnd:
+              quietHoursEnd ?? notificationProvider.preferences!.quietHoursEnd,
         );
-        
-        await notificationProvider.updateNotificationPreferences(userId, updatedPreferences);
+
+        await notificationProvider.updateNotificationPreferences(
+          userId,
+          updatedPreferences,
+        );
       }
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('設定を更新しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('設定を更新しました')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('設定の更新に失敗しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('設定の更新に失敗しました')));
       }
     }
   }
@@ -481,7 +485,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
 
     if (picked != null) {
-      final formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      final formattedTime =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       onTimeSelected(formattedTime);
     }
   }
@@ -490,15 +495,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     required int currentDay,
     required Function(int) onDaySelected,
   }) async {
-    const weekdays = [
-      '日曜日',
-      '月曜日',
-      '火曜日',
-      '水曜日',
-      '木曜日',
-      '金曜日',
-      '土曜日',
-    ];
+    const weekdays = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
 
     final int? selected = await showDialog<int>(
       context: context,
@@ -537,22 +534,24 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userId = authProvider.user?.id;
-      
+
       if (userId != null) {
-        await Provider.of<NotificationProvider>(context, listen: false)
-            .sendTestNotification(userId);
+        await Provider.of<NotificationProvider>(
+          context,
+          listen: false,
+        ).sendTestNotification(userId);
       }
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('テスト通知を送信しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('テスト通知を送信しました')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('テスト通知の送信に失敗しました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('テスト通知の送信に失敗しました')));
       }
     }
   }
@@ -592,7 +591,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 }
 
 class NotificationListScreen extends StatefulWidget {
-  const NotificationListScreen({Key? key}) : super(key: key);
+  const NotificationListScreen({super.key});
 
   @override
   State<NotificationListScreen> createState() => _NotificationListScreenState();
@@ -611,10 +610,12 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userId = authProvider.user?.id;
-      
+
       if (userId != null) {
-        await Provider.of<NotificationProvider>(context, listen: false)
-            .loadInAppNotifications(userId);
+        await Provider.of<NotificationProvider>(
+          context,
+          listen: false,
+        ).loadInAppNotifications(userId);
       }
     } finally {
       if (mounted) {
@@ -636,7 +637,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.pushNamed(context, '/notification-settings'),
+            onPressed: () =>
+                Navigator.pushNamed(context, '/notification-settings'),
           ),
         ],
       ),
@@ -665,9 +667,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                         const SizedBox(height: 8),
                         Text(
                           '新しい通知があるとここに表示されます',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                          ),
+                          style: TextStyle(color: Colors.grey[500]),
                         ),
                       ],
                     ),
@@ -719,7 +719,9 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                           notification.title,
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+                            fontWeight: notification.isRead
+                                ? FontWeight.normal
+                                : FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -750,10 +752,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                 children: [
                   Text(
                     notification.timeAgo,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
                   if (notification.actionUrl != null)
                     Text(
@@ -819,10 +818,12 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
       try {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         final userId = authProvider.user?.id;
-        
+
         if (userId != null) {
-          await Provider.of<NotificationProvider>(context, listen: false)
-              .markNotificationAsRead(userId, notification.id);
+          await Provider.of<NotificationProvider>(
+            context,
+            listen: false,
+          ).markNotificationAsRead(userId, notification.id);
         }
       } catch (e) {
         // Handle error silently

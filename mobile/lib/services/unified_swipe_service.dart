@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/network/dio_client.dart';
 import '../core/logging/logger.dart';
 import '../models/swipe.dart';
+import '../models/book.dart';
 import '../utils/constants.dart';
 
 enum ServiceMode { full, simple }
@@ -15,9 +16,9 @@ class UnifiedSwipeService {
   final bool enableCaching;
   final SharedPreferences? _prefs;
   final Connectivity _connectivity = Connectivity();
-  
+
   Timer? _syncTimer;
-  
+
   static const String _offlineSwipeLogsKey = 'offline_swipe_logs';
   static const String _swipeSessionKey = 'current_swipe_session';
   static const String _cachedQuotesKey = 'cached_quotes';
@@ -30,7 +31,9 @@ class UnifiedSwipeService {
     SharedPreferences? prefs,
   }) : _prefs = prefs {
     if (enableOfflineSupport && _prefs == null) {
-      Logger.warning('Offline support requested but no SharedPreferences provided');
+      Logger.warning(
+        'Offline support requested but no SharedPreferences provided',
+      );
     }
     _initialize();
   }
@@ -60,7 +63,9 @@ class UnifiedSwipeService {
     bool enableCaching = false,
     SharedPreferences? prefs,
   }) {
-    Logger.info('Creating custom swipe service: $mode, offline=$enableOfflineSupport, cache=$enableCaching');
+    Logger.info(
+      'Creating custom swipe service: $mode, offline=$enableOfflineSupport, cache=$enableCaching',
+    );
     return UnifiedSwipeService._(
       mode: mode,
       enableOfflineSupport: enableOfflineSupport,
@@ -89,13 +94,16 @@ class UnifiedSwipeService {
     ContextData? context,
     List<String>? excludeIds,
   }) async {
-    Logger.debug('Getting swipe quotes: userId=$userId, mode=$mode, count=$count');
-    
+    Logger.debug(
+      'Getting swipe quotes: userId=$userId, mode=$mode, count=$count',
+    );
+
     try {
       final quotes = await _fetchQuotesFromBooks(count, excludeIds);
-      
+
       final response = SwipeQuoteResponse(
-        quotes: quotes,
+        quotes: quotes.map((q) => q.toQuoteWithBook()).toList(),
+        totalCount: quotes.length,
         sessionId: 'session_${DateTime.now().millisecondsSinceEpoch}',
         hasMore: quotes.length >= count,
       );
@@ -107,68 +115,73 @@ class UnifiedSwipeService {
       return response;
     } catch (e) {
       Logger.error('Error getting swipe quotes', e);
-      
+
       if (enableOfflineSupport) {
         Logger.warning('Attempting to load cached quotes');
         return await _getCachedQuotes(mode, count);
       }
-      
+
       rethrow;
     }
   }
 
   Future<List<SwipeQuoteData>> getQuotes({int count = 10}) async {
     Logger.debug('Getting quotes (simple): count=$count');
-    
+
     try {
       return await _fetchQuotesFromBooks(count, null);
     } catch (e) {
       Logger.error('Error getting quotes', e);
-      
+
       if (enableCaching) {
         final cached = await _getCachedQuotesSimple(count);
         if (cached.isNotEmpty) {
           Logger.info('Returning ${cached.length} cached quotes');
-          return cached;
+          return cached
+              .map((q) => SwipeQuoteData(quote: q.quote, book: q.book))
+              .toList();
         }
       }
-      
+
       rethrow;
     }
   }
 
-  Future<List<SwipeQuoteData>> _fetchQuotesFromBooks(int count, List<String>? excludeIds) async {
+  Future<List<SwipeQuoteData>> _fetchQuotesFromBooks(
+    int count,
+    List<String>? excludeIds,
+  ) async {
     Logger.network('Fetching quotes from books API');
-    
+
     final booksResponse = await DioClient.instance.dio.get('/books');
     final books = booksResponse.data['books'] as List;
-    
+
     if (books.isEmpty) {
       throw Exception('No books available');
     }
-    
+
     List<SwipeQuoteData> allQuotes = [];
-    
+
     for (int i = 0; i < books.length && allQuotes.length < count; i++) {
       final book = books[i];
       final bookId = book['id'];
-      
+
       try {
         final quotesResponse = await DioClient.instance.dio.get(
           '/books/$bookId/quotes/random',
           queryParameters: {'limit': 5},
         );
-        
+
         final quotes = quotesResponse.data as List;
         for (var quoteData in quotes) {
           if (allQuotes.length < count) {
             if (excludeIds != null && excludeIds.contains(quoteData['id'])) {
               continue;
             }
-            
-            final quote = SwipeQuote.fromJson(quoteData);
-            final bookObj = SwipeBook.fromJson(book);
-            
+
+            final quote = Quote.fromJson(quoteData);
+            final bookObj = Book.fromJson(book);
+
             allQuotes.add(SwipeQuoteData(quote: quote, book: bookObj));
           }
         }
@@ -177,8 +190,10 @@ class UnifiedSwipeService {
         continue;
       }
     }
-    
-    Logger.book('Fetched ${allQuotes.length} quotes from ${books.length} books');
+
+    Logger.book(
+      'Fetched ${allQuotes.length} quotes from ${books.length} books',
+    );
     return allQuotes;
   }
 
@@ -189,13 +204,14 @@ class UnifiedSwipeService {
     List<String>? excludeIds,
   }) async {
     Logger.debug('Getting swipe pairs: userId=$userId, count=$count');
-    
+
     try {
       final quotes = await _fetchQuotesFromBooks(count * 2, excludeIds);
       final pairs = _createQuotePairs(quotes, count);
-      
+
       final response = SwipePairResponse(
-        pairs: pairs,
+        pairs: pairs.map((p) => p.toQuotePair()).toList(),
+        totalCount: pairs.length,
         sessionId: 'pair_session_${DateTime.now().millisecondsSinceEpoch}',
         hasMore: pairs.length >= count,
       );
@@ -207,19 +223,19 @@ class UnifiedSwipeService {
       return response;
     } catch (e) {
       Logger.error('Error getting swipe pairs', e);
-      
+
       if (enableOfflineSupport) {
         Logger.warning('Attempting to load cached pairs');
         return await _getCachedPairs(count);
       }
-      
+
       rethrow;
     }
   }
 
   Future<List<Map<String, dynamic>>> createPairs({int count = 5}) async {
     Logger.debug('Creating pairs (simple): count=$count');
-    
+
     try {
       final quotes = await _fetchQuotesFromBooks(count * 2, null);
       return _createQuotePairsSimple(quotes, count);
@@ -229,9 +245,12 @@ class UnifiedSwipeService {
     }
   }
 
-  List<SwipePairData> _createQuotePairs(List<SwipeQuoteData> quotes, int count) {
+  List<SwipePairData> _createQuotePairs(
+    List<SwipeQuoteData> quotes,
+    int count,
+  ) {
     List<SwipePairData> pairs = [];
-    
+
     for (int i = 0; i < quotes.length - 1 && pairs.length < count; i += 2) {
       final pairId = 'pair_${DateTime.now().millisecondsSinceEpoch}_$i';
       final pair = SwipePairData(
@@ -241,13 +260,16 @@ class UnifiedSwipeService {
       );
       pairs.add(pair);
     }
-    
+
     return pairs;
   }
 
-  List<Map<String, dynamic>> _createQuotePairsSimple(List<SwipeQuoteData> quotes, int count) {
+  List<Map<String, dynamic>> _createQuotePairsSimple(
+    List<SwipeQuoteData> quotes,
+    int count,
+  ) {
     List<Map<String, dynamic>> pairs = [];
-    
+
     for (int i = 0; i < quotes.length - 1 && pairs.length < count; i += 2) {
       pairs.add({
         'id': 'pair_${DateTime.now().millisecondsSinceEpoch}_$i',
@@ -255,7 +277,7 @@ class UnifiedSwipeService {
         'quote_b': _quoteDataToMap(quotes[i + 1]),
       });
     }
-    
+
     return pairs;
   }
 
@@ -272,20 +294,14 @@ class UnifiedSwipeService {
         'id': quoteData.book.id,
         'title': quoteData.book.title,
         'author': quoteData.book.author,
-        'epoch': quoteData.book.epoch,
-        'word_count': quoteData.book.wordCount,
-        'content_url': quoteData.book.contentUrl,
-        'summary': quoteData.book.summary,
-        'genre': quoteData.book.genre,
-        'difficulty_level': quoteData.book.difficultyLevel,
-        'estimated_reading_minutes': quoteData.book.estimatedReadingMinutes,
-        'download_count': quoteData.book.downloadCount,
-        'rating_average': quoteData.book.ratingAverage,
-        'rating_count': quoteData.book.ratingCount,
-        'is_premium': quoteData.book.isPremium,
-        'is_active': quoteData.book.isActive,
-        'created_at': quoteData.book.createdAt,
-        'updated_at': quoteData.book.updatedAt,
+        'description': quoteData.book.description,
+        'coverUrl': quoteData.book.coverUrl,
+        'audioUrl': quoteData.book.audioUrl,
+        'duration': quoteData.book.duration,
+        'category': quoteData.book.category,
+        'rating': quoteData.book.rating,
+        'reviewCount': quoteData.book.reviewCount,
+        'isPremium': quoteData.book.isPremium,
       },
     };
   }
@@ -300,10 +316,10 @@ class UnifiedSwipeService {
     final request = LogSwipeRequest(
       userId: userId,
       quoteId: quoteId,
+      mode: SwipeMode.tinder,
       choice: choice,
       sessionId: sessionId,
-      context: context,
-      timestamp: DateTime.now(),
+      contextData: context,
     );
 
     await _logSwipeInternal(request);
@@ -329,26 +345,21 @@ class UnifiedSwipeService {
         throw ArgumentError('Invalid choice: $choice. Must be -1, 0, or 1');
     }
 
-    await logSwipe(
-      userId: userId,
-      quoteId: quoteId,
-      choice: swipeChoice,
-    );
+    await logSwipe(userId: userId, quoteId: quoteId, choice: swipeChoice);
   }
 
   Future<void> _logSwipeInternal(LogSwipeRequest request) async {
-    Logger.debug('Logging swipe: ${request.userId} -> ${request.quoteId} (${request.choice.name})');
-    
+    Logger.debug(
+      'Logging swipe: ${request.userId} -> ${request.quoteId} (${request.choice.name})',
+    );
+
     try {
-      await DioClient.instance.dio.post(
-        '/swipe/log',
-        data: request.toJson(),
-      );
-      
+      await DioClient.instance.dio.post('/swipe/log', data: request.toJson());
+
       Logger.debug('Swipe logged successfully');
     } catch (e) {
       Logger.error('Error logging swipe', e);
-      
+
       if (enableOfflineSupport) {
         await _saveOfflineSwipeLog(request);
         Logger.info('Swipe saved for offline sync');
@@ -360,35 +371,35 @@ class UnifiedSwipeService {
 
   Future<void> _saveOfflineSwipeLog(LogSwipeRequest request) async {
     if (_prefs == null) return;
-    
-    final existingLogs = _prefs!.getString(_offlineSwipeLogsKey) ?? '[]';
+
+    final existingLogs = _prefs.getString(_offlineSwipeLogsKey) ?? '[]';
     final logs = jsonDecode(existingLogs) as List;
-    
+
     logs.add(request.toJson());
-    
-    await _prefs!.setString(_offlineSwipeLogsKey, jsonEncode(logs));
+
+    await _prefs.setString(_offlineSwipeLogsKey, jsonEncode(logs));
     Logger.debug('Saved offline swipe log (${logs.length} total)');
   }
 
   Future<void> _syncOfflineSwipeLogs() async {
     if (_prefs == null) return;
-    
-    final existingLogs = _prefs!.getString(_offlineSwipeLogsKey);
+
+    final existingLogs = _prefs.getString(_offlineSwipeLogsKey);
     if (existingLogs == null || existingLogs == '[]') {
       return;
     }
-    
+
     Logger.debug('Syncing offline swipe logs');
-    
+
     try {
       final logs = jsonDecode(existingLogs) as List;
-      
+
       for (final logData in logs) {
         final request = LogSwipeRequest.fromJson(logData);
         await DioClient.instance.dio.post('/swipe/log', data: request.toJson());
       }
-      
-      await _prefs!.remove(_offlineSwipeLogsKey);
+
+      await _prefs.remove(_offlineSwipeLogsKey);
       Logger.info('Synced ${logs.length} offline swipe logs');
     } catch (e) {
       Logger.error('Error syncing offline swipe logs', e);
@@ -397,7 +408,7 @@ class UnifiedSwipeService {
 
   Future<void> _cacheQuotes(SwipeQuoteResponse response) async {
     if (_prefs == null) return;
-    
+
     try {
       final cacheData = {
         'quotes': response.quotes.map((q) => q.toJson()).toList(),
@@ -405,8 +416,8 @@ class UnifiedSwipeService {
         'session_id': response.sessionId,
         'has_more': response.hasMore,
       };
-      
-      await _prefs!.setString(_cachedQuotesKey, jsonEncode(cacheData));
+
+      await _prefs.setString(_cachedQuotesKey, jsonEncode(cacheData));
       Logger.debug('Cached ${response.quotes.length} quotes');
     } catch (e) {
       Logger.error('Error caching quotes', e);
@@ -417,23 +428,24 @@ class UnifiedSwipeService {
     if (_prefs == null) {
       throw Exception('No cached quotes available');
     }
-    
+
     try {
-      final cachedData = _prefs!.getString(_cachedQuotesKey);
+      final cachedData = _prefs.getString(_cachedQuotesKey);
       if (cachedData == null) {
         throw Exception('No cached quotes found');
       }
-      
+
       final data = jsonDecode(cachedData) as Map<String, dynamic>;
       final quotes = (data['quotes'] as List)
-          .map((q) => SwipeQuoteData.fromJson(q))
+          .map((q) => QuoteWithBook.fromJson(q))
           .take(count)
           .toList();
-      
+
       Logger.info('Loaded ${quotes.length} cached quotes');
-      
+
       return SwipeQuoteResponse(
         quotes: quotes,
+        totalCount: quotes.length,
         sessionId: data['session_id'] ?? 'cached_session',
         hasMore: data['has_more'] ?? false,
       );
@@ -443,19 +455,19 @@ class UnifiedSwipeService {
     }
   }
 
-  Future<List<SwipeQuoteData>> _getCachedQuotesSimple(int count) async {
+  Future<List<QuoteWithBook>> _getCachedQuotesSimple(int count) async {
     if (_prefs == null) return [];
-    
+
     try {
-      final cachedData = _prefs!.getString(_cachedQuotesKey);
+      final cachedData = _prefs.getString(_cachedQuotesKey);
       if (cachedData == null) return [];
-      
+
       final data = jsonDecode(cachedData) as Map<String, dynamic>;
       final quotes = (data['quotes'] as List)
-          .map((q) => SwipeQuoteData.fromJson(q))
+          .map((q) => QuoteWithBook.fromJson(q))
           .take(count)
           .toList();
-      
+
       return quotes;
     } catch (e) {
       Logger.error('Error loading cached quotes (simple)', e);
@@ -465,7 +477,7 @@ class UnifiedSwipeService {
 
   Future<void> _cachePairs(SwipePairResponse response) async {
     if (_prefs == null) return;
-    
+
     try {
       final cacheData = {
         'pairs': response.pairs.map((p) => p.toJson()).toList(),
@@ -473,8 +485,8 @@ class UnifiedSwipeService {
         'session_id': response.sessionId,
         'has_more': response.hasMore,
       };
-      
-      await _prefs!.setString(_cachedPairsKey, jsonEncode(cacheData));
+
+      await _prefs.setString(_cachedPairsKey, jsonEncode(cacheData));
       Logger.debug('Cached ${response.pairs.length} pairs');
     } catch (e) {
       Logger.error('Error caching pairs', e);
@@ -485,23 +497,24 @@ class UnifiedSwipeService {
     if (_prefs == null) {
       throw Exception('No cached pairs available');
     }
-    
+
     try {
-      final cachedData = _prefs!.getString(_cachedPairsKey);
+      final cachedData = _prefs.getString(_cachedPairsKey);
       if (cachedData == null) {
         throw Exception('No cached pairs found');
       }
-      
+
       final data = jsonDecode(cachedData) as Map<String, dynamic>;
       final pairs = (data['pairs'] as List)
-          .map((p) => SwipePairData.fromJson(p))
+          .map((p) => QuotePair.fromJson(p))
           .take(count)
           .toList();
-      
+
       Logger.info('Loaded ${pairs.length} cached pairs');
-      
+
       return SwipePairResponse(
         pairs: pairs,
+        totalCount: pairs.length,
         sessionId: data['session_id'] ?? 'cached_session',
         hasMore: data['has_more'] ?? false,
       );
@@ -516,7 +529,7 @@ class UnifiedSwipeService {
       Logger.warning('Stats not available in simple mode');
       return {};
     }
-    
+
     try {
       Logger.network('Fetching swipe stats for user $userId');
       final response = await DioClient.instance.dio.get('/swipe/stats/$userId');
@@ -529,9 +542,9 @@ class UnifiedSwipeService {
 
   Future<void> clearCache() async {
     if (_prefs == null) return;
-    
-    await _prefs!.remove(_cachedQuotesKey);
-    await _prefs!.remove(_cachedPairsKey);
+
+    await _prefs.remove(_cachedQuotesKey);
+    await _prefs.remove(_cachedPairsKey);
     Logger.info('Swipe cache cleared');
   }
 

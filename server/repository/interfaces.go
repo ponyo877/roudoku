@@ -62,3 +62,34 @@ type RatingRepository interface {
 	GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]*domain.Rating, error)
 	GetByBookID(ctx context.Context, bookID int64, limit int) ([]*domain.Rating, error)
 }
+
+
+// A/B Testing Repository Interfaces
+
+// ExperimentRepository defines the interface for A/B test experiment operations
+type ExperimentRepository interface {
+	Create(ctx context.Context, experiment *domain.RecommendationExperiment) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.RecommendationExperiment, error)
+	List(ctx context.Context, activeOnly bool, limit, offset int) ([]*domain.RecommendationExperiment, error)
+	Update(ctx context.Context, experiment *domain.RecommendationExperiment) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	GetActive(ctx context.Context) ([]*domain.RecommendationExperiment, error)
+}
+
+// ExperimentAssignmentRepository defines the interface for experiment assignment operations
+type ExperimentAssignmentRepository interface {
+	Create(ctx context.Context, assignment *domain.UserExperimentAssignment) error
+	GetByUserAndExperiment(ctx context.Context, userID, experimentID uuid.UUID) (*domain.UserExperimentAssignment, error)
+	GetByUser(ctx context.Context, userID uuid.UUID) ([]*domain.UserExperimentAssignment, error)
+	GetByExperiment(ctx context.Context, experimentID uuid.UUID) ([]*domain.UserExperimentAssignment, error)
+	Delete(ctx context.Context, userID, experimentID uuid.UUID) error
+}
+
+// ExperimentInteractionRepository defines the interface for experiment interaction operations
+type ExperimentInteractionRepository interface {
+	Create(ctx context.Context, interaction *domain.ExperimentInteraction) error
+	GetByExperiment(ctx context.Context, experimentID uuid.UUID) ([]*domain.ExperimentInteraction, error)
+	GetByUserAndExperiment(ctx context.Context, userID, experimentID uuid.UUID) ([]*domain.ExperimentInteraction, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	DeleteByExperiment(ctx context.Context, experimentID uuid.UUID) error
+}

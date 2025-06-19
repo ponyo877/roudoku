@@ -198,6 +198,52 @@ class QuoteWithBook {
   Map<String, dynamic> toJson() => _$QuoteWithBookToJson(this);
 }
 
+/// Data class for swipe quotes used internally by UnifiedSwipeService
+@JsonSerializable()
+class SwipeQuoteData {
+  final Quote quote;
+  final Book book;
+
+  const SwipeQuoteData({
+    required this.quote,
+    required this.book,
+  });
+
+  factory SwipeQuoteData.fromJson(Map<String, dynamic> json) =>
+      _$SwipeQuoteDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SwipeQuoteDataToJson(this);
+
+  QuoteWithBook toQuoteWithBook() => QuoteWithBook(quote: quote, book: book);
+}
+
+/// Data class for swipe pairs used internally by UnifiedSwipeService
+@JsonSerializable()
+class SwipePairData {
+  final String id;
+  @JsonKey(name: 'quote_a')
+  final SwipeQuoteData quoteA;
+  @JsonKey(name: 'quote_b')
+  final SwipeQuoteData quoteB;
+
+  const SwipePairData({
+    required this.id,
+    required this.quoteA,
+    required this.quoteB,
+  });
+
+  factory SwipePairData.fromJson(Map<String, dynamic> json) =>
+      _$SwipePairDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SwipePairDataToJson(this);
+
+  QuotePair toQuotePair() => QuotePair(
+    id: id,
+    quoteA: quoteA.toQuoteWithBook(),
+    quoteB: quoteB.toQuoteWithBook(),
+  );
+}
+
 /// Quote pair for comparison
 @JsonSerializable()
 class QuotePair {

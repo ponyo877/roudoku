@@ -1,8 +1,6 @@
 package services
 
 import (
-	"github.com/go-playground/validator/v10"
-
 	"github.com/ponyo877/roudoku/server/pkg/logger"
 	"github.com/ponyo877/roudoku/server/pkg/utils"
 )

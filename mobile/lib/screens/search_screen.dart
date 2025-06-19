@@ -5,7 +5,7 @@ import '../widgets/book_list_tile.dart';
 import 'book_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({Key? key}) : super(key: key);
+  const SearchScreen({super.key});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -41,7 +41,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _performSearch() {
     final query = _searchController.text;
-    context.read<BookProvider>().searchBooks(query, category: _selectedCategory);
+    context.read<BookProvider>().searchBooks(
+      query,
+      category: _selectedCategory,
+    );
   }
 
   @override
@@ -103,15 +106,11 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Consumer<BookProvider>(
               builder: (context, bookProvider, child) {
                 if (bookProvider.isSearching) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 if (bookProvider.searchResults.isEmpty) {
-                  return const Center(
-                    child: Text('検索結果がありません'),
-                  );
+                  return const Center(child: Text('検索結果がありません'));
                 }
 
                 return ListView.builder(

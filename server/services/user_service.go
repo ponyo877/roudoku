@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/mappers"
+	"github.com/ponyo877/roudoku/server/pkg/logger"
 	"github.com/ponyo877/roudoku/server/repository"
 )
 
@@ -24,12 +24,12 @@ type UserService interface {
 
 // userService implements UserService
 type userService struct {
-	BaseService
+	*BaseService
 	userRepo repository.UserRepository
 }
 
 // NewUserService creates a new user service
-func NewUserService(userRepo repository.UserRepository, logger *zap.Logger) UserService {
+func NewUserService(userRepo repository.UserRepository, logger *logger.Logger) UserService {
 	return &userService{
 		BaseService: NewBaseService(logger),
 		userRepo:    userRepo,
@@ -38,14 +38,10 @@ func NewUserService(userRepo repository.UserRepository, logger *zap.Logger) User
 
 // CreateUser creates a new user
 func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest) (*domain.User, error) {
-	email := "<nil>"
-	if req.Email != nil {
-		email = *req.Email
-	}
-	s.logger.Info("Creating user", zap.String("email", email))
+	s.logger.Info("Creating user")
 	
-	if err := s.Validate(req); err != nil {
-		s.logger.Error("Validation failed", zap.Error(err))
+	if err := s.ValidateStruct(req); err != nil {
+		s.logger.Error("Validation failed")
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
@@ -53,11 +49,11 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 	user := mapper.CreateRequestToDomain(req)
 
 	if err := s.userRepo.Create(ctx, user); err != nil {
-		s.logger.Error("Failed to create user", zap.Error(err))
+		s.logger.Error("Failed to create user")
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	s.logger.Info("User created successfully", zap.String("user_id", user.ID.String()))
+	s.logger.Info("User created successfully")
 	return user, nil
 }
 
@@ -72,10 +68,10 @@ func (s *userService) GetUser(ctx context.Context, id uuid.UUID) (*domain.User, 
 
 // UpdateUser updates a user
 func (s *userService) UpdateUser(ctx context.Context, id uuid.UUID, req *dto.UpdateUserRequest) (*domain.User, error) {
-	s.logger.Info("Updating user", zap.String("user_id", id.String()))
+	s.logger.Info("Updating user")
 	
-	if err := s.Validate(req); err != nil {
-		s.logger.Error("Validation failed", zap.Error(err))
+	if err := s.ValidateStruct(req); err != nil {
+		s.logger.Error("Validation failed")
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 

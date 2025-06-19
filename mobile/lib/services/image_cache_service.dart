@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'dart:convert';
 import 'dart:math' as math;
@@ -35,14 +34,14 @@ class ImageCacheService {
     try {
       final appDir = await getApplicationDocumentsDirectory();
       _cacheDirectory = Directory('${appDir.path}/image_cache');
-      
+
       if (!await _cacheDirectory!.exists()) {
         await _cacheDirectory!.create(recursive: true);
       }
 
       // Clean up expired cache entries on startup
       await _cleanupExpiredEntries();
-      
+
       _initialized = true;
     } catch (e) {
       debugPrint('Failed to initialize image cache: $e');
@@ -59,7 +58,7 @@ class ImageCacheService {
     if (!_initialized) await initialize();
 
     final cacheKey = _generateCacheKey(imageUrl, targetSize);
-    
+
     // Check memory cache first
     final memoryEntry = _memoryCache[cacheKey];
     if (memoryEntry != null && !memoryEntry.isExpired) {
@@ -80,9 +79,9 @@ class ImageCacheService {
       fit,
       cacheExpiry ?? defaultCacheExpiry,
     );
-    
+
     _loadingImages[cacheKey] = future;
-    
+
     try {
       final image = await future;
       return image;
@@ -138,16 +137,16 @@ class ImageCacheService {
       }
 
       final bytes = await consolidateHttpClientResponseBytes(response);
-      
+
       // Optimize image before decoding
       final optimizedBytes = await _optimizeImageBytes(bytes, targetSize);
-      
+
       final codec = await ui.instantiateImageCodec(
         optimizedBytes,
         targetWidth: targetSize?.width.round(),
         targetHeight: targetSize?.height.round(),
       );
-      
+
       final frame = await codec.getNextFrame();
       return frame.image;
     } catch (e) {
@@ -195,22 +194,22 @@ class ImageCacheService {
       // Create optimized image
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
-      
+
       canvas.scale(scale);
       canvas.drawImage(originalImage, Offset.zero, Paint());
-      
+
       final picture = recorder.endRecording();
       final optimizedImage = await picture.toImage(newWidth, newHeight);
-      
+
       // Convert back to bytes
       final byteData = await optimizedImage.toByteData(
         format: ui.ImageByteFormat.png,
       );
-      
+
       originalImage.dispose();
       optimizedImage.dispose();
       picture.dispose();
-      
+
       return byteData?.buffer.asUint8List() ?? originalBytes;
     } catch (e) {
       debugPrint('Image optimization failed: $e');
@@ -233,7 +232,7 @@ class ImageCacheService {
       // Check if cache entry is expired
       final metaData = await metaFile.readAsString();
       final meta = ImageCacheMeta.fromJson(metaData);
-      
+
       if (meta.isExpired) {
         // Clean up expired files
         unawaited(file.delete());
@@ -277,7 +276,7 @@ class ImageCacheService {
       if (byteData == null) return;
 
       final bytes = byteData.buffer.asUint8List();
-      
+
       // Save image data
       await file.writeAsBytes(bytes);
 
@@ -289,7 +288,7 @@ class ImageCacheService {
         expiresAt: DateTime.now().add(expiry),
         size: bytes.length,
       );
-      
+
       await metaFile.writeAsString(meta.toJson());
     } catch (e) {
       debugPrint('Disk cache save failed: $e');
@@ -346,11 +345,11 @@ class ImageCacheService {
 
       // Sort by last accessed time and remove oldest
       final metaData = <String, ImageCacheMeta>{};
-      
+
       for (final file in cacheFiles) {
         final baseName = file.path.split('/').last.replaceAll('.cache', '');
         final metaFile = File('${_cacheDirectory!.path}/$baseName.meta');
-        
+
         if (await metaFile.exists()) {
           try {
             final metaContent = await metaFile.readAsString();
@@ -368,11 +367,11 @@ class ImageCacheService {
         ..sort((a, b) => a.value.lastAccessed.compareTo(b.value.lastAccessed));
 
       final toRemove = sortedEntries.take(cacheFiles.length - maxDiskCacheSize);
-      
+
       for (final entry in toRemove) {
         final cacheFile = File('${_cacheDirectory!.path}/${entry.key}.cache');
         final metaFile = File('${_cacheDirectory!.path}/${entry.key}.meta');
-        
+
         unawaited(cacheFile.delete());
         unawaited(metaFile.delete());
       }
@@ -396,11 +395,14 @@ class ImageCacheService {
         try {
           final metaContent = await metaFile.readAsString();
           final meta = ImageCacheMeta.fromJson(metaContent);
-          
+
           if (meta.isExpired) {
-            final baseName = metaFile.path.split('/').last.replaceAll('.meta', '');
+            final baseName = metaFile.path
+                .split('/')
+                .last
+                .replaceAll('.meta', '');
             final cacheFile = File('${_cacheDirectory!.path}/$baseName.cache');
-            
+
             unawaited(metaFile.delete());
             unawaited(cacheFile.delete());
           }
@@ -416,20 +418,22 @@ class ImageCacheService {
 
   /// Generate cache key for image
   String _generateCacheKey(String imageUrl, Size? targetSize) {
-    final sizeString = targetSize != null 
+    final sizeString = targetSize != null
         ? '${targetSize.width.round()}x${targetSize.height.round()}'
         : 'original';
-    
+
     final input = '$imageUrl:$sizeString';
     final bytes = utf8.encode(input);
     final digest = sha256.convert(bytes);
-    
+
     return digest.toString();
   }
 
   /// Preload images for better performance
   Future<void> preloadImages(List<String> imageUrls, {Size? targetSize}) async {
-    final futures = imageUrls.map((url) => loadImage(url, targetSize: targetSize));
+    final futures = imageUrls.map(
+      (url) => loadImage(url, targetSize: targetSize),
+    );
     await Future.wait(futures, eagerError: false);
   }
 
@@ -465,9 +469,9 @@ class ImageCacheService {
       try {
         final files = await _cacheDirectory!.list().toList();
         final cacheFiles = files.where((file) => file.path.endsWith('.cache'));
-        
+
         diskEntryCount = cacheFiles.length;
-        
+
         for (final file in cacheFiles.cast<File>()) {
           final stat = await file.stat();
           diskSizeBytes += stat.size;
@@ -512,7 +516,7 @@ class ImageCacheEntry {
   });
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
-  
+
   int get estimatedSize {
     // Rough estimation: width * height * 4 bytes per pixel (RGBA)
     return image.width * image.height * 4;
@@ -579,7 +583,7 @@ class ImageCacheStats {
 
   double get memoryUsageRatio => memoryEntryCount / maxMemoryEntries;
   double get diskUsageRatio => diskEntryCount / maxDiskEntries;
-  
+
   String get memorySizeFormatted => _formatBytes(memorySizeBytes);
   String get diskSizeFormatted => _formatBytes(diskSizeBytes);
 

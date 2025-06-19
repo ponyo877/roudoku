@@ -16,22 +16,22 @@ class AdvancedAudioPlayerProvider with ChangeNotifier {
     required AudioMixingService audioMixingService,
     required VoicePresetService voicePresetService,
     required BGMService bgmService,
-  })  : _audioMixingService = audioMixingService,
-        _voicePresetService = voicePresetService,
-        _bgmService = bgmService;
+  }) : _audioMixingService = audioMixingService,
+       _voicePresetService = voicePresetService,
+       _bgmService = bgmService;
 
   // Current playback state
   bool _isPlaying = false;
-  bool _isLoading = false;
+  final bool _isLoading = false;
   final bool _isBuffering = false;
-  Duration _currentPosition = Duration.zero;
-  Duration _totalDuration = Duration.zero;
+  final Duration _currentPosition = Duration.zero;
+  final Duration _totalDuration = Duration.zero;
   double _playbackSpeed = 1.0;
 
   // Simplified configuration for now
   double _masterVolume = 1.0;
-  double _voiceVolume = 0.8;
-  double _bgmVolume = 0.3;
+  final double _voiceVolume = 0.8;
+  final double _bgmVolume = 0.3;
   final bool _autoResumeEnabled = true;
 
   // Getters
@@ -71,6 +71,7 @@ class AdvancedAudioPlayerProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   void dispose() {
     _audioMixingService.dispose();
     _bgmService.dispose();

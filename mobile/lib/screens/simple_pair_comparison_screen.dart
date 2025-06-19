@@ -5,13 +5,15 @@ import '../services/simple_swipe_service.dart';
 import '../services/cloud_tts_service.dart';
 
 class SimplePairComparisonScreen extends StatefulWidget {
-  const SimplePairComparisonScreen({Key? key}) : super(key: key);
+  const SimplePairComparisonScreen({super.key});
 
   @override
-  State<SimplePairComparisonScreen> createState() => _SimplePairComparisonScreenState();
+  State<SimplePairComparisonScreen> createState() =>
+      _SimplePairComparisonScreenState();
 }
 
-class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen> {
+class _SimplePairComparisonScreenState
+    extends State<SimplePairComparisonScreen> {
   late SimpleSwipeService _swipeService;
   late CloudTtsService _ttsService;
   List<Map<String, dynamic>> _pairs = [];
@@ -50,7 +52,7 @@ class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen>
     try {
       final quotes = await _swipeService.getQuotesForSwipe(count: 10);
       final pairs = _swipeService.createPairs(quotes, 5);
-      
+
       setState(() {
         _pairs = pairs;
         _currentIndex = 0;
@@ -91,10 +93,7 @@ class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quote Comparison'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Quote Comparison'), centerTitle: true),
       body: _buildBody(),
     );
   }
@@ -118,11 +117,7 @@ class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
               'Oops! Something went wrong',
@@ -155,10 +150,7 @@ class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen>
               color: Colors.green,
             ),
             const SizedBox(height: 16),
-            Text(
-              'All done!',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text('All done!', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             const Text('You have compared all available quote pairs.'),
             const SizedBox(height: 16),
@@ -226,9 +218,7 @@ class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen>
       onTap: onTap,
       child: Card(
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -238,10 +228,7 @@ class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen>
                 child: Center(
                   child: Text(
                     quoteText,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
+                    style: const TextStyle(fontSize: 16, height: 1.5),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -271,10 +258,7 @@ class _SimplePairComparisonScreenState extends State<SimplePairComparisonScreen>
                   const SizedBox(height: 4),
                   Text(
                     bookAuthor,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
                 ],

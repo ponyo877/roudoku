@@ -31,3 +31,13 @@ external_services:
     
   storage:
     bucket_name: "roudoku-local-storage"
+
+firebase:
+  project_id: "roudoku-local"
+  credentials_path: "./credentials/local-service-account.json"
+
+tts:
+  credentials_path: "./credentials/local-service-account.json"
+  voice_language: "ja-JP"
+  voice_name: "ja-JP-Wavenet-A"
+  audio_encoding: "MP3"

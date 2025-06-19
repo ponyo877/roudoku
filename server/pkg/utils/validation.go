@@ -65,17 +65,23 @@ func formatValidationError(err validator.FieldError) string {
 
 func ValidateLimit(limit int) error {
 	if limit < 1 {
-		return errors.BadRequest("Limit must be greater than 0")
+		return errors.BadRequest("Limit must be greater than 0", nil)
 	}
 	if limit > 100 {
-		return errors.BadRequest("Limit must be less than or equal to 100")
+		return errors.BadRequest("Limit must be less than or equal to 100", nil)
 	}
 	return nil
 }
 
 func ValidateOffset(offset int) error {
 	if offset < 0 {
-		return errors.BadRequest("Offset must be greater than or equal to 0")
+		return errors.BadRequest("Offset must be greater than or equal to 0", nil)
 	}
 	return nil
+}
+
+// ValidateStruct validates a struct using the default validator
+func ValidateStruct(s interface{}) error {
+	validator := NewValidator()
+	return validator.ValidateStruct(s)
 }

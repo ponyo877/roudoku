@@ -6,16 +6,14 @@ import '../screens/book_detail_screen.dart';
 class RecommendationCard extends StatelessWidget {
   final Book book;
 
-  const RecommendationCard({Key? key, required this.book}) : super(key: key);
+  const RecommendationCard({super.key, required this.book});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -50,14 +48,22 @@ class RecommendationCard extends StatelessWidget {
                         errorWidget: (context, url, error) => Container(
                           width: 100,
                           color: Colors.grey[300],
-                          child: const Icon(Icons.menu_book, size: 40, color: Colors.grey),
+                          child: const Icon(
+                            Icons.menu_book,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
                         ),
                       )
                     : Container(
                         width: 100,
                         height: double.infinity,
                         color: Colors.grey[300],
-                        child: const Icon(Icons.menu_book, size: 40, color: Colors.grey),
+                        child: const Icon(
+                          Icons.menu_book,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
                       ),
               ),
               const SizedBox(width: 12),
@@ -118,11 +124,7 @@ class RecommendationCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 16),
                         if (book.rating > 0) ...[
-                          Icon(
-                            Icons.star,
-                            size: 16,
-                            color: Colors.amber[700],
-                          ),
+                          Icon(Icons.star, size: 16, color: Colors.amber[700]),
                           const SizedBox(width: 4),
                           Text(
                             book.rating.toStringAsFixed(1),

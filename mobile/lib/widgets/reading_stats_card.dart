@@ -8,13 +8,13 @@ class ReadingStatsCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const ReadingStatsCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.icon,
     required this.color,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +42,7 @@ class ReadingStatsCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(
-                    icon,
-                    color: color,
-                    size: 28,
-                  ),
+                  Icon(icon, color: color, size: 28),
                   if (onTap != null)
                     Icon(
                       Icons.arrow_forward_ios,
@@ -90,14 +86,14 @@ class ReadingProgressCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const ReadingProgressCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.progress,
     required this.progressText,
     required this.icon,
     required this.color,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -151,10 +147,7 @@ class ReadingProgressCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '${progress.toInt()}% 達成',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ),
@@ -173,14 +166,14 @@ class AchievementCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const AchievementCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.description,
     this.iconUrl,
     this.earnedAt,
     this.isEarned = false,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -204,11 +197,7 @@ class AchievementCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: isEarned ? Colors.orange : Colors.grey[400],
                 ),
-                child: Icon(
-                  Icons.emoji_events,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                child: Icon(Icons.emoji_events, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -248,20 +237,13 @@ class AchievementCard extends StatelessWidget {
                     ),
                     Text(
                       '獲得',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                     ),
                   ],
                 ),
               ] else if (!isEarned) ...[
                 const SizedBox(width: 8),
-                Icon(
-                  Icons.lock_outline,
-                  color: Colors.grey[400],
-                  size: 20,
-                ),
+                Icon(Icons.lock_outline, color: Colors.grey[400], size: 20),
               ],
             ],
           ),
@@ -277,11 +259,11 @@ class StreakCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const StreakCard({
-    Key? key,
+    super.key,
     required this.currentStreak,
     required this.longestStreak,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -307,10 +289,7 @@ class StreakCard extends StatelessWidget {
             children: [
               const Text(
                 '読書ストリーク',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               Row(
@@ -322,11 +301,7 @@ class StreakCard extends StatelessWidget {
                     '現在',
                     '$currentStreak日',
                   ),
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Colors.grey[300],
-                  ),
+                  Container(width: 1, height: 40, color: Colors.grey[300]),
                   _buildStreakItem(
                     Icons.emoji_events,
                     Colors.amber,
@@ -342,25 +317,21 @@ class StreakCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStreakItem(IconData icon, Color color, String label, String value) {
+  Widget _buildStreakItem(
+    IconData icon,
+    Color color,
+    String label,
+    String value,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 32),
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
     );
   }
@@ -374,13 +345,13 @@ class ReadingInsightCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const ReadingInsightCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.description,
     required this.type,
     required this.priority,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -396,12 +367,7 @@ class ReadingInsightCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border(
-              left: BorderSide(
-                width: 4,
-                color: color,
-              ),
-            ),
+            border: Border(left: BorderSide(width: 4, color: color)),
           ),
           child: Row(
             children: [
@@ -421,17 +387,17 @@ class ReadingInsightCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                   ],
                 ),
               ),
               if (priority == 'high')
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.red[100],
                     borderRadius: BorderRadius.circular(12),

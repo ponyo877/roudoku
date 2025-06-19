@@ -42,7 +42,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteCreated(w, user)
+	utils.WriteSuccess(w, user)
 }
 
 // GetUser handles GET /users/{id}
@@ -60,64 +60,49 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteSuccess(w, user)
-
-	user, err := h.userService.GetUser(r.Context(), id)
-	if err != nil {
-		if err == services.ErrUserNotFound {
-			utils.WriteJSONError(w, "User not found", utils.CodeResourceNotFound, http.StatusNotFound)
-		} else {
-			utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
-		}
-		return
-	}
-
-	utils.WriteJSONSuccess(w, user, "", http.StatusOK)
 }
 
 // UpdateUser handles PUT /users/{id}
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.ParseUUIDParam(r, "id")
 	if err != nil {
-		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
 	var req dto.UpdateUserRequest
-	if err := utils.DecodeJSONBody(r, &req); err != nil {
-		utils.WriteJSONError(w, "Invalid request body", utils.CodeInvalidFormat, http.StatusBadRequest)
+	if err := utils.DecodeJSON(r, &req); err != nil {
+		utils.WriteError(w, r, h.logger, err)
+		return
+	}
+
+	if err := h.validator.ValidateStruct(&req); err != nil {
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
 	user, err := h.userService.UpdateUser(r.Context(), id, &req)
 	if err != nil {
-		if err == services.ErrUserNotFound {
-			utils.WriteJSONError(w, "User not found", utils.CodeResourceNotFound, http.StatusNotFound)
-		} else {
-			utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
-		}
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
-	utils.WriteJSONSuccess(w, user, "User updated successfully", http.StatusOK)
+	utils.WriteSuccess(w, user)
 }
 
 // DeleteUser handles DELETE /users/{id}
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.ParseUUIDParam(r, "id")
 	if err != nil {
-		utils.WriteJSONError(w, "Invalid or missing user ID", utils.CodeInvalidParameter, http.StatusBadRequest)
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
 	err = h.userService.DeleteUser(r.Context(), id)
 	if err != nil {
-		if err == services.ErrUserNotFound {
-			utils.WriteJSONError(w, "User not found", utils.CodeResourceNotFound, http.StatusNotFound)
-		} else {
-			utils.WriteJSONError(w, err.Error(), utils.CodeInternal, http.StatusInternalServerError)
-		}
+		utils.WriteError(w, r, h.logger, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	utils.WriteSuccess(w, map[string]string{"message": "User deleted successfully"})
 }

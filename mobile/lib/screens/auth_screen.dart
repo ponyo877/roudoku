@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/auth_provider.dart' as auth;
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({Key? key}) : super(key: key);
+  const AuthScreen({super.key});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -21,10 +21,7 @@ class _AuthScreenState extends State<AuthScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF2196F3),
-              Color(0xFF03DAC6),
-            ],
+            colors: [Color(0xFF2196F3), Color(0xFF03DAC6)],
           ),
         ),
         child: SafeArea(
@@ -58,10 +55,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(height: 8),
                 const Text(
                   '朗読で本を楽しもう',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
                 ),
                 const SizedBox(height: 64),
 
@@ -103,11 +97,15 @@ class _AuthScreenState extends State<AuthScreen> {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : const Icon(Icons.login),
-                          label: Text(_isLoading ? 'サインイン中...' : 'Googleでサインイン'),
+                          label: Text(
+                            _isLoading ? 'サインイン中...' : 'Googleでサインイン',
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF4285F4),
                             foregroundColor: Colors.white,
@@ -147,10 +145,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 const Text(
                   'サインインすることで、利用規約とプライバシーポリシーに同意したものとみなされます',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.white70),
                 ),
               ],
             ),

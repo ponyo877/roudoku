@@ -16,6 +16,8 @@ type Config struct {
 	Database         DatabaseConfig         `yaml:"database"`
 	Logging          logger.Config          `yaml:"logging"`
 	ExternalServices ExternalServicesConfig `yaml:"external_services"`
+	Firebase         FirebaseConfig         `yaml:"firebase"`
+	TTS              TTSConfig              `yaml:"tts"`
 }
 
 type ServerConfig struct {
@@ -47,10 +49,16 @@ type GoogleCloudConfig struct {
 	CredentialsPath string `yaml:"credentials_path"`
 }
 
+type FirebaseConfig struct {
+	ProjectID       string `yaml:"project_id"`
+	CredentialsPath string `yaml:"credentials_path"`
+}
+
 type TTSConfig struct {
-	VoiceLanguage string `yaml:"voice_language"`
-	VoiceName     string `yaml:"voice_name"`
-	AudioEncoding string `yaml:"audio_encoding"`
+	CredentialsPath string `yaml:"credentials_path"`
+	VoiceLanguage   string `yaml:"voice_language"`
+	VoiceName       string `yaml:"voice_name"`
+	AudioEncoding   string `yaml:"audio_encoding"`
 }
 
 type StorageConfig struct {

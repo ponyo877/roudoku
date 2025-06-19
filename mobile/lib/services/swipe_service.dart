@@ -5,33 +5,34 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/swipe.dart';
-import '../utils/constants.dart';
 
 class SwipeService {
   final Dio _dio;
   final SharedPreferences _prefs;
   final Connectivity _connectivity = Connectivity();
-  
+
   // Offline swipe logs queue
   static const String _offlineSwipeLogsKey = 'offline_swipe_logs';
   static const String _swipeSessionKey = 'current_swipe_session';
-  
+
   SwipeService(this._dio, this._prefs) {
     _setupInterceptors();
     _startPeriodicSync();
   }
 
   void _setupInterceptors() {
-    _dio.interceptors.add(InterceptorsWrapper(
-      onError: (DioException error, ErrorInterceptorHandler handler) async {
-        // If network error, try to save swipe logs offline
-        if (error.type == DioExceptionType.connectionError ||
-            error.type == DioExceptionType.connectionTimeout) {
-          print('Network error detected, swipe logs will be queued offline');
-        }
-        handler.next(error);
-      },
-    ));
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onError: (DioException error, ErrorInterceptorHandler handler) async {
+          // If network error, try to save swipe logs offline
+          if (error.type == DioExceptionType.connectionError ||
+              error.type == DioExceptionType.connectionTimeout) {
+            print('Network error detected, swipe logs will be queued offline');
+          }
+          handler.next(error);
+        },
+      ),
+    );
   }
 
   /// Start periodic sync of offline swipe logs
@@ -62,24 +63,24 @@ class SwipeService {
       // Get a random book and fetch quotes from it
       final booksResponse = await _dio.get('/books');
       final books = booksResponse.data['books'] as List;
-      
+
       if (books.isEmpty) {
         throw Exception('No books available');
       }
-      
+
       // Get random quotes from multiple books
       List<Map<String, dynamic>> allQuotes = [];
-      
+
       for (int i = 0; i < books.length && allQuotes.length < count; i++) {
         final book = books[i];
         final bookId = book['id'];
-        
+
         try {
           final quotesResponse = await _dio.get(
             '/books/$bookId/quotes/random',
             queryParameters: {'limit': 5},
           );
-          
+
           final quotes = quotesResponse.data as List;
           for (var quote in quotes) {
             if (allQuotes.length < count) {
@@ -101,7 +102,8 @@ class SwipeService {
                   'summary': book['summary'],
                   'genre': book['genre'],
                   'difficulty_level': book['difficulty_level'],
-                  'estimated_reading_minutes': book['estimated_reading_minutes'],
+                  'estimated_reading_minutes':
+                      book['estimated_reading_minutes'],
                   'download_count': book['download_count'],
                   'rating_average': book['rating_average'],
                   'rating_count': book['rating_count'],
@@ -118,7 +120,7 @@ class SwipeService {
           continue;
         }
       }
-      
+
       final response = Response(
         requestOptions: RequestOptions(path: ''),
         statusCode: 200,
@@ -130,9 +132,13 @@ class SwipeService {
       );
 
       if (response.statusCode == 200) {
-        return SwipeQuoteResponse.fromJson(response.data as Map<String, dynamic>);
+        return SwipeQuoteResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       } else {
-        throw Exception('Failed to get swipe quotes: ${response.statusMessage}');
+        throw Exception(
+          'Failed to get swipe quotes: ${response.statusMessage}',
+        );
       }
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionError) {
@@ -168,12 +174,12 @@ class SwipeService {
         context: context,
         excludeIds: excludeIds,
       );
-      
+
       final quotes = quotesResponse.quotes;
       if (quotes.length < 2) {
         throw Exception('Not enough quotes to create pairs');
       }
-      
+
       // Create pairs from quotes
       List<Map<String, dynamic>> pairs = [];
       for (int i = 0; i < quotes.length - 1 && pairs.length < count; i += 2) {
@@ -197,7 +203,8 @@ class SwipeService {
               'summary': quotes[i].book.summary,
               'genre': quotes[i].book.genre,
               'difficulty_level': quotes[i].book.difficultyLevel,
-              'estimated_reading_minutes': quotes[i].book.estimatedReadingMinutes,
+              'estimated_reading_minutes':
+                  quotes[i].book.estimatedReadingMinutes,
               'download_count': quotes[i].book.downloadCount,
               'rating_average': quotes[i].book.ratingAverage,
               'rating_count': quotes[i].book.ratingCount,
@@ -225,7 +232,8 @@ class SwipeService {
               'summary': quotes[i + 1].book.summary,
               'genre': quotes[i + 1].book.genre,
               'difficulty_level': quotes[i + 1].book.difficultyLevel,
-              'estimated_reading_minutes': quotes[i + 1].book.estimatedReadingMinutes,
+              'estimated_reading_minutes':
+                  quotes[i + 1].book.estimatedReadingMinutes,
               'download_count': quotes[i + 1].book.downloadCount,
               'rating_average': quotes[i + 1].book.ratingAverage,
               'rating_count': quotes[i + 1].book.ratingCount,
@@ -237,7 +245,7 @@ class SwipeService {
           },
         });
       }
-      
+
       final response = Response(
         requestOptions: RequestOptions(path: ''),
         statusCode: 200,
@@ -249,7 +257,9 @@ class SwipeService {
       );
 
       if (response.statusCode == 200) {
-        return SwipePairResponse.fromJson(response.data as Map<String, dynamic>);
+        return SwipePairResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       } else {
         throw Exception('Failed to get swipe pairs: ${response.statusMessage}');
       }
@@ -296,22 +306,20 @@ class SwipeService {
       final response = await _dio.post(
         '/swipe/log',
         data: request.toJson(),
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ),
+        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       if (response.statusCode == 200) {
-        return LogSwipeResponse.fromJson(response.data['data'] ?? response.data);
+        return LogSwipeResponse.fromJson(
+          response.data['data'] ?? response.data,
+        );
       } else {
         throw Exception('Failed to log swipe: ${response.statusMessage}');
       }
     } catch (e) {
       // Save offline for later sync
       await _saveSwipeLogOffline(request);
-      
+
       // Return a mock successful response for offline logging
       return LogSwipeResponse(
         success: true,
@@ -363,24 +371,24 @@ class SwipeService {
       final response = await _dio.post(
         '/swipe/log/batch',
         data: request.toJson(),
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ),
+        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       if (response.statusCode == 200) {
-        return BatchSwipeResponse.fromJson(response.data['data'] ?? response.data);
+        return BatchSwipeResponse.fromJson(
+          response.data['data'] ?? response.data,
+        );
       } else {
-        throw Exception('Failed to batch log swipes: ${response.statusMessage}');
+        throw Exception(
+          'Failed to batch log swipes: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       // Save all swipe logs offline
       for (final swipeLog in swipeLogs) {
         await _saveSwipeLogOffline(swipeLog);
       }
-      
+
       return BatchSwipeResponse(
         success: true,
         processedCount: swipeLogs.length,
@@ -434,9 +442,7 @@ class SwipeService {
     try {
       final response = await _dio.get(
         '/swipe/history',
-        queryParameters: {
-          'limit': limit,
-        },
+        queryParameters: {'limit': limit},
       );
 
       if (response.statusCode == 200) {
@@ -444,7 +450,9 @@ class SwipeService {
         final historyList = data['history'] as List;
         return historyList.map((item) => SwipeLog.fromJson(item)).toList();
       } else {
-        throw Exception('Failed to get swipe history: ${response.statusMessage}');
+        throw Exception(
+          'Failed to get swipe history: ${response.statusMessage}',
+        );
       }
     } on DioException catch (e) {
       throw Exception('Network error: ${e.message}');
@@ -458,20 +466,20 @@ class SwipeService {
     try {
       final offlineLogsJson = _prefs.getString(_offlineSwipeLogsKey) ?? '[]';
       final offlineLogs = json.decode(offlineLogsJson) as List;
-      
+
       // Add timestamp for offline logging
       final logWithTimestamp = {
         ...request.toJson(),
         'offline_timestamp': DateTime.now().toIso8601String(),
       };
-      
+
       offlineLogs.add(logWithTimestamp);
-      
+
       // Limit offline logs to prevent excessive storage usage
       if (offlineLogs.length > 1000) {
         offlineLogs.removeRange(0, offlineLogs.length - 1000);
       }
-      
+
       await _prefs.setString(_offlineSwipeLogsKey, json.encode(offlineLogs));
       print('Swipe log saved offline: ${request.quoteId}');
     } catch (e) {
@@ -514,10 +522,7 @@ class SwipeService {
       bool allSynced = true;
       for (final entry in groupedLogs.entries) {
         try {
-          await logSwipesBatch(
-            userId: entry.key,
-            swipeLogs: entry.value,
-          );
+          await logSwipesBatch(userId: entry.key, swipeLogs: entry.value);
         } catch (e) {
           print('Failed to sync logs for user ${entry.key}: $e');
           allSynced = false;
@@ -539,7 +544,7 @@ class SwipeService {
     try {
       final cacheKey = 'cached_quotes_${mode.name}';
       final cachedJson = _prefs.getString(cacheKey);
-      
+
       if (cachedJson != null) {
         final cached = SwipeQuoteResponse.fromJson(json.decode(cachedJson));
         // Return limited quotes based on request count
@@ -554,7 +559,7 @@ class SwipeService {
     } catch (e) {
       print('Error getting cached quotes: $e');
     }
-    
+
     // Return empty response if no cache available
     return const SwipeQuoteResponse(
       quotes: [],
@@ -569,7 +574,7 @@ class SwipeService {
     try {
       const cacheKey = 'cached_pairs';
       final cachedJson = _prefs.getString(cacheKey);
-      
+
       if (cachedJson != null) {
         final cached = SwipePairResponse.fromJson(json.decode(cachedJson));
         // Return limited pairs based on request count
@@ -584,7 +589,7 @@ class SwipeService {
     } catch (e) {
       print('Error getting cached pairs: $e');
     }
-    
+
     // Return empty response if no cache available
     return const SwipePairResponse(
       pairs: [],

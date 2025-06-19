@@ -61,6 +61,32 @@ Map<String, dynamic> _$QuoteWithBookToJson(QuoteWithBook instance) =>
       'book': instance.book,
     };
 
+SwipeQuoteData _$SwipeQuoteDataFromJson(Map<String, dynamic> json) =>
+    SwipeQuoteData(
+      quote: Quote.fromJson(json['quote'] as Map<String, dynamic>),
+      book: Book.fromJson(json['book'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$SwipeQuoteDataToJson(SwipeQuoteData instance) =>
+    <String, dynamic>{
+      'quote': instance.quote,
+      'book': instance.book,
+    };
+
+SwipePairData _$SwipePairDataFromJson(Map<String, dynamic> json) =>
+    SwipePairData(
+      id: json['id'] as String,
+      quoteA: SwipeQuoteData.fromJson(json['quote_a'] as Map<String, dynamic>),
+      quoteB: SwipeQuoteData.fromJson(json['quote_b'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$SwipePairDataToJson(SwipePairData instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'quote_a': instance.quoteA,
+      'quote_b': instance.quoteB,
+    };
+
 QuotePair _$QuotePairFromJson(Map<String, dynamic> json) => QuotePair(
       id: json['id'] as String,
       quoteA: QuoteWithBook.fromJson(json['quote_a'] as Map<String, dynamic>),

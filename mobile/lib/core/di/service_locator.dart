@@ -13,7 +13,7 @@ import '../../features/books/data/datasources/book_remote_datasource.dart';
 import '../../features/books/data/repositories/book_repository.dart';
 import '../../features/books/domain/repositories/book_repository_interface.dart';
 import '../../features/books/domain/usecases/get_books_usecase.dart';
-import '../../features/books/presentation/providers/books_provider.dart';
+// import '../../features/books/presentation/providers/books_provider.dart';
 import '../../services/unified_tts_service.dart';
 import '../../services/unified_swipe_service.dart';
 
@@ -94,10 +94,10 @@ class ServiceLocator {
   static Future<void> _initCore() async {
     // SharedPreferences
     final sharedPreferences = await SharedPreferences.getInstance();
-    sl.registerLazySingleton(() => sharedPreferences);
+    sl.registerSingleton<SharedPreferences>(sharedPreferences);
 
     // DioClient
-    sl.registerLazySingleton(() => DioClient.instance);
+    sl.registerSingleton<DioClient>(DioClient.instance);
     
     // Configure base URL
     DioClient.instance.updateBaseUrl(AppConfig.instance.apiBaseUrl);
@@ -105,8 +105,8 @@ class ServiceLocator {
 
   static Future<void> _initExternal() async {
     // Services
-    sl.registerLazySingleton(() => UnifiedTtsService());
-    sl.registerFactory(() => UnifiedSwipeService.full(sl<SharedPreferences>()));
+    sl.registerLazySingleton<UnifiedTtsService>(() => UnifiedTtsService());
+    sl.registerFactory<UnifiedSwipeService>(() => UnifiedSwipeService.full(sl.get<SharedPreferences>()));
   }
 
   static void _initDataSources() {
@@ -125,74 +125,58 @@ class ServiceLocator {
     // Auth
     sl.registerLazySingleton<AuthRepositoryInterface>(
       () => AuthRepository(
-        remoteDataSource: sl<AuthRemoteDataSource>(),
+        remoteDataSource: sl.get<AuthRemoteDataSource>(),
       ),
     );
 
     // Books
     sl.registerLazySingleton<BookRepositoryInterface>(
       () => BookRepository(
-        remoteDataSource: sl<BookRemoteDataSource>(),
+        remoteDataSource: sl.get<BookRemoteDataSource>(),
       ),
     );
   }
 
   static void _initUseCases() {
     // Auth Use Cases
-    sl.registerLazySingleton(() => SignInUseCase(
-      repository: sl<AuthRepositoryInterface>(),
+    sl.registerLazySingleton<SignInUseCase>(() => SignInUseCase(
+      repository: sl.get<AuthRepositoryInterface>(),
     ));
 
-    sl.registerLazySingleton(() => SignUpUseCase(
-      repository: sl<AuthRepositoryInterface>(),
+    sl.registerLazySingleton<SignUpUseCase>(() => SignUpUseCase(
+      repository: sl.get<AuthRepositoryInterface>(),
     ));
 
-    sl.registerLazySingleton(() => SignOutUseCase(
-      repository: sl<AuthRepositoryInterface>(),
+    sl.registerLazySingleton<SignOutUseCase>(() => SignOutUseCase(
+      repository: sl.get<AuthRepositoryInterface>(),
     ));
 
     // Books Use Cases
-    sl.registerLazySingleton(() => GetBooksUseCase(
-      repository: sl<BookRepositoryInterface>(),
-    ));
-
-    sl.registerLazySingleton(() => GetRecommendationsUseCase(
-      repository: sl<BookRepositoryInterface>(),
-    ));
-
-    sl.registerLazySingleton(() => SearchBooksUseCase(
-      repository: sl<BookRepositoryInterface>(),
-    ));
-
-    sl.registerLazySingleton(() => GetBookByIdUseCase(
-      repository: sl<BookRepositoryInterface>(),
+    sl.registerLazySingleton<GetBooksUseCase>(() => GetBooksUseCase(
+      repository: sl.get<BookRepositoryInterface>(),
     ));
   }
 
   static void _initProviders() {
     // Auth Provider
-    sl.registerFactory(() => AuthProviderNew(
-      signInUseCase: sl<SignInUseCase>(),
-      signUpUseCase: sl<SignUpUseCase>(),
-      signOutUseCase: sl<SignOutUseCase>(),
-      authDataSource: sl<AuthRemoteDataSource>(),
+    sl.registerFactory<AuthProviderNew>(() => AuthProviderNew(
+      signInUseCase: sl.get<SignInUseCase>(),
+      signUpUseCase: sl.get<SignUpUseCase>(),
+      signOutUseCase: sl.get<SignOutUseCase>(),
+      authDataSource: sl.get<AuthRemoteDataSource>(),
     ));
 
-    // Books Provider
-    sl.registerFactory(() => BooksProvider(
-      getBooksUseCase: sl<GetBooksUseCase>(),
-      getRecommendationsUseCase: sl<GetRecommendationsUseCase>(),
-      searchBooksUseCase: sl<SearchBooksUseCase>(),
-    ));
-
-    sl.registerFactory(() => BookDetailProvider(
-      getBookByIdUseCase: sl<GetBookByIdUseCase>(),
-    ));
+    // Books Provider (commented out due to missing use cases)
+    // sl.registerFactory<BooksProvider>(() => BooksProvider(
+    //   getBooksUseCase: sl.get<GetBooksUseCase>(),
+    //   getRecommendationsUseCase: sl.get<GetRecommendationsUseCase>(),
+    //   searchBooksUseCase: sl.get<SearchBooksUseCase>(),
+    // ));
   }
 
   static Future<void> reset() async {
     Logger.warning('Resetting Service Locator');
-    await sl.reset();
+    sl.reset();
   }
 
   static T get<T extends Object>() {
@@ -200,7 +184,7 @@ class ServiceLocator {
   }
 
   static T call<T extends Object>() {
-    return sl<T>();
+    return sl.get<T>();
   }
 
   static bool isRegistered<T extends Object>() {

@@ -17,7 +17,7 @@ class PerformanceMonitor {
 
   void initialize() {
     if (!AppConfig.instance.enableAnalytics) return;
-    
+
     Logger.info('Initializing Performance Monitor');
     _startPeriodicReporting();
   }
@@ -41,11 +41,13 @@ class PerformanceMonitor {
     }
 
     final duration = DateTime.now().difference(startTime);
-    _recordMetric(PerformanceMetric(
-      operation: operation,
-      duration: duration,
-      timestamp: DateTime.now(),
-    ));
+    _recordMetric(
+      PerformanceMetric(
+        operation: operation,
+        duration: duration,
+        timestamp: DateTime.now(),
+      ),
+    );
 
     Logger.debug('Completed $operation in ${duration.inMilliseconds}ms');
     return duration;
@@ -82,7 +84,7 @@ class PerformanceMonitor {
 
   void _recordMetric(PerformanceMetric metric) {
     _metrics.add(metric);
-    
+
     // Keep only last 1000 metrics to prevent memory leaks
     if (_metrics.length > 1000) {
       _metrics.removeRange(0, _metrics.length - 1000);
@@ -90,35 +92,41 @@ class PerformanceMonitor {
 
     // Log slow operations
     if (metric.duration.inMilliseconds > 1000) {
-      Logger.warning('Slow operation detected: ${metric.operation} took ${metric.duration.inMilliseconds}ms');
+      Logger.warning(
+        'Slow operation detected: ${metric.operation} took ${metric.duration.inMilliseconds}ms',
+      );
     }
   }
 
   void _recordError(String operation, dynamic error) {
     Logger.error('Performance monitoring: Error in $operation', error);
-    _recordMetric(PerformanceMetric(
-      operation: '$operation (ERROR)',
-      duration: Duration.zero,
-      timestamp: DateTime.now(),
-      hasError: true,
-      errorMessage: error.toString(),
-    ));
+    _recordMetric(
+      PerformanceMetric(
+        operation: '$operation (ERROR)',
+        duration: Duration.zero,
+        timestamp: DateTime.now(),
+        hasError: true,
+        errorMessage: error.toString(),
+      ),
+    );
   }
 
   void recordCustomMetric(String name, double value, {String? unit}) {
     Logger.debug('Custom metric: $name = $value ${unit ?? ''}');
-    _recordMetric(PerformanceMetric(
-      operation: name,
-      duration: Duration(milliseconds: value.toInt()),
-      timestamp: DateTime.now(),
-      customValue: value,
-      unit: unit,
-    ));
+    _recordMetric(
+      PerformanceMetric(
+        operation: name,
+        duration: Duration(milliseconds: value.toInt()),
+        timestamp: DateTime.now(),
+        customValue: value,
+        unit: unit,
+      ),
+    );
   }
 
   void recordMemoryUsage() {
     if (!kDebugMode) return;
-    
+
     // This would require additional packages for real memory monitoring
     // For now, we'll just log that we're monitoring
     Logger.debug('Memory usage check performed');
@@ -127,7 +135,7 @@ class PerformanceMonitor {
   PerformanceReport generateReport() {
     final now = DateTime.now();
     final last24h = now.subtract(const Duration(hours: 24));
-    
+
     final recentMetrics = _metrics
         .where((m) => m.timestamp.isAfter(last24h))
         .toList();
@@ -147,31 +155,31 @@ class PerformanceMonitor {
   void _generateReport() {
     final report = generateReport();
     Logger.info('Performance Report: ${report.summary}');
-    
+
     if (report.errorCount > 0) {
       Logger.warning('Found ${report.errorCount} errors in the last 24 hours');
     }
 
     if (report.slowOperations.isNotEmpty) {
-      Logger.warning('Slow operations detected: ${report.slowOperations.length}');
+      Logger.warning(
+        'Slow operations detected: ${report.slowOperations.length}',
+      );
     }
   }
 
   Duration _calculateAverageDuration(List<PerformanceMetric> metrics) {
     if (metrics.isEmpty) return Duration.zero;
-    
+
     final totalMs = metrics
         .where((m) => !m.hasError)
         .map((m) => m.duration.inMilliseconds)
         .fold<int>(0, (sum, ms) => sum + ms);
-    
+
     return Duration(milliseconds: totalMs ~/ metrics.length);
   }
 
   List<PerformanceMetric> _getSlowOperations(List<PerformanceMetric> metrics) {
-    return metrics
-        .where((m) => m.duration.inMilliseconds > 1000)
-        .toList()
+    return metrics.where((m) => m.duration.inMilliseconds > 1000).toList()
       ..sort((a, b) => b.duration.compareTo(a.duration));
   }
 
@@ -262,7 +270,7 @@ class PerformanceReport {
 
   @override
   String toString() {
-    return 'PerformanceReport(${summary})';
+    return 'PerformanceReport($summary)';
   }
 }
 

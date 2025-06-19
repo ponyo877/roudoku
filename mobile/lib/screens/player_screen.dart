@@ -10,7 +10,7 @@ import 'voice_settings_screen.dart';
 class PlayerScreen extends StatefulWidget {
   final Book book;
 
-  const PlayerScreen({Key? key, required this.book}) : super(key: key);
+  const PlayerScreen({super.key, required this.book});
 
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -25,7 +25,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   String? _currentChapterContent;
   bool _isLoadingContent = false;
   List<Chapter> _bookChapters = [];
-  
+
   @override
   void initState() {
     super.initState();
@@ -37,17 +37,21 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Future<void> _loadBookChapters() async {
     try {
       final chapters = await _bookService.getBookChapters(widget.book.id);
-      
+
       // Store chapters in local state
       if (chapters.isNotEmpty) {
-        final updatedChapters = chapters.map((chapterData) => Chapter(
-          id: chapterData['ID'] ?? '',
-          title: chapterData['Title'] ?? '章タイトル',
-          duration: 0, // We'll calculate this later
-          startTime: 0,
-          endTime: 0,
-        )).toList();
-        
+        final updatedChapters = chapters
+            .map(
+              (chapterData) => Chapter(
+                id: chapterData['ID'] ?? '',
+                title: chapterData['Title'] ?? '章タイトル',
+                duration: 0, // We'll calculate this later
+                startTime: 0,
+                endTime: 0,
+              ),
+            )
+            .toList();
+
         setState(() {
           _bookChapters = updatedChapters;
         });
@@ -60,7 +64,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
           startTime: 0,
           endTime: widget.book.duration * 60, // Convert minutes to seconds
         );
-        
+
         setState(() {
           _bookChapters = [fallbackChapter];
         });
@@ -74,21 +78,24 @@ class _PlayerScreenState extends State<PlayerScreen> {
         startTime: 0,
         endTime: widget.book.duration * 60,
       );
-      
+
       setState(() {
         _bookChapters = [fallbackChapter];
       });
     }
   }
-  
+
   void _initializeTts() {
     _ttsService = Provider.of<CloudTtsService>(context, listen: false);
     _bookService = BookService();
-    
+
     // Share the audio player with TTS service
-    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+    final audioProvider = Provider.of<AudioPlayerProvider>(
+      context,
+      listen: false,
+    );
     _ttsService.setAudioPlayer(audioProvider.audioPlayer);
-    
+
     // Setup TTS callbacks
     _ttsService.onPlayingChanged = () {
       if (mounted) {
@@ -101,7 +108,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   Future<void> _loadChapterContent(String chapterId) async {
     if (_isLoadingContent) return;
-    
+
     setState(() {
       _isLoadingContent = true;
     });
@@ -113,9 +120,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
         final chapters = await _bookService.getBookChapters(widget.book.id);
         if (chapters.isNotEmpty) {
           final firstChapter = chapters[0];
-          final chapterData = await _bookService.getChapterContent(widget.book.id, firstChapter['ID'] ?? '');
+          final chapterData = await _bookService.getChapterContent(
+            widget.book.id,
+            firstChapter['ID'] ?? '',
+          );
           setState(() {
-            _currentChapterContent = chapterData['content'] ?? chapterData['Content'] ?? '''${widget.book.title}
+            _currentChapterContent =
+                chapterData['content'] ??
+                chapterData['Content'] ??
+                '''${widget.book.title}
 
 著者: ${widget.book.author}
 
@@ -126,7 +139,8 @@ ${widget.book.description}
           });
         } else {
           setState(() {
-            _currentChapterContent = '''${widget.book.title}
+            _currentChapterContent =
+                '''${widget.book.title}
 
 著者: ${widget.book.author}
 
@@ -139,16 +153,21 @@ ${widget.book.description}
           });
         }
       } else {
-        final chapterData = await _bookService.getChapterContent(widget.book.id, chapterId);
+        final chapterData = await _bookService.getChapterContent(
+          widget.book.id,
+          chapterId,
+        );
         setState(() {
-          _currentChapterContent = chapterData['content'] ?? chapterData['Content'] ?? '';
+          _currentChapterContent =
+              chapterData['content'] ?? chapterData['Content'] ?? '';
           _isLoadingContent = false;
         });
       }
     } catch (e) {
       // Set fallback content
       setState(() {
-        _currentChapterContent = '''${widget.book.title}の内容を読み込めませんでした。
+        _currentChapterContent =
+            '''${widget.book.title}の内容を読み込めませんでした。
 
 著者: ${widget.book.author}
 
@@ -159,20 +178,26 @@ ${widget.book.description}''';
   }
 
   Future<void> _speakCurrentChapter() async {
-    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
-    final chapters = _bookChapters.isNotEmpty ? _bookChapters : widget.book.chapters;
-    
-    if (chapters.isEmpty || audioProvider.currentChapterIndex >= chapters.length) {
+    final audioProvider = Provider.of<AudioPlayerProvider>(
+      context,
+      listen: false,
+    );
+    final chapters = _bookChapters.isNotEmpty
+        ? _bookChapters
+        : widget.book.chapters;
+
+    if (chapters.isEmpty ||
+        audioProvider.currentChapterIndex >= chapters.length) {
       return;
     }
-    
+
     final currentChapter = chapters[audioProvider.currentChapterIndex];
-    
+
     // Load chapter content if not already loaded
     if (_currentChapterContent == null) {
       await _loadChapterContent(currentChapter.id);
     }
-    
+
     if (_currentChapterContent != null && _currentChapterContent!.isNotEmpty) {
       if (_isSpeaking) {
         await _ttsService.stop();
@@ -185,7 +210,9 @@ ${widget.book.description}''';
       if (_isSpeaking) {
         await _ttsService.stop();
       } else {
-        await _ttsService.speak('第${audioProvider.currentChapterIndex + 1}章: $chapterTitle');
+        await _ttsService.speak(
+          '第${audioProvider.currentChapterIndex + 1}章: $chapterTitle',
+        );
       }
     }
   }
@@ -272,10 +299,7 @@ ${widget.book.description}''';
                       const SizedBox(height: 8),
                       Text(
                         widget.book.author,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -284,9 +308,15 @@ ${widget.book.description}''';
                           Expanded(
                             child: Text(
                               () {
-                                final chapters = _bookChapters.isNotEmpty ? _bookChapters : widget.book.chapters;
-                                if (chapters.isNotEmpty && audioProvider.currentChapterIndex < chapters.length) {
-                                  final currentChapter = chapters[audioProvider.currentChapterIndex];
+                                final chapters = _bookChapters.isNotEmpty
+                                    ? _bookChapters
+                                    : widget.book.chapters;
+                                if (chapters.isNotEmpty &&
+                                    audioProvider.currentChapterIndex <
+                                        chapters.length) {
+                                  final currentChapter =
+                                      chapters[audioProvider
+                                          .currentChapterIndex];
                                   return '第${audioProvider.currentChapterIndex + 1}章: ${currentChapter.title}';
                                 }
                                 return '';
@@ -299,19 +329,29 @@ ${widget.book.description}''';
                             ),
                           ),
                           if ((() {
-                            final chapters = _bookChapters.isNotEmpty ? _bookChapters : widget.book.chapters;
-                            return chapters.isNotEmpty && audioProvider.currentChapterIndex < chapters.length;
+                            final chapters = _bookChapters.isNotEmpty
+                                ? _bookChapters
+                                : widget.book.chapters;
+                            return chapters.isNotEmpty &&
+                                audioProvider.currentChapterIndex <
+                                    chapters.length;
                           })())
                             IconButton(
                               icon: Icon(
                                 _isSpeaking ? Icons.stop : Icons.volume_up,
-                                color: _isSpeaking 
-                                    ? Colors.red 
+                                color: _isSpeaking
+                                    ? Colors.red
                                     : Theme.of(context).primaryColor,
                                 size: 20,
                               ),
-                              onPressed: _isLoadingContent ? null : _speakCurrentChapter,
-                              tooltip: _isSpeaking ? '読み上げを停止' : (_isLoadingContent ? '章を読み込み中...' : '章の内容を読み上げ'),
+                              onPressed: _isLoadingContent
+                                  ? null
+                                  : _speakCurrentChapter,
+                              tooltip: _isSpeaking
+                                  ? '読み上げを停止'
+                                  : (_isLoadingContent
+                                        ? '章を読み込み中...'
+                                        : '章の内容を読み上げ'),
                             ),
                         ],
                       ),
@@ -324,21 +364,27 @@ ${widget.book.description}''';
                       stream: audioProvider.positionStream,
                       builder: (context, snapshot) {
                         final position = snapshot.data ?? Duration.zero;
-                        final duration = audioProvider.duration ?? Duration.zero;
-                        
+                        final duration =
+                            audioProvider.duration ?? Duration.zero;
+
                         return Column(
                           children: [
                             Slider(
                               value: position.inSeconds.toDouble(),
                               max: duration.inSeconds.toDouble(),
                               onChanged: (value) {
-                                audioProvider.seek(Duration(seconds: value.toInt()));
+                                audioProvider.seek(
+                                  Duration(seconds: value.toInt()),
+                                );
                               },
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(_formatDuration(position)),
                                   Text(_formatDuration(duration)),
@@ -367,7 +413,8 @@ ${widget.book.description}''';
                               ? () {
                                   audioProvider.previousChapter();
                                   setState(() {
-                                    _currentChapterContent = null; // Reset content for new chapter
+                                    _currentChapterContent =
+                                        null; // Reset content for new chapter
                                   });
                                 }
                               : null,
@@ -410,7 +457,8 @@ ${widget.book.description}''';
                               ? () {
                                   audioProvider.nextChapter();
                                   setState(() {
-                                    _currentChapterContent = null; // Reset content for new chapter
+                                    _currentChapterContent =
+                                        null; // Reset content for new chapter
                                   });
                                 }
                               : null,
@@ -551,17 +599,19 @@ ${widget.book.description}''';
       context: context,
       builder: (context) {
         final audioProvider = context.read<AudioPlayerProvider>();
-        final chapters = _bookChapters.isNotEmpty ? _bookChapters : widget.book.chapters;
+        final chapters = _bookChapters.isNotEmpty
+            ? _bookChapters
+            : widget.book.chapters;
         return ListView.builder(
           itemCount: chapters.length,
           itemBuilder: (context, index) {
             final chapter = chapters[index];
             final isCurrentChapter = audioProvider.currentChapterIndex == index;
-            
+
             return ListTile(
               leading: CircleAvatar(
-                backgroundColor: isCurrentChapter 
-                    ? Theme.of(context).primaryColor 
+                backgroundColor: isCurrentChapter
+                    ? Theme.of(context).primaryColor
                     : Colors.grey[300],
                 child: Text(
                   '${index + 1}',
@@ -573,17 +623,20 @@ ${widget.book.description}''';
               title: Text(
                 chapter.title,
                 style: TextStyle(
-                  fontWeight: isCurrentChapter ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isCurrentChapter
+                      ? FontWeight.bold
+                      : FontWeight.normal,
                 ),
               ),
               subtitle: Text('${chapter.duration}分'),
-              trailing: isCurrentChapter 
+              trailing: isCurrentChapter
                   ? const Icon(Icons.play_arrow, color: Colors.blue)
                   : null,
               onTap: () {
                 audioProvider.seekToChapter(index);
                 setState(() {
-                  _currentChapterContent = null; // Reset content for new chapter
+                  _currentChapterContent =
+                      null; // Reset content for new chapter
                 });
                 Navigator.pop(context);
               },

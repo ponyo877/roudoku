@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"go.uber.org/zap"
-
 	"github.com/ponyo877/roudoku/server/domain"
 	"github.com/ponyo877/roudoku/server/dto"
 	"github.com/ponyo877/roudoku/server/mappers"
@@ -56,11 +54,11 @@ func (s *bookService) CreateBook(ctx context.Context, req *dto.CreateBookRequest
 
 // GetBook retrieves a book by ID
 func (s *bookService) GetBook(ctx context.Context, id int64) (*domain.Book, error) {
-	s.logger.Debug("Getting book", zap.Int64("book_id", id))
+	s.logger.Debug("Getting book")
 	
 	book, err := s.bookRepo.GetByID(ctx, id)
 	if err != nil {
-		s.logger.Error("Failed to get book", zap.Int64("book_id", id), zap.Error(err))
+		s.logger.Error("Failed to get book")
 		return nil, fmt.Errorf("failed to get book: %w", err)
 	}
 	return book, nil
@@ -111,7 +109,7 @@ func (s *bookService) GetRandomQuotes(ctx context.Context, bookID int64, limit i
 		limit = DefaultLimit
 	}
 	limit = s.NormalizeLimit(limit)
-	s.logger.Debug("Getting random quotes", zap.Int64("book_id", bookID), zap.Int("limit", limit))
+	s.logger.Debug("Getting random quotes")
 
 	quotes, err := s.bookRepo.GetRandomQuotes(ctx, bookID, limit)
 	if err != nil {

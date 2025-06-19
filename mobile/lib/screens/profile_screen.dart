@@ -4,7 +4,7 @@ import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,11 +13,11 @@ class ProfileScreen extends StatelessWidget {
         child: Consumer2<AuthProvider, UserProvider>(
           builder: (context, authProvider, userProvider, child) {
             final user = authProvider.currentUser;
-            
+
             if (user == null) {
               return _buildLoginPrompt(context, authProvider);
             }
-            
+
             return Column(
               children: [
                 _buildHeader(context, user, userProvider),
@@ -40,25 +40,16 @@ class ProfileScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 100),
-          const Icon(
-            Icons.person_outline,
-            size: 100,
-            color: Colors.grey,
-          ),
+          const Icon(Icons.person_outline, size: 100, color: Colors.grey),
           const SizedBox(height: 24),
           const Text(
             'アカウントにログインしてください',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           const Text(
             '進捗を保存し、複数のデバイスで同期します',
-            style: TextStyle(
-              color: Colors.grey,
-            ),
+            style: TextStyle(color: Colors.grey),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -92,7 +83,11 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, dynamic user, UserProvider userProvider) {
+  Widget _buildHeader(
+    BuildContext context,
+    dynamic user,
+    UserProvider userProvider,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       color: Theme.of(context).primaryColor.withOpacity(0.1),
@@ -100,28 +95,20 @@ class ProfileScreen extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: user.photoUrl != null 
-                ? NetworkImage(user.photoUrl!) 
+            backgroundImage: user.photoUrl != null
+                ? NetworkImage(user.photoUrl!)
                 : null,
-            child: user.photoUrl == null 
-                ? const Icon(Icons.person, size: 50) 
+            child: user.photoUrl == null
+                ? const Icon(Icons.person, size: 50)
                 : null,
           ),
           const SizedBox(height: 16),
           Text(
             user.displayName ?? 'ゲストユーザー',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
-          Text(
-            user.email ?? '',
-            style: TextStyle(
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(user.email ?? '', style: TextStyle(color: Colors.grey[600])),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -175,18 +162,9 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-          ),
-        ),
+        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
       ],
     );
   }
@@ -263,7 +241,10 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.pop(context);
                       await authProvider.signOut();
                     },
-                    child: const Text('ログアウト', style: TextStyle(color: Colors.red)),
+                    child: const Text(
+                      'ログアウト',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
                 ],
               ),

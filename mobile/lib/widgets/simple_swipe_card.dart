@@ -6,29 +6,24 @@ class SimpleSwipeCard extends StatelessWidget {
   final VoidCallback? onSwipeRight;
 
   const SimpleSwipeCard({
-    Key? key,
+    super.key,
     required this.quoteData,
     this.onSwipeLeft,
     this.onSwipeRight,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final quote = quoteData['quote'] as Map<String, dynamic>;
     final book = quoteData['book'] as Map<String, dynamic>;
-    
+
     return Card(
       margin: const EdgeInsets.all(16),
       elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         padding: const EdgeInsets.all(24),
-        constraints: const BoxConstraints(
-          minHeight: 400,
-          maxHeight: 600,
-        ),
+        constraints: const BoxConstraints(minHeight: 400, maxHeight: 600),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -46,9 +41,9 @@ class SimpleSwipeCard extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Book information
             Column(
               children: [
@@ -64,17 +59,14 @@ class SimpleSwipeCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   book['author'] ?? '',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Action buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -86,11 +78,7 @@ class SimpleSwipeCard extends StatelessWidget {
                     shape: const CircleBorder(),
                     padding: const EdgeInsets.all(16),
                   ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 24),
                 ),
                 ElevatedButton(
                   onPressed: onSwipeRight,

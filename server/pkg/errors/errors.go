@@ -70,11 +70,30 @@ func NotFound(message string) *AppError {
 	}
 }
 
-func BadRequest(message string) *AppError {
+func BadRequest(message string, err error) *AppError {
 	return &AppError{
 		Code:       ErrBadRequest.Code,
 		Message:    message,
 		StatusCode: ErrBadRequest.StatusCode,
+		Err:        err,
+	}
+}
+
+func Unauthorized(message string, err error) *AppError {
+	return &AppError{
+		Code:       ErrUnauthorized.Code,
+		Message:    message,
+		StatusCode: ErrUnauthorized.StatusCode,
+		Err:        err,
+	}
+}
+
+func InternalServerError(message string, err error) *AppError {
+	return &AppError{
+		Code:       ErrInternalServer.Code,
+		Message:    message,
+		StatusCode: ErrInternalServer.StatusCode,
+		Err:        err,
 	}
 }
 

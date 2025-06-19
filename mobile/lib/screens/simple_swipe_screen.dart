@@ -9,10 +9,7 @@ import '../widgets/simple_swipe_card.dart';
 class SimpleSwipeScreen extends StatefulWidget {
   final SwipeMode mode;
 
-  const SimpleSwipeScreen({
-    Key? key,
-    this.mode = SwipeMode.tinder,
-  }) : super(key: key);
+  const SimpleSwipeScreen({super.key, this.mode = SwipeMode.tinder});
 
   @override
   State<SimpleSwipeScreen> createState() => _SimpleSwipeScreenState();
@@ -74,7 +71,7 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
     if (_currentIndex < _quotes.length) {
       final quote = _quotes[_currentIndex];
       final quoteId = quote['quote']['id'].toString();
-      
+
       _swipeService.logSwipe(
         userId: 'test-user', // For testing
         quoteId: quoteId,
@@ -85,7 +82,7 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
       setState(() {
         _currentIndex++;
       });
-      
+
       // Auto-speak next quote if enabled
       _autoSpeakCurrentQuote();
     }
@@ -95,7 +92,7 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
     if (_currentIndex < _quotes.length) {
       final quote = _quotes[_currentIndex];
       final quoteId = quote['quote']['id'].toString();
-      
+
       _swipeService.logSwipe(
         userId: 'test-user', // For testing
         quoteId: quoteId,
@@ -106,12 +103,12 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
       setState(() {
         _currentIndex++;
       });
-      
+
       // Auto-speak next quote if enabled
       _autoSpeakCurrentQuote();
     }
   }
-  
+
   void _autoSpeakCurrentQuote() {
     if (_currentIndex < _quotes.length) {
       final quote = _quotes[_currentIndex];
@@ -124,7 +121,7 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
     if (_currentIndex < _quotes.length) {
       final quote = _quotes[_currentIndex];
       final quoteText = quote['quote']['text'] ?? '';
-      
+
       if (_isSpeaking) {
         print("Stopping TTS...");
         await _ttsService.stop();
@@ -138,7 +135,7 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
   Future<void> _testTTS() async {
     const testText = "これはテスト音声です。音声が聞こえますか？";
     print("Testing TTS with: $testText");
-    
+
     if (_isSpeaking) {
       await _ttsService.stop();
     } else {
@@ -150,13 +147,17 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.mode == SwipeMode.tinder ? 'Swipe Mode' : 'Quote Comparison'),
+        title: Text(
+          widget.mode == SwipeMode.tinder ? 'Swipe Mode' : 'Quote Comparison',
+        ),
         centerTitle: true,
         actions: [
           // Auto-play toggle
           IconButton(
             icon: Icon(
-              _ttsService.autoPlayEnabled ? Icons.auto_awesome : Icons.auto_awesome_outlined,
+              _ttsService.autoPlayEnabled
+                  ? Icons.auto_awesome
+                  : Icons.auto_awesome_outlined,
               color: _ttsService.autoPlayEnabled ? Colors.orange : null,
             ),
             onPressed: () {
@@ -168,10 +169,7 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
           ),
           // Test TTS button
           IconButton(
-            icon: Icon(
-              Icons.volume_up,
-              color: Colors.green,
-            ),
+            icon: Icon(Icons.volume_up, color: Colors.green),
             onPressed: _testTTS,
             tooltip: 'TTS テスト',
           ),
@@ -209,11 +207,7 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
               'Oops! Something went wrong',
@@ -246,10 +240,7 @@ class _SimpleSwipeScreenState extends State<SimpleSwipeScreen> {
               color: Colors.green,
             ),
             const SizedBox(height: 16),
-            Text(
-              'All done!',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text('All done!', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             const Text('You have swiped through all available quotes.'),
             const SizedBox(height: 16),
