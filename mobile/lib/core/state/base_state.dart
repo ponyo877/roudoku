@@ -8,13 +8,12 @@ abstract class BaseState<T> {
   final String? errorMessage;
   final DateTime lastUpdated;
 
-  const BaseState({
+  BaseState({
     required this.loadingState,
     this.data,
     this.errorMessage,
     DateTime? lastUpdated,
-  }) : lastUpdated =
-           lastUpdated ?? const DateTime.fromMillisecondsSinceEpoch(0);
+  }) : lastUpdated = lastUpdated ?? DateTime.now();
 
   bool get isInitial => loadingState == LoadingState.initial;
   bool get isLoading => loadingState == LoadingState.loading;
@@ -36,7 +35,7 @@ abstract class BaseState<T> {
 }
 
 class DataState<T> extends BaseState<T> {
-  const DataState({
+  DataState({
     required super.loadingState,
     super.data,
     super.errorMessage,
@@ -44,7 +43,7 @@ class DataState<T> extends BaseState<T> {
   });
 
   factory DataState.initial() {
-    return const DataState(loadingState: LoadingState.initial);
+    return DataState(loadingState: LoadingState.initial);
   }
 
   factory DataState.loading([T? currentData]) {
@@ -90,7 +89,7 @@ class ListState<T> extends BaseState<List<T>> {
   final int currentPage;
   final bool isRefreshing;
 
-  const ListState({
+  ListState({
     required super.loadingState,
     super.data,
     super.errorMessage,
@@ -101,7 +100,7 @@ class ListState<T> extends BaseState<List<T>> {
   });
 
   factory ListState.initial() {
-    return const ListState(loadingState: LoadingState.initial, data: []);
+    return ListState(loadingState: LoadingState.initial, data: []);
   }
 
   factory ListState.loading([List<T>? currentData]) {

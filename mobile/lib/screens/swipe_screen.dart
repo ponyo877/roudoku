@@ -610,8 +610,8 @@ class _SwipeScreenState extends State<SwipeScreen>
                 child: SlideAnimation(
                   verticalOffset: (i - _currentIndex) * 10.0,
                   child: SwipeCardWidget(
-                    key: ValueKey('quote_${_quotes[i].quote.id}'),
-                    quoteWithBook: _quotes[i],
+                    key: ValueKey('quote_${_quotes[i]['quote']['id']}'),
+                    quoteWithBook: QuoteWithBook.fromJson(_quotes[i]),
                     onSwipe: i == _currentIndex ? _onSwipe : null,
                     onTap: i == _currentIndex ? _onCardTap : null,
                     isTopCard: i == _currentIndex,

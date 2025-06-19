@@ -76,7 +76,8 @@ abstract class BaseProvider<T> extends ChangeNotifier {
 
   BaseState<T> _createErrorState(String error) {
     if (_state is ListState<dynamic>) {
-      return ListState<dynamic>.error(error, _state.data) as BaseState<T>;
+      return ListState<dynamic>.error(error, _state.data as List<dynamic>?)
+          as BaseState<T>;
     } else {
       return DataState<T>.error(error, _state.data);
     }

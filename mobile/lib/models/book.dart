@@ -37,10 +37,10 @@ class Book {
       audioUrl: json['audio_url'] ?? json['audioUrl'] ?? '',
       duration: json['estimated_reading_minutes'] ?? json['duration'] ?? 0,
       category: json['genre'] ?? json['category'] ?? '',
-      chapters: json['chapters'] != null 
+      chapters: json['chapters'] != null
           ? (json['chapters'] as List)
-              .map((chapter) => Chapter.fromJson(chapter))
-              .toList()
+                .map((chapter) => Chapter.fromJson(chapter))
+                .toList()
           : [],
       rating: (json['rating_average'] ?? json['rating'] ?? 0).toDouble(),
       reviewCount: json['rating_count'] ?? json['reviewCount'] ?? 0,

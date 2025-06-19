@@ -275,14 +275,14 @@ class PerformanceReport {
 }
 
 // Convenience extensions for easy measurement
-extension PerformanceExtensions on Future<T> Function() {
+extension PerformanceExtensions<T> on Future<T> Function() {
   Future<T> measured(String operation) {
     return PerformanceMonitor.instance.measureAsync(operation, this);
   }
 }
 
-extension SyncPerformanceExtensions on T Function() {
-  T measured<T>(String operation) {
+extension SyncPerformanceExtensions<T> on T Function() {
+  T measured(String operation) {
     return PerformanceMonitor.instance.measureSync<T>(operation, this);
   }
 }
